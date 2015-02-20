@@ -10,10 +10,11 @@ import com.stephenwranger.graphics.collections.Pair;
 import com.stephenwranger.graphics.math.Tuple2d;
 
 public class Graph implements Renderable2d {
-   private final List<Tuple2d> points = new ArrayList<Tuple2d>();
-   private final List<Pair<Tuple2d, Tuple2d>> edges  = new ArrayList<Pair<Tuple2d, Tuple2d>>();
+   private final List<Tuple2d>                points = new ArrayList<Tuple2d>();
+   private final List<Tuple2d>                edges = new ArrayList<Tuple2d>();
+//   private final List<Pair<Tuple2d, Tuple2d>> edges  = new ArrayList<Pair<Tuple2d, Tuple2d>>();
 
-   public Graph(final List<Tuple2d> points, final List<Pair<Tuple2d, Tuple2d>> edges) {
+   public Graph(final List<Tuple2d> points, final List<Tuple2d> edges) {//final List<Pair<Tuple2d, Tuple2d>> edges) {
       this.points.addAll(points);
       this.edges.addAll(edges);
    }
@@ -61,8 +62,18 @@ public class Graph implements Renderable2d {
       int leftX, leftY, rightX, rightY;
 
       graphics.setStroke(new BasicStroke(3f));
+//      float colorStep = 1.0f / (edges.size() * 1.2f);
+//      float value = 0;
+//      int ctr = 0;
 
-      for (final Pair<Tuple2d, Tuple2d> edge : this.edges) {
+      Pair<Tuple2d, Tuple2d> edge;
+//      for (final Pair<Tuple2d, Tuple2d> edge : this.edges) {
+      for(int i = 0; i < edges.size(); i++) {
+         edge = Pair.getInstance(edges.get(i), edges.get((i+1)%edges.size()));
+//         value = Math.min(1f, colorStep * ctr);
+//         graphics.setColor(new Color(value, value, value));
+//         ctr++;
+
          leftX = (int) ((edge.left.x - minX) / xDiff * (bounds.width - border * 2.0) + border);
          leftY = (int) ((edge.left.y - minY) / yDiff * (bounds.height - border * 2.0) + border);
          rightX = (int) ((edge.right.x - minX) / xDiff * (bounds.width - border * 2.0) + border);
