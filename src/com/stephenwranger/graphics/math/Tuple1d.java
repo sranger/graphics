@@ -29,6 +29,10 @@ public class Tuple1d {
       return new float[] { (float) this.x };
    }
 
+   public double distance(final Tuple1d other) {
+      return Math.abs(this.x - other.x);
+   }
+
    @Override
    public String toString() {
       return "(" + this.x + ")";

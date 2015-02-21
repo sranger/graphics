@@ -35,6 +35,14 @@ public class Tuple2d extends Tuple1d {
       this.y = tuple.y;
    }
 
+   public double distanceSquared(final Tuple2d other) {
+      return (this.x - other.x) * (this.x - other.x) + (this.y - other.y) * (this.y - other.y);
+   }
+
+   public double distance(final Tuple2d other) {
+      return Math.sqrt(this.distanceSquared(other));
+   }
+
    @Override
    public float[] toFloatArray() {
       return new float[] { (float) this.x, (float) this.y };
