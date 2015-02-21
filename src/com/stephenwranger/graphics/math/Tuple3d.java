@@ -35,6 +35,14 @@ public class Tuple3d extends Tuple2d {
       this.z = tuple.z;
    }
 
+   public double distanceSquared(final Tuple3d other) {
+      return (this.x - other.x) * (this.x - other.x) + (this.y - other.y) * (this.y - other.y) + (this.z - other.z) * (this.z - other.z);
+   }
+
+   public double distance(final Tuple3d other) {
+      return Math.sqrt(this.distanceSquared(other));
+   }
+
    @Override
    public float[] toFloatArray() {
       return new float[] { (float) this.x, (float) this.y, (float) this.z };
