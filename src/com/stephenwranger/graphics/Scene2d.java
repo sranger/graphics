@@ -29,6 +29,7 @@ public class Scene2d extends JComponent {
       final Graphics2D g2d = (Graphics2D) g;
 
       for (final Renderable2d renderable : this.renderables) {
+         renderable.setDimensions(this.getSize());
          renderable.paint(g2d);
       }
    }
