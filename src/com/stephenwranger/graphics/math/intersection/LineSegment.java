@@ -1,6 +1,7 @@
 package com.stephenwranger.graphics.math.intersection;
 
 import com.stephenwranger.graphics.math.Tuple2d;
+import com.stephenwranger.graphics.math.Vector2d;
 
 
 public class LineSegment implements PointIntersectable {
@@ -150,5 +151,26 @@ public class LineSegment implements PointIntersectable {
          return IntersectionUtils.isEqual(this.x, point.x);
       }
       return false;
+   }
+
+   public double length() {
+      return this.min.distance(this.max);
+   }
+
+   public Tuple2d getMidpoint() {
+      final Vector2d v = new Vector2d();
+      v.add(this.max, this.min);
+      v.scale(0.5);
+
+      return new Tuple2d(v.x, v.y);
+   }
+
+   public Tuple2d getPerpendicular(final Tuple2d origin, final double distance) {
+      final Vector2d p = new Vector2d().subtract(this.max, this.min);
+      final Vector2d n = new Vector2d(-p.y, p.x);
+      n.normalize().scale(distance);
+      final Tuple2d perpendicularPoint = new Tuple2d().add(origin, n);
+
+      return perpendicularPoint;
    }
 }

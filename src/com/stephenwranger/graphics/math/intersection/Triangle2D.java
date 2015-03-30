@@ -3,6 +3,7 @@ package com.stephenwranger.graphics.math.intersection;
 import java.util.List;
 
 import com.stephenwranger.graphics.math.Tuple2d;
+import com.stephenwranger.graphics.renderables.Circle;
 
 public class Triangle2D implements PointIntersectable, LineIntersectable {
    private final Tuple2d[] corners = new Tuple2d[3];
@@ -41,5 +42,31 @@ public class Triangle2D implements PointIntersectable, LineIntersectable {
    @Override
    public List<Tuple2d> getIntersection(final LineSegment segment) {
       return IntersectionUtils.lineIntersectTriangle(this, segment);
+   }
+
+   public Circle getCircumscribedCircle() {
+      final LineSegment aEdge = new LineSegment(this.corners[0], this.corners[1]);
+      final LineSegment bEdge = new LineSegment(this.corners[1], this.corners[2]);
+      final LineSegment cEdge = new LineSegment(this.corners[2], this.corners[0]);
+
+      final double a = aEdge.length();
+      final double b = bEdge.length();
+      final double c = cEdge.length();
+
+      final double radius = (a * b * c) / (Math.sqrt((a + b + c) * (b + c - a) * (c + a - b) * (a + b - c)));
+
+      final Tuple2d aMid = aEdge.getMidpoint();
+      final Tuple2d aPerp1 = aEdge.getPerpendicular(aMid, radius);
+      final Tuple2d aPerp2 = aEdge.getPerpendicular(aMid, -radius);
+      final LineSegment aPerp = new LineSegment(aPerp1, aPerp2);
+
+      final Tuple2d bMid = bEdge.getMidpoint();
+      final Tuple2d bPerp1 = bEdge.getPerpendicular(bMid, radius);
+      final Tuple2d bPerp2 = bEdge.getPerpendicular(bMid, -radius);
+      final LineSegment bPerp = new LineSegment(bPerp1, bPerp2);
+
+      final Tuple2d center = aPerp.intersect(bPerp);
+
+      return new Circle(center, radius);
    }
 }
