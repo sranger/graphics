@@ -28,6 +28,13 @@ public class Vector2d extends Tuple2d implements Vector {
       return this;
    }
 
+   public Vector2d scale(final double scale) {
+      this.x *= scale;
+      this.y *= scale;
+
+      return this;
+   }
+
    public double dot(final Vector2d other) {
       return this.x * other.x + this.y * other.y;
    }
