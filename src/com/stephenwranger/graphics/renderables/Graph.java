@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.stephenwranger.graphics.math.Tuple2d;
+import com.stephenwranger.graphics.math.intersection.LineSegment;
 
 public class Graph implements Renderable2d {
    private final List<Tuple2d>     points = new ArrayList<Tuple2d>();

@@ -43,6 +43,34 @@ public class Tuple2d extends Tuple1d {
       return Math.sqrt(this.distanceSquared(other));
    }
 
+   public Tuple2d add(final Tuple2d other) {
+      this.x += other.x;
+      this.y += other.y;
+
+      return this;
+   }
+
+   public Tuple2d add(final Tuple2d o1, final Tuple2d o2) {
+      this.x = o1.x + o2.x;
+      this.y = o1.y + o2.y;
+
+      return this;
+   }
+
+   public Tuple2d subtract(final Tuple2d other) {
+      this.x -= other.x;
+      this.y -= other.y;
+
+      return this;
+   }
+
+   public Tuple2d subtract(final Tuple2d o1, final Tuple2d o2) {
+      this.x = o1.x - o2.x;
+      this.y = o1.y - o2.y;
+
+      return this;
+   }
+
    @Override
    public float[] toFloatArray() {
       return new float[] { (float) this.x, (float) this.y };

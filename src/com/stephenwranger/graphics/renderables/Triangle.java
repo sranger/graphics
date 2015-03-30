@@ -1,5 +1,6 @@
 package com.stephenwranger.graphics.renderables;
 
+import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.glu.GLU;
@@ -27,10 +28,10 @@ public class Triangle extends Renderable {
       this.baseWidth = baseWidth;
       this.height = height;
       
-      vert = new Tuple3d[3];
-      vert[0] = new Tuple3d(-baseWidth * 0.5, -height * 0.5, 0);
-      vert[1] = new Tuple3d(baseWidth * 0.5, -height * 0.5, 0);
-      vert[2] = new Tuple3d(0, height * 0.5, 0);
+      this.vert = new Tuple3d[3];
+      this.vert[0] = new Tuple3d(-baseWidth * 0.5, -height * 0.5, 0);
+      this.vert[1] = new Tuple3d(baseWidth * 0.5, -height * 0.5, 0);
+      this.vert[2] = new Tuple3d(0, height * 0.5, 0);
    }
 
    @Override
@@ -45,19 +46,18 @@ public class Triangle extends Renderable {
 
    @Override
    public void render(final GL2 gl, final GLU glu, final GLAutoDrawable glDrawable, Scene scene) {
-      gl.glBegin(GL2.GL_TRIANGLES);
+      gl.glBegin(GL.GL_TRIANGLES);
       
-      gl.glColor4f(color.r, color.g, color.b, color.a);
-      gl.glVertex3f((float)vert[0].x, (float)vert[0].y, (float)vert[0].z);
-      gl.glVertex3f((float)vert[1].x, (float)vert[1].y, (float)vert[1].z);
-      gl.glVertex3f((float)vert[2].x, (float)vert[2].y, (float)vert[2].z);
+      gl.glColor4f(this.color.r, this.color.g, this.color.b, this.color.a);
+      gl.glVertex3f((float)this.vert[0].x, (float)this.vert[0].y, (float)this.vert[0].z);
+      gl.glVertex3f((float)this.vert[1].x, (float)this.vert[1].y, (float)this.vert[1].z);
+      gl.glVertex3f((float)this.vert[2].x, (float)this.vert[2].y, (float)this.vert[2].z);
       
       gl.glEnd();
    }
 
    @Override
    public BoundingVolume getBoundingVolume() {
-      return new BoundingBox(getPosition(), baseWidth, height, 0);
+      return new BoundingBox(this.getPosition(), this.baseWidth, this.height, 0);
    }
-
 }
