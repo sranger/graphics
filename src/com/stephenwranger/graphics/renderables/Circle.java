@@ -23,7 +23,7 @@ public class Circle implements Renderable2d, PointIntersectable {
    }
 
    @Override
-   public void paint(Graphics2D graphics) {
+   public void paint(final Graphics2D graphics) {
 
    }
 
@@ -37,4 +37,11 @@ public class Circle implements Renderable2d, PointIntersectable {
       return this.dimensions;
    }
 
+   public Tuple2d getCenter() {
+      return new Tuple2d(this.center);
+   }
+
+   public double getRadius() {
+      return this.radius;
+   }
 }
