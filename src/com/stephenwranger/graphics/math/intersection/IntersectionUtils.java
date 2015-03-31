@@ -56,7 +56,7 @@ public class IntersectionUtils {
       for (int i = 0; i < corners.length; i++) {
          temp = new LineSegment(corners[i], corners[(i + 1) % corners.length]);
 
-         if (IntersectionUtils.lineSegmentsIntersect(segment, temp, result)) {
+         if (IntersectionUtils.lineSegmentsIntersect(segment, temp, result) && !intersected.contains(result)) {
             intersected.add(new Tuple2d(result));
          }
       }
