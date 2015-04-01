@@ -1,13 +1,23 @@
 package com.stephenwranger.graphics.math.intersection;
 
+import java.awt.BasicStroke;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
 import java.util.Arrays;
 import java.util.List;
 
 import com.stephenwranger.graphics.math.Tuple2d;
+import com.stephenwranger.graphics.renderables.Renderable2d;
 
-public class Trapezoid implements PointIntersectable, LineIntersectable {
+public class Trapezoid implements PointIntersectable, LineIntersectable, Renderable2d {
    private final Tuple2d[] corners = new Tuple2d[4];
    private final Triangle2D t1, t2;
+
+   // for Renderable2d
+   private Dimension        dimensions = new Dimension(0, 0);
+   private int              scale      = 1;
+   private float            lineWidth  = 2f;
+
    public final double      minX, minY, maxX, maxY, width, height;
 
    /**
@@ -202,5 +212,39 @@ public class Trapezoid implements PointIntersectable, LineIntersectable {
          return false;
       }
       return true;
+   }
+
+   public void setScale(final int scale) {
+      this.scale = scale;
+   }
+
+   public void setLineWidth(final float lineWidth) {
+      this.lineWidth = lineWidth;
+   }
+
+   @Override
+   public void paint(final Graphics2D graphics) {
+      final LineSegment left = this.getLeft();
+      final LineSegment right = this.getRight();
+      final int border = 0;
+
+      final int[] x = new int[] { (int) left.min.x * this.scale + border, (int) left.max.x * this.scale + border, (int) right.max.x * this.scale - border,
+            (int) right.min.x * this.scale - border };
+      final int[] y = new int[] { 1000 - (int) left.min.y * this.scale - border, 1000 - (int) left.max.y * this.scale + border,
+            1000 - (int) right.max.y * this.scale + border, 1000 - (int) right.min.y * this.scale - border };
+
+      graphics.setStroke(new BasicStroke(this.lineWidth));
+      // graphics.setColor(new Color((float) Math.random(), (float) Math.random(), (float) Math.random()));
+      graphics.drawPolygon(x, y, 4);
+   }
+
+   @Override
+   public void setDimensions(Dimension dimensions) {
+      this.dimensions = dimensions;
+   }
+
+   @Override
+   public Dimension getDimensions() {
+      return this.dimensions;
    }
 }

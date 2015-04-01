@@ -1,13 +1,22 @@
 package com.stephenwranger.graphics.math.intersection;
 
+import java.awt.BasicStroke;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+
 import com.stephenwranger.graphics.math.Tuple2d;
 import com.stephenwranger.graphics.math.Vector2d;
+import com.stephenwranger.graphics.renderables.Renderable2d;
 
 
-public class LineSegment implements PointIntersectable {
+public class LineSegment implements PointIntersectable, Renderable2d {
    public static final double OUT_OF_BOUNDS = -Double.MAX_VALUE;
    public final Tuple2d       min, max;
    public final double        a, b, x;
+
+   private Dimension          dimensions    = new Dimension(0, 0);
+   private int                scale         = 1;
+   private float              lineWidth     = 2f;
 
    public LineSegment(final Tuple2d v1, final Tuple2d v2) {
       if (v1.x < v2.x) {
@@ -172,5 +181,36 @@ public class LineSegment implements PointIntersectable {
       final Tuple2d perpendicularPoint = new Tuple2d().add(origin, n);
 
       return perpendicularPoint;
+   }
+
+   @Override
+   public void paint(final Graphics2D graphics) {
+      final int minX = (int) (this.min.x * this.scale);
+      final int minY = this.dimensions.height - (int) (this.min.y * this.scale);
+      final int maxX = (int) (this.max.x * this.scale);
+      final int maxY = this.dimensions.height - (int) (this.max.y * this.scale);
+
+      graphics.setStroke(new BasicStroke(this.lineWidth));
+      graphics.drawLine(minX, minY, maxX, maxY);
+      graphics.fillOval(minX - 5, minY - 5, 10, 10);
+      graphics.fillOval(maxX - 5, maxY - 5, 10, 10);
+   }
+
+   public void setScale(final int scale) {
+      this.scale = scale;
+   }
+
+   public void setLineWidth(final float lineWidth) {
+      this.lineWidth = lineWidth;
+   }
+
+   @Override
+   public void setDimensions(final Dimension dimensions) {
+      this.dimensions = dimensions;
+   }
+
+   @Override
+   public Dimension getDimensions() {
+      return this.dimensions;
    }
 }
