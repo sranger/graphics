@@ -15,6 +15,8 @@ public class Graph implements Renderable2d {
    private final List<Tuple2d>     points = new ArrayList<Tuple2d>();
    private final List<LineSegment> edges  = new ArrayList<LineSegment>();
 
+   private int                     lineWidth = 1;
+   private int                     pointSize = 10;
    private Dimension               dimensions;
    private final Tuple2d           min, max;
 
@@ -22,8 +24,13 @@ public class Graph implements Renderable2d {
       this.points.addAll(points);
       this.edges.addAll(edges);
 
-      this.min = new Tuple2d(points.get(0));
-      this.max = new Tuple2d(points.get(0));
+      this.min = new Tuple2d();
+      this.max = new Tuple2d();
+
+      if (!this.points.isEmpty()) {
+         this.min.set(points.get(0));
+         this.max.set(points.get(0));
+      }
 
       Tuple2d point;
       for (int i = 1; i < points.size(); i++) {
@@ -46,6 +53,14 @@ public class Graph implements Renderable2d {
       }
    }
 
+   public void setPointSize(final int pointSize) {
+      this.pointSize = pointSize;
+   }
+
+   public void setLineWidth(final int lineWidth) {
+      this.lineWidth = lineWidth;
+   }
+
    @Override
    public void setDimensions(final Dimension dimensions) {
       this.dimensions = dimensions;
@@ -60,27 +75,27 @@ public class Graph implements Renderable2d {
    public void paint(final Graphics2D graphics) {
       final double xDiff = this.max.x - this.min.x;
       final double yDiff = this.max.y - this.min.y;
-      final double stepX = (xDiff > 20) ? xDiff / 30 : 1;
-      final double stepY = (yDiff > 20) ? yDiff / 30 : 1;
+      // final double stepX = (xDiff > 20) ? xDiff / 30 : 1;
+      // final double stepY = (yDiff > 20) ? yDiff / 30 : 1;
+
+      graphics.setStroke(new BasicStroke(this.lineWidth));
 
       final Rectangle bounds = new Rectangle(this.dimensions);
       int posX, posY;
 
       final int border = (int) Math.min(20, Math.max(bounds.width * 0.05, bounds.height * 0.05));
 
-      for (double x = (int) Math.ceil(this.min.x); x <= Math.floor(this.max.x); x += stepX) {
-         posX = (int) ((x - this.min.x) / xDiff * (bounds.width - border * 2.0) + border);
-         graphics.drawLine(posX + bounds.x, bounds.y + border, posX + bounds.x, bounds.y + bounds.height - border);
-      }
-
-      for (double y = (int) Math.ceil(this.min.y); y <= Math.floor(this.max.y); y += stepY) {
-         posY = (int) (bounds.height - (((y - this.min.y) / yDiff * (bounds.height - border * 2.0) + border)));
-         graphics.drawLine(bounds.x + border, posY + bounds.y, bounds.x + bounds.width - border, posY + bounds.y);
-      }
+      // for (double x = (int) Math.ceil(this.min.x); x <= Math.floor(this.max.x); x += stepX) {
+      // posX = (int) ((x - this.min.x) / xDiff * (bounds.width - border * 2.0) + border);
+      // graphics.drawLine(posX + bounds.x, bounds.y + border, posX + bounds.x, bounds.y + bounds.height - border);
+      // }
+      //
+      // for (double y = (int) Math.ceil(this.min.y); y <= Math.floor(this.max.y); y += stepY) {
+      // posY = (int) (bounds.height - (((y - this.min.y) / yDiff * (bounds.height - border * 2.0) + border)));
+      // graphics.drawLine(bounds.x + border, posY + bounds.y, bounds.x + bounds.width - border, posY + bounds.y);
+      // }
 
       int leftX, leftY, rightX, rightY;
-
-      graphics.setStroke(new BasicStroke(3f));
 
       LineSegment edge;
 
@@ -100,7 +115,7 @@ public class Graph implements Renderable2d {
       for (final Tuple2d point : this.points) {
          posX = (int) ((point.x - this.min.x) / xDiff * (bounds.width - border * 2.0) + border);
          posY = (int) (bounds.height - ((point.y - this.min.y) / yDiff * (bounds.height - border * 2.0) + border));
-         graphics.fillOval(posX - 5, posY - 5, 10, 10);
+         graphics.fillOval(posX - this.pointSize / 2, posY - this.pointSize / 2, this.pointSize, this.pointSize);
       }
    }
 
