@@ -17,6 +17,7 @@ public class Trapezoid implements PointIntersectable, LineIntersectable, Rendera
    private Dimension        dimensions = new Dimension(0, 0);
    private int              scale      = 1;
    private float            lineWidth  = 2f;
+   private String           label      = "";
 
    public final double      minX, minY, maxX, maxY, width, height;
 
@@ -222,6 +223,10 @@ public class Trapezoid implements PointIntersectable, LineIntersectable, Rendera
       this.lineWidth = lineWidth;
    }
 
+   public void setLabel(final String label) {
+      this.label = label;
+   }
+
    @Override
    public void paint(final Graphics2D graphics) {
       final LineSegment left = this.getLeft();
@@ -233,6 +238,22 @@ public class Trapezoid implements PointIntersectable, LineIntersectable, Rendera
       final int[] y = new int[] { 1000 - (int) left.min.y * this.scale - border, 1000 - (int) left.max.y * this.scale + border,
             1000 - (int) right.max.y * this.scale + border, 1000 - (int) right.min.y * this.scale - border };
 
+      final Tuple2d lr = new Tuple2d();
+      lr.add(left.min, right.max);
+      lr.x *= 0.5;
+      lr.y *= 0.5;
+      final Tuple2d rl = new Tuple2d();
+      rl.add(right.min, left.max);
+      rl.x *= 0.5;
+      rl.y *= 0.5;
+      final Tuple2d mid = new Tuple2d();
+      mid.add(lr, rl);
+      mid.x *= 0.5;
+      mid.y *= 0.5;
+
+      final int xpos = (int) (mid.x * this.scale - graphics.getFontMetrics().stringWidth(this.label) / 2.0);
+      final int ypos = this.dimensions.height - (int) (mid.y * this.scale - graphics.getFontMetrics().getHeight() / 2.0);
+      graphics.drawString(this.label, xpos, ypos);
       graphics.setStroke(new BasicStroke(this.lineWidth));
       // graphics.setColor(new Color((float) Math.random(), (float) Math.random(), (float) Math.random()));
       graphics.drawPolygon(x, y, 4);
