@@ -1,7 +1,10 @@
 package com.stephenwranger.graphics.math.intersection;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
+import com.stephenwranger.graphics.collections.Pair;
 import com.stephenwranger.graphics.math.Tuple2d;
 import com.stephenwranger.graphics.renderables.Circle;
 
@@ -68,5 +71,44 @@ public class Triangle2D implements PointIntersectable, LineIntersectable {
       final Tuple2d center = aPerp.intersect(bPerp);
 
       return new Circle(center, radius);
+   }
+
+   @Override
+   public int hashCode() {
+      final int prime = 31;
+      return prime * (corners[0].hashCode() + corners[1].hashCode() + corners[2].hashCode());
+   }
+
+   @Override
+   public boolean equals(Object obj) {
+      if (this == obj)
+         return true;
+      if (obj == null)
+         return false;
+      if (getClass() != obj.getClass())
+         return false;
+      Triangle2D other = (Triangle2D) obj;
+      if (!new HashSet<Tuple2d>( Arrays.asList( this.corners )).equals( new HashSet<Tuple2d>( Arrays.asList( other.corners ) )))
+         return false;
+      return true;
+   }
+
+   public Pair<LineSegment, LineSegment> getOppositeEdges(final LineSegment edge) {
+      final List<LineSegment> edges = Arrays.asList(this.getLineSegments());
+      final int index = edges.indexOf(edge);
+      
+      return Pair.getInstance(edges.get((index+1) % 3), edges.get((index+2) % 3));
+   }
+
+   public LineSegment getCommonEdge(final Triangle2D other) {
+      final List<LineSegment> edges = Arrays.asList(other.getLineSegments());
+      
+      for(final LineSegment edge : this.getLineSegments()) {
+         if(edges.contains(edge)) {
+            return edge;
+         }
+      }
+      
+      return null;
    }
 }
