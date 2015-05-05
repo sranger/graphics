@@ -43,6 +43,33 @@ public class LineSegment implements PointIntersectable, Renderable2d {
          this.x = this.min.x;
       }
    }
+   
+   public Tuple2d getCommonVertex(final LineSegment other) {
+      return (this.max.equals(other.max) || this.max.equals(other.min)) ? this.max : (this.min.equals(other.min) || this.min.equals(other.max)) ? this.min : null;
+   }
+   
+   public double getAngle(final LineSegment other) {
+      final Tuple2d shared = (this.min.equals(other.min) || this.min.equals(other.max)) ? this.min : this.max;
+      final Vector2d a = new Vector2d();
+      final Vector2d b = new Vector2d();
+      
+      if(this.max.equals(shared)) {
+         a.set(this.min.x - shared.x, this.min.y - shared.y);
+      } else {
+         a.set(this.max.x - shared.x, this.max.y - shared.y);
+      }
+      
+      if(other.max.equals(shared)) {
+         b.set(other.min.x - shared.x, other.min.y - shared.y);
+      } else {
+         b.set(other.max.x - shared.x, other.max.y - shared.y);
+      }
+
+      a.normalize();
+      b.normalize();
+      
+      return Math.atan2(b.y - a.y,b.x - a.x);
+   }
 
    /**
     * Returns the y value for the given x value along this LineSegment or LineSegment.OUT_OF_BOUNDS if outside the segment's x-bounds.
@@ -122,16 +149,18 @@ public class LineSegment implements PointIntersectable, Renderable2d {
          if (other.max != null) {
             return false;
          }
-      } else if (!this.max.equals(other.max)) {
-         return false;
       }
       if (this.min == null) {
          if (other.min != null) {
             return false;
          }
-      } else if (!this.min.equals(other.min)) {
+      }
+      
+      // make sure the endpoints aren't just swapped
+      if(!(this.min.equals(other.min) && this.max.equals(other.max)) && !(this.min.equals(other.max) && this.max.equals(other.min))) {
          return false;
       }
+      
       if (Double.doubleToLongBits(this.x) != Double.doubleToLongBits(other.x)) {
          return false;
       }
