@@ -123,23 +123,26 @@ public class Triangle2D implements PointIntersectable, LineIntersectable {
       return null;
    }
 
-   public Tuple3d getBarycentricCoordinate(final Tuple2d corner) {
-      final Tuple2d a = this.corners[0];
-      final Tuple2d b = this.corners[1];
-      final Tuple2d c = this.corners[2];
-      final Tuple2d p = corner;
-      final Vector2d v0 = new Vector2d(b.x - a.x, b.y - a.y);
-      final Vector2d v1 = new Vector2d(c.x - a.x, c.y - a.y);
-      final Vector2d v2 = new Vector2d(p.x - a.x, p.y - a.y);
-      final double d00 = v0.dot(v0);
-      final double d01 = v0.dot(v1);
-      final double d11 = v1.dot(v1);
-      final double d20 = v2.dot(v0);
-      final double d21 = v2.dot(v1);
-      final double denom = d00 * d11 - d01 * d01;
-      final double v = (d11 * d20 - d01 * d21) / denom;
-      final double w = (d00 * d21 - d01 * d20) / denom;
-      final double u = 1.0 - v - w;
+   public Tuple3d getBarycentricCoordinate(final Tuple2d point) {
+      final Tuple2d[] corners = this.getCorners();
+      final Tuple2d a = corners[0];
+      final Tuple2d b = corners[1];
+      final Tuple2d c = corners[2];
+
+      final Vector2d v0 = new Vector2d().subtract(c, a);
+      final Vector2d v1 = new Vector2d().subtract(b, a);
+      final Vector2d v2 = new Vector2d().subtract(point, a);
+
+      final double dot00 = v0.dot(v0);
+      final double dot01 = v0.dot(v1);
+      final double dot02 = v0.dot(v2);
+      final double dot11 = v1.dot(v1);
+      final double dot12 = v1.dot(v2);
+
+      final double invDenom = 1.0 / (dot00 * dot11 - dot01 * dot01);
+      final double u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+      final double v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+      final double w = 1.0 - u - v;
       return new Tuple3d(u, v, w);
    }
 }
