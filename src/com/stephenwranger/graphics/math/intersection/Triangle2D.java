@@ -6,6 +6,8 @@ import java.util.List;
 
 import com.stephenwranger.graphics.collections.Pair;
 import com.stephenwranger.graphics.math.Tuple2d;
+import com.stephenwranger.graphics.math.Tuple3d;
+import com.stephenwranger.graphics.math.Vector2d;
 import com.stephenwranger.graphics.renderables.Circle;
 
 public class Triangle2D implements PointIntersectable, LineIntersectable {
@@ -76,39 +78,68 @@ public class Triangle2D implements PointIntersectable, LineIntersectable {
    @Override
    public int hashCode() {
       final int prime = 31;
-      return prime * (corners[0].hashCode() + corners[1].hashCode() + corners[2].hashCode());
+      return prime * (this.corners[0].hashCode() + this.corners[1].hashCode() + this.corners[2].hashCode());
    }
 
    @Override
    public boolean equals(Object obj) {
-      if (this == obj)
+      if (this == obj) {
          return true;
-      if (obj == null)
+      }
+      if (obj == null) {
          return false;
-      if (getClass() != obj.getClass())
+      }
+      if (this.getClass() != obj.getClass()) {
          return false;
-      Triangle2D other = (Triangle2D) obj;
-      if (!new HashSet<Tuple2d>( Arrays.asList( this.corners )).equals( new HashSet<Tuple2d>( Arrays.asList( other.corners ) )))
+      }
+      final Triangle2D other = (Triangle2D) obj;
+      if (!new HashSet<Tuple2d>( Arrays.asList( this.corners )).equals( new HashSet<Tuple2d>( Arrays.asList( other.corners ) ))) {
          return false;
+      }
       return true;
+   }
+
+   @Override
+   public String toString() {
+      return "[Triangle2D: " + this.corners[0] + ", " + this.corners[1] + ", " + this.corners[2] + "]";
    }
 
    public Pair<LineSegment, LineSegment> getOppositeEdges(final LineSegment edge) {
       final List<LineSegment> edges = Arrays.asList(this.getLineSegments());
       final int index = edges.indexOf(edge);
-      
+
       return Pair.getInstance(edges.get((index+1) % 3), edges.get((index+2) % 3));
    }
 
    public LineSegment getCommonEdge(final Triangle2D other) {
       final List<LineSegment> edges = Arrays.asList(other.getLineSegments());
-      
+
       for(final LineSegment edge : this.getLineSegments()) {
          if(edges.contains(edge)) {
             return edge;
          }
       }
-      
+
       return null;
+   }
+
+   public Tuple3d getBarycentricCoordinate(final Tuple2d corner) {
+      final Tuple2d a = this.corners[0];
+      final Tuple2d b = this.corners[1];
+      final Tuple2d c = this.corners[2];
+      final Tuple2d p = corner;
+      final Vector2d v0 = new Vector2d(b.x - a.x, b.y - a.y);
+      final Vector2d v1 = new Vector2d(c.x - a.x, c.y - a.y);
+      final Vector2d v2 = new Vector2d(p.x - a.x, p.y - a.y);
+      final double d00 = v0.dot(v0);
+      final double d01 = v0.dot(v1);
+      final double d11 = v1.dot(v1);
+      final double d20 = v2.dot(v0);
+      final double d21 = v2.dot(v1);
+      final double denom = d00 * d11 - d01 * d01;
+      final double v = (d11 * d20 - d01 * d21) / denom;
+      final double w = (d00 * d21 - d01 * d20) / denom;
+      final double u = 1.0 - v - w;
+      return new Tuple3d(u, v, w);
    }
 }

@@ -11,21 +11,21 @@ public class Pair<T1, T2> implements Comparable<Pair<T1, T2>> {
       public int compare(Pair<T1, T2> o1, Pair<T1, T2> o2) {
          if(o1 != null && o2 != null) {
             if(o1.left instanceof Comparable) {
-               return ((Comparable<T1>)o1.left).compareTo((T1)o2.left);
+               return ((Comparable<T1>)o1.left).compareTo(o2.left);
             } else if(o1.right instanceof Comparable) {
-               return ((Comparable<T2>)o1.right).compareTo((T2)o2.right);
+               return ((Comparable<T2>)o1.right).compareTo(o2.right);
             }
          }
 
          return 0;
       }
    };
-   
+
    public Pair(final T1 left, final T2 right) {
       this.left = left;
       this.right = right;
    }
-   
+
    public void setComparator(final Comparator<Pair<T1, T2>> comparator) {
       this.comparator = comparator;
    }
@@ -34,38 +34,50 @@ public class Pair<T1, T2> implements Comparable<Pair<T1, T2>> {
    public int hashCode() {
       final int prime = 31;
       int result = 1;
-      result = prime * result + ((left == null) ? 0 : left.hashCode());
-      result = prime * result + ((right == null) ? 0 : right.hashCode());
+      result = prime * result + ((this.left == null) ? 0 : this.left.hashCode());
+      result = prime * result + ((this.right == null) ? 0 : this.right.hashCode());
       return result;
    }
 
    @Override
    public boolean equals(Object obj) {
-      if (this == obj)
+      if (this == obj) {
          return true;
-      if (obj == null)
+      }
+      if (obj == null) {
          return false;
-      if (getClass() != obj.getClass())
+      }
+      if (this.getClass() != obj.getClass()) {
          return false;
-      Pair<?,?> other = (Pair<?,?>) obj;
-      if (left == null) {
-         if (other.left != null)
+      }
+      final Pair<?,?> other = (Pair<?,?>) obj;
+      if (this.left == null) {
+         if (other.left != null) {
             return false;
-      } else if (!left.equals(other.left))
+         }
+      } else if (!this.left.equals(other.left)) {
          return false;
-      if (right == null) {
-         if (other.right != null)
+      }
+      if (this.right == null) {
+         if (other.right != null) {
             return false;
-      } else if (!right.equals(other.right))
+         }
+      } else if (!this.right.equals(other.right)) {
          return false;
+      }
       return true;
    }
 
    @Override
    public int compareTo(final Pair<T1, T2> o) {
-      return comparator.compare(this, o);
+      return this.comparator.compare(this, o);
    }
-   
+
+   @Override
+   public String toString() {
+      return "[Pair: " + this.left + ", " + this.right + "]";
+   }
+
    public static <T1, T2> Pair<T1, T2> getInstance(final T1 left, final T2 right) {
       return new Pair<T1, T2>(left, right);
    }
