@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.stephenwranger.graphics.math.Tuple2d;
-import com.stephenwranger.graphics.math.Vector2d;
+import com.stephenwranger.graphics.math.Tuple3d;
 
 public class IntersectionUtils {
    private IntersectionUtils() {
@@ -12,26 +12,10 @@ public class IntersectionUtils {
    }
 
    public static boolean pointInTriangle(final Tuple2d point, final Triangle2D triangle) {
-      final Tuple2d[] corners = triangle.getCorners();
-      final Tuple2d a = corners[0];
-      final Tuple2d b = corners[1];
-      final Tuple2d c = corners[2];
+      final Tuple3d barycentric = triangle.getBarycentricCoordinate(point);
 
-      final Vector2d v0 = new Vector2d().subtract(c, a);
-      final Vector2d v1 = new Vector2d().subtract(b, a);
-      final Vector2d v2 = new Vector2d().subtract(point, a);
-
-      final double dot00 = v0.dot(v0);
-      final double dot01 = v0.dot(v1);
-      final double dot02 = v0.dot(v2);
-      final double dot11 = v1.dot(v1);
-      final double dot12 = v1.dot(v2);
-
-      final double invDenom = 1.0 / (dot00 * dot11 - dot01 * dot01);
-      final double u = (dot11 * dot02 - dot01 * dot12) * invDenom;
-      final double v = (dot00 * dot12 - dot01 * dot02) * invDenom;
-
-      return (u >= 0) && (v >= 0) && (u + v <= 1);
+      return IntersectionUtils.isGreaterOrEqual(barycentric.x, 0) && IntersectionUtils.isGreaterOrEqual(barycentric.y, 0)
+            && IntersectionUtils.isLessOrEqual(barycentric.x + barycentric.y, 1);
    }
 
    public static List<Tuple2d> lineIntersectTriangle(final Triangle2D triangle, final LineSegment segment) {
