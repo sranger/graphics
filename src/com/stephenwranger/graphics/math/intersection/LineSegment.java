@@ -43,22 +43,22 @@ public class LineSegment implements PointIntersectable, Renderable2d {
          this.x = this.min.x;
       }
    }
-   
+
    public Tuple2d getCommonVertex(final LineSegment other) {
       return (this.max.equals(other.max) || this.max.equals(other.min)) ? this.max : (this.min.equals(other.min) || this.min.equals(other.max)) ? this.min : null;
    }
-   
+
    public double getAngle(final LineSegment other) {
       final Tuple2d shared = (this.min.equals(other.min) || this.min.equals(other.max)) ? this.min : this.max;
       final Vector2d a = new Vector2d();
       final Vector2d b = new Vector2d();
-      
+
       if(this.max.equals(shared)) {
          a.set(this.min.x - shared.x, this.min.y - shared.y);
       } else {
          a.set(this.max.x - shared.x, this.max.y - shared.y);
       }
-      
+
       if(other.max.equals(shared)) {
          b.set(other.min.x - shared.x, other.min.y - shared.y);
       } else {
@@ -67,8 +67,8 @@ public class LineSegment implements PointIntersectable, Renderable2d {
 
       a.normalize();
       b.normalize();
-      
-      return Math.atan2(b.y - a.y,b.x - a.x);
+
+      return a.angle(b);
    }
 
    /**
@@ -155,12 +155,12 @@ public class LineSegment implements PointIntersectable, Renderable2d {
             return false;
          }
       }
-      
+
       // make sure the endpoints aren't just swapped
       if(!(this.min.equals(other.min) && this.max.equals(other.max)) && !(this.min.equals(other.max) && this.max.equals(other.min))) {
          return false;
       }
-      
+
       if (Double.doubleToLongBits(this.x) != Double.doubleToLongBits(other.x)) {
          return false;
       }
