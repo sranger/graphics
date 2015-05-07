@@ -17,6 +17,12 @@ public class Tuple3d extends Tuple2d {
       this.z = z;
    }
 
+   public Tuple3d(final double[] xyz) {
+      super(xyz[0], xyz[1]);
+
+      this.z = xyz[2];
+   }
+
    public Tuple3d(final Tuple3d position) {
       super(position);
 
