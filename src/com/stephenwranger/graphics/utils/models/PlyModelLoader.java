@@ -211,13 +211,19 @@ public class PlyModelLoader {
          verticesSet.addAll(Arrays.asList(triangle.getCorners()));
       }
 
+      PlyModelLoader.writePlyModel2d(outputFile, verticesSet, triangles);
+   }
+
+   public static void writePlyModel2d(final File outputFile, final Set<Tuple2d> verticesSet, final Collection<Triangle2d> triangles) throws IOException {
       final List<Tuple2d> vertices = new ArrayList<Tuple2d>(verticesSet);
       final List<int[]> faces = new ArrayList<int[]>();
       Tuple2d[] corners;
 
-      for (final Triangle2d triangle : triangles) {
-         corners = triangle.getCorners();
-         faces.add(new int[] { vertices.indexOf(corners[0]), vertices.indexOf(corners[1]), vertices.indexOf(corners[2]) });
+      if (triangles != null && !triangles.isEmpty()) {
+         for (final Triangle2d triangle : triangles) {
+            corners = triangle.getCorners();
+            faces.add(new int[] { vertices.indexOf(corners[0]), vertices.indexOf(corners[1]), vertices.indexOf(corners[2]) });
+         }
       }
 
       try (final BufferedWriter fout = new BufferedWriter(new FileWriter(outputFile))) {
@@ -248,13 +254,19 @@ public class PlyModelLoader {
          verticesSet.addAll(Arrays.asList(triangle.getCorners()));
       }
 
+      PlyModelLoader.writePlyModel3d(outputFile, verticesSet, triangles);
+   }
+
+   public static void writePlyModel3d(final File outputFile, final Set<Tuple3d> verticesSet, final Collection<Triangle3d> triangles) throws IOException {
       final List<Tuple3d> vertices = new ArrayList<Tuple3d>(verticesSet);
       final List<int[]> faces = new ArrayList<int[]>();
       Tuple3d[] corners;
 
-      for (final Triangle3d triangle : triangles) {
-         corners = triangle.getCorners();
-         faces.add(new int[] { vertices.indexOf(corners[0]), vertices.indexOf(corners[1]), vertices.indexOf(corners[2]) });
+      if (triangles != null && !triangles.isEmpty()) {
+         for (final Triangle3d triangle : triangles) {
+            corners = triangle.getCorners();
+            faces.add(new int[] { vertices.indexOf(corners[0]), vertices.indexOf(corners[1]), vertices.indexOf(corners[2]) });
+         }
       }
 
       try (final BufferedWriter fout = new BufferedWriter(new FileWriter(outputFile))) {
