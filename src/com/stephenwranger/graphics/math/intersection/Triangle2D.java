@@ -10,10 +10,10 @@ import com.stephenwranger.graphics.math.Tuple3d;
 import com.stephenwranger.graphics.math.Vector2d;
 import com.stephenwranger.graphics.renderables.Circle;
 
-public class Triangle2D implements PointIntersectable, LineIntersectable {
+public class Triangle2d implements PointIntersectable, LineIntersectable {
    private final Tuple2d[] corners = new Tuple2d[3];
 
-   public Triangle2D(final Tuple2d c1, final Tuple2d c2, final Tuple2d c3) {
+   public Triangle2d(final Tuple2d c1, final Tuple2d c2, final Tuple2d c3) {
       this.corners[0] = new Tuple2d(c1);
       this.corners[1] = new Tuple2d(c2);
       this.corners[2] = new Tuple2d(c3);
@@ -92,7 +92,7 @@ public class Triangle2D implements PointIntersectable, LineIntersectable {
       if (this.getClass() != obj.getClass()) {
          return false;
       }
-      final Triangle2D other = (Triangle2D) obj;
+      final Triangle2d other = (Triangle2d) obj;
       if (!new HashSet<Tuple2d>( Arrays.asList( this.corners )).equals( new HashSet<Tuple2d>( Arrays.asList( other.corners ) ))) {
          return false;
       }
@@ -111,7 +111,7 @@ public class Triangle2D implements PointIntersectable, LineIntersectable {
       return Pair.getInstance(edges.get((index+1) % 3), edges.get((index+2) % 3));
    }
 
-   public LineSegment getCommonEdge(final Triangle2D other) {
+   public LineSegment getCommonEdge(final Triangle2d other) {
       final List<LineSegment> edges = Arrays.asList(other.getLineSegments());
 
       for(final LineSegment edge : this.getLineSegments()) {

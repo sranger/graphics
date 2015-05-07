@@ -11,14 +11,14 @@ public class IntersectionUtils {
       // statics only
    }
 
-   public static boolean pointInTriangle(final Tuple2d point, final Triangle2D triangle) {
+   public static boolean pointInTriangle(final Tuple2d point, final Triangle2d triangle) {
       final Tuple3d barycentric = triangle.getBarycentricCoordinate(point);
 
       return IntersectionUtils.isGreaterOrEqual(barycentric.x, 0) && IntersectionUtils.isGreaterOrEqual(barycentric.y, 0)
             && IntersectionUtils.isLessOrEqual(barycentric.x + barycentric.y, 1);
    }
 
-   public static List<Tuple2d> lineIntersectTriangle(final Triangle2D triangle, final LineSegment segment) {
+   public static List<Tuple2d> lineIntersectTriangle(final Triangle2d triangle, final LineSegment segment) {
       final LineSegment[] segments = triangle.getLineSegments();
       final List<Tuple2d> intersected = new ArrayList<Tuple2d>();
       final Tuple2d temp = new Tuple2d();
