@@ -10,6 +10,11 @@ public class BoundingSphere extends BoundingVolume {
       this.center = new Tuple3d(center);
       this.radius = radius;
    }
+   
+   @Override
+   public boolean contains(final Tuple3d xyz) {
+      return xyz.distance(center) <= radius;
+   }
 
    @Override
    public Tuple3d getCenter() {

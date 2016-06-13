@@ -27,6 +27,8 @@ public abstract class BoundingVolume {
       return BoundsUtils.intersectsVector(this, vector);
    }
    
+   public abstract boolean contains(final Tuple3d xyz);
+   
    public abstract Tuple3d getCenter();
    
    public abstract Tuple3d getDimensions();
