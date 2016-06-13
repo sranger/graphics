@@ -26,6 +26,13 @@ public class BoundingBox extends BoundingVolume {
       this(bv.getCenter(), bv.getSpannedDistance(Axis.X_AXIS.getAxis()), bv.getSpannedDistance(Axis.Y_AXIS.getAxis()), bv.getSpannedDistance(Axis.Z_AXIS.getAxis()));
    }
    
+   @Override
+   public boolean contains(final Tuple3d xyz) {
+      return (xyz.x >= min.x && xyz.x <= max.x &&
+              xyz.y >= min.y && xyz.y <= max.y &&
+              xyz.z >= min.z && xyz.z <= max.z);
+   }
+   
    public Tuple3d getMin() {
       return new Tuple3d(min);
    }
