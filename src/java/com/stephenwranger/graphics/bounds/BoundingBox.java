@@ -28,9 +28,11 @@ public class BoundingBox extends BoundingVolume {
    
    @Override
    public boolean contains(final Tuple3d xyz) {
-      return (xyz.x >= min.x && xyz.x <= max.x &&
-              xyz.y >= min.y && xyz.y <= max.y &&
-              xyz.z >= min.z && xyz.z <= max.z);
+      final boolean inX = xyz.x >= this.min.x && xyz.x <= this.max.x;
+      final boolean inY = xyz.y >= this.min.y && xyz.y <= this.max.y;
+      final boolean inZ = xyz.z >= this.min.z && xyz.z <= this.max.z;
+      
+      return inX && inY && inZ;
    }
    
    public Tuple3d getMin() {
@@ -70,5 +72,41 @@ public class BoundingBox extends BoundingVolume {
    @Override
    public String toString() {
       return "min: " + min + ", max: " + max;
+   }
+
+   @Override
+   public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+      long temp;
+      temp = Double.doubleToLongBits(boundingSphereRadius);
+      result = prime * result + (int) (temp ^ (temp >>> 32));
+      result = prime * result + ((max == null) ? 0 : max.hashCode());
+      result = prime * result + ((min == null) ? 0 : min.hashCode());
+      return result;
+   }
+
+   @Override
+   public boolean equals(Object obj) {
+      if (this == obj)
+         return true;
+      if (obj == null)
+         return false;
+      if (getClass() != obj.getClass())
+         return false;
+      BoundingBox other = (BoundingBox) obj;
+      if (Double.doubleToLongBits(boundingSphereRadius) != Double.doubleToLongBits(other.boundingSphereRadius))
+         return false;
+      if (max == null) {
+         if (other.max != null)
+            return false;
+      } else if (!max.equals(other.max))
+         return false;
+      if (min == null) {
+         if (other.min != null)
+            return false;
+      } else if (!min.equals(other.min))
+         return false;
+      return true;
    }
 }
