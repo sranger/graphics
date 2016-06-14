@@ -8,6 +8,10 @@ public class Vector3d extends Tuple3d implements Vector {
    public Vector3d() {
       this(0, 0, 0);
    }
+   
+   public Vector3d(final Tuple3d tuple) {
+      super(tuple);
+   }
 
    @Override
    public double lengthSquared() {

@@ -2,36 +2,32 @@ package com.stephenwranger.graphics.math;
 
 import java.nio.FloatBuffer;
 
-public class Tuple2d extends Tuple1d {
+public class Tuple2d {
+   public double x;
    public double y;
 
    public Tuple2d() {
-      super(0);
-
+      this.x = 0;
       this.y = 0;
    }
 
    public Tuple2d(final double x, final double y) {
-      super(x);
-
+      this.x = x;
       this.y = y;
    }
 
    public Tuple2d(final Tuple2d position) {
-      super(position);
-
+      this.x = position.x;
       this.y = position.y;
    }
 
    public void set(final double x, final double y) {
-      super.set(x);
-
+      this.x = x;
       this.y = y;
    }
 
    public void set(final Tuple2d tuple) {
-      super.set(tuple);
-
+      this.x = tuple.x;
       this.y = tuple.y;
    }
 
@@ -71,7 +67,6 @@ public class Tuple2d extends Tuple1d {
       return this;
    }
 
-   @Override
    public float[] toFloatArray() {
       return new float[] { (float) this.x, (float) this.y };
    }
@@ -81,7 +76,6 @@ public class Tuple2d extends Tuple1d {
       return "(" + this.x + ", " + this.y + ")";
    }
 
-   @Override
    public void putInto(final FloatBuffer buffer) {
       buffer.put((float) this.x).put((float) this.y);
    }
@@ -89,28 +83,28 @@ public class Tuple2d extends Tuple1d {
    @Override
    public int hashCode() {
       final int prime = 31;
-      int result = super.hashCode();
+      int result = 1;
       long temp;
-      temp = Double.doubleToLongBits(this.y);
+      temp = Double.doubleToLongBits(x);
+      result = prime * result + (int) (temp ^ (temp >>> 32));
+      temp = Double.doubleToLongBits(y);
       result = prime * result + (int) (temp ^ (temp >>> 32));
       return result;
    }
 
    @Override
    public boolean equals(Object obj) {
-      if (this == obj) {
+      if (this == obj)
          return true;
-      }
-      if (!super.equals(obj)) {
+      if (obj == null)
          return false;
-      }
-      if (this.getClass() != obj.getClass()) {
+      if (getClass() != obj.getClass())
          return false;
-      }
-      final Tuple2d other = (Tuple2d) obj;
-      if (Double.doubleToLongBits(this.y) != Double.doubleToLongBits(other.y)) {
+      Tuple2d other = (Tuple2d) obj;
+      if (Double.doubleToLongBits(x) != Double.doubleToLongBits(other.x))
          return false;
-      }
+      if (Double.doubleToLongBits(y) != Double.doubleToLongBits(other.y))
+         return false;
       return true;
    }
 }

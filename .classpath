@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="src/glsl"/>
+	<classpathentry kind="src" path="src/java"/>
+	<classpathentry kind="src" path="src/resources"/>
+	<classpathentry exported="true" kind="lib" path="lib/gluegen-rt-natives-linux-amd64.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/gluegen-rt-natives-macosx-universal.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jogl-all-natives-linux-amd64.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jogl-all-natives-macosx-universal.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry exported="true" kind="lib" path="lib/gluegen-rt-natives-windows-amd64.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gluegen-rt.jar"/>

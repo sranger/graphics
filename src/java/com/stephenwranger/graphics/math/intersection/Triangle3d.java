@@ -3,9 +3,8 @@ package com.stephenwranger.graphics.math.intersection;
 import java.util.Arrays;
 import java.util.HashSet;
 
-import com.stephenwranger.graphics.math.Tuple2d;
 import com.stephenwranger.graphics.math.Tuple3d;
-import com.stephenwranger.graphics.math.Vector2d;
+import com.stephenwranger.graphics.math.Vector3d;
 
 public class Triangle3d {
    private final Tuple3d[] corners = new Tuple3d[3];
@@ -38,7 +37,7 @@ public class Triangle3d {
          return false;
       }
       final Triangle3d other = (Triangle3d) obj;
-      if (!new HashSet<Tuple2d>( Arrays.asList( this.corners )).equals( new HashSet<Tuple2d>( Arrays.asList( other.corners ) ))) {
+      if (!new HashSet<Tuple3d>( Arrays.asList( this.corners )).equals( new HashSet<Tuple3d>( Arrays.asList( other.corners ) ))) {
          return false;
       }
       return true;
@@ -49,15 +48,24 @@ public class Triangle3d {
       return "[Triangle3d: " + this.corners[0] + ", " + this.corners[1] + ", " + this.corners[2] + "]";
    }
 
-   public Tuple3d getBarycentricCoordinate(final Tuple2d point) {
-      final Tuple2d[] corners = this.getCorners();
-      final Tuple2d a = corners[0];
-      final Tuple2d b = corners[1];
-      final Tuple2d c = corners[2];
+   /**
+    * TODO: does this work correctly in 3D?
+    * 
+    * @param point
+    * @return
+    */
+   public Tuple3d getBarycentricCoordinate(final Tuple3d point) {
+      final Tuple3d[] corners = this.getCorners();
+      final Tuple3d a = corners[0];
+      final Tuple3d b = corners[1];
+      final Tuple3d c = corners[2];
 
-      final Vector2d v0 = new Vector2d().subtract(c, a);
-      final Vector2d v1 = new Vector2d().subtract(b, a);
-      final Vector2d v2 = new Vector2d().subtract(point, a);
+      final Vector3d v0 = new Vector3d(c);
+      v0.subtract(a);
+      final Vector3d v1 = new Vector3d(b);
+      v1.subtract(a);
+      final Vector3d v2 = new Vector3d(point);
+      v2.subtract(a);
 
       final double dot00 = v0.dot(v0);
       final double dot01 = v0.dot(v1);
