@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.stephenwranger.graphics.math.Tuple2d;
 import com.stephenwranger.graphics.math.Tuple3d;
+import com.stephenwranger.graphics.math.Vector3d;
 
 public class IntersectionUtils {
    private IntersectionUtils() {
@@ -101,5 +102,21 @@ public class IntersectionUtils {
       }
 
       return false;
+   }
+
+   public static Vector3d calculateSurfaceNormal(final Tuple3d[] corners) {
+      final Vector3d u = new Vector3d();
+      u.subtract(corners[1], corners[0]);
+      final Vector3d v = new Vector3d();
+      v.subtract(corners[2], corners[0]);
+      
+      final Vector3d normal = new Vector3d();
+      normal.x = u.y * v.z - u.z - v.y;
+      normal.y = u.z * v.x - u.x * v.z;
+      normal.z = u.x * v.y - u.y * v.x;
+      
+      normal.normalize();
+      
+      return normal;
    }
 }
