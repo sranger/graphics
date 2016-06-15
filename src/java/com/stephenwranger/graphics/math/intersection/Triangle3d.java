@@ -5,14 +5,95 @@ import java.util.HashSet;
 
 import com.stephenwranger.graphics.math.Tuple3d;
 import com.stephenwranger.graphics.math.Vector3d;
+import com.stephenwranger.graphics.utils.MathUtils;
 
 public class Triangle3d {
    private final Tuple3d[] corners = new Tuple3d[3];
+   private final Vector3d normal;
 
    public Triangle3d(final Tuple3d c1, final Tuple3d c2, final Tuple3d c3) {
       this.corners[0] = new Tuple3d(c1);
       this.corners[1] = new Tuple3d(c2);
       this.corners[2] = new Tuple3d(c3);
+      
+      this.normal = IntersectionUtils.calculateSurfaceNormal(this.corners);
+   }
+   
+   public Vector3d getNormal() {
+      return new Vector3d(this.normal);
+   }
+   
+   public double pointDistance(final Tuple3d point) {
+      Vector3d p2f = new Vector3d();
+      p2f.subtract(this.corners[0], point);  // arbitrary point on face
+      
+      double d = p2f.dot(this.normal);
+      p2f.normalize();
+      d /= p2f.length();                     // for numeric stability
+
+      return d;
+   }
+   
+   /**
+    * Will split this triangle into four equal triangles where the return array will contain the following:
+    * 
+    * <pre>
+    * return { t0, t1, t2, t3 }
+    * 
+    *          v0
+    *         /  \
+    *        / t0 \
+    *      v01----v02
+    *      /  \t3/  \
+    *     / t1 \/ t2 \
+    *    v1----v12----v2
+    * </pre>
+    * 
+    * @return
+    */
+   public Triangle3d[] split() {
+      final Triangle3d[] newTriangles = new Triangle3d[4];
+      final Tuple3d v0 = this.corners[0];
+      final Tuple3d v1 = this.corners[1];
+      final Tuple3d v2 = this.corners[2];
+
+      final Vector3d v01 = new Vector3d();
+      final Vector3d v02 = new Vector3d();
+      final Vector3d v12 = new Vector3d();
+      
+      v01.subtract(v1, v0);
+      v01.scale(0.5);
+      v01.add(v0);
+      
+      v02.subtract(v2, v0);
+      v02.scale(0.5);
+      v02.add(v0);
+      
+      v12.subtract(v2, v1);
+      v12.scale(0.5);
+      v12.add(v1);
+
+      newTriangles[0] = new Triangle3d(v0, v01, v02);
+      newTriangles[1] = new Triangle3d(v01, v1, v12);
+      newTriangles[2] = new Triangle3d(v02, v12, v2);
+      newTriangles[3] = new Triangle3d(v01, v12, v02);
+      
+      return newTriangles;
+   }
+   
+   /**
+    * Returns true if the point given is on the same side as the face normal.
+    * 
+    * <pre>
+    * http://stackoverflow.com/questions/8877872/determining-if-a-point-is-inside-a-polyhedron
+    * http://stackoverflow.com/a/33836085/1451705
+    * </pre>
+    * 
+    * @param point
+    * @return
+    */
+   public boolean isBehind(final Tuple3d point) {
+      return this.pointDistance(point) >= MathUtils.EPSILON;
    }
 
    public Tuple3d[] getCorners() {

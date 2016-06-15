@@ -70,4 +70,12 @@ public class Vector3d extends Tuple3d implements Vector {
       retVal[1] = this.y;
       retVal[2] = this.z;
    }
+   
+   public Vector3d scale(final double scalar) {
+      this.x *= scalar;
+      this.y *= scalar;
+      this.z *= scalar;
+      
+      return this;
+   }
 }
