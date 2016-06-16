@@ -20,6 +20,8 @@ import com.stephenwranger.graphics.math.CameraUtils;
 import com.stephenwranger.graphics.math.PickingHit;
 import com.stephenwranger.graphics.math.PickingRay;
 import com.stephenwranger.graphics.math.Tuple3d;
+import com.stephenwranger.graphics.math.Vector3d;
+import com.stephenwranger.graphics.math.intersection.IntersectionUtils;
 import com.stephenwranger.graphics.renderables.Renderable;
 import com.stephenwranger.graphics.utils.AnimationListener;
 import com.stephenwranger.graphics.utils.MathUtils;
@@ -28,14 +30,19 @@ import com.stephenwranger.graphics.utils.TupleMath;
 public class Scene extends GLCanvas implements GLEventListener {
    private static final long            serialVersionUID   = -5725872347284851012L;
 
+   private final double[] projection = new double[16];
+   private final double[] modelview = new double[16];
+   private final int[] viewport = new int[4];
+   
    private final Set<AnimationListener> listeners          = new HashSet<AnimationListener>();
    private final Set<Animation>         animations         = new HashSet<Animation>();
+   private final Set<Renderable>        renderables        = new HashSet<Renderable>();
    private final FPSAnimator            animator;
    private final GLU                    glu                = new GLU();
    private long                         current, delta;
    private final Tuple3d                cameraPosition     = new Tuple3d(0, 0, 10);
-   private final Tuple3d                lookAt             = new Tuple3d(0, 0, 0);
-   private final Tuple3d                up                 = new Tuple3d(0, 1, 0);
+   private final Tuple3d                lookAt             = new Vector3d(0, 0, 0);
+   private final Vector3d               up                 = new Vector3d(0, 1, 0);
    private BoundingVolume               sceneBounds        = null;
    private volatile double              animationSpeed     = 1.0;
    private volatile boolean             updateStep         = true;
@@ -62,8 +69,30 @@ public class Scene extends GLCanvas implements GLEventListener {
    public synchronized void setCameraPosition(final Tuple3d cameraPosition) {
       this.cameraPosition.set(cameraPosition);
    }
+   
+   public synchronized void setViewingVolume(final BoundingVolume boundingVolume) {
+      final Tuple3d center = boundingVolume.getCenter();
+      final Vector3d viewDirection = new Vector3d();
+      viewDirection.subtract(center, this.cameraPosition);
+      viewDirection.normalize();
+      
+      final double maxSpannedDistance = boundingVolume.getSpannedDistance(null);
+      final Vector3d right = new Vector3d();
+      right.cross(viewDirection, this.up);
+      
+      if(IntersectionUtils.isEqual(right.angle(viewDirection), Math.PI)) {
+         // TODO: is this right?
+         right.cross(this.up, viewDirection);
+      }
+      
+      this.up.cross(viewDirection, right);
+      this.lookAt.set(center);
+      
+      viewDirection.scale(maxSpannedDistance * 2.0);
+      this.cameraPosition.subtract(center, viewDirection);
+   }
 
-   public synchronized void setLookAt(final Tuple3d lookAt, final Tuple3d up) {
+   public synchronized void setLookAt(final Tuple3d lookAt, final Vector3d up) {
       this.lookAt.set(lookAt);
       this.up.set(up);
    }
@@ -76,12 +105,24 @@ public class Scene extends GLCanvas implements GLEventListener {
       this.animations.add(animation);
    }
 
+   public synchronized void removeAnimation(final Animation animation) {
+      this.animations.remove(animation);
+   }
+
    public synchronized void addAnimationListener(final AnimationListener listener) {
       this.listeners.add(listener);
    }
 
    public synchronized void removeAnimationListener(final AnimationListener listener) {
       this.listeners.remove(listener);
+   }
+
+   public synchronized void addRenderable(final Renderable renderable) {
+      this.renderables.add(renderable);
+   }
+
+   public synchronized void removeRenderable(final Renderable renderable) {
+      this.renderables.remove(renderable);
    }
 
    private synchronized void notifyListeners(final long frameTime) {
@@ -151,7 +192,7 @@ public class Scene extends GLCanvas implements GLEventListener {
       // now that all elements are in the proper location, move camera to match
       if (this.screenLookAt != null) {
          this.followTarget = null;
-         final Tuple3d worldTarget = CameraUtils.getWorldCoordinates(gl, this.glu, this.screenLookAt);
+         final Tuple3d worldTarget = CameraUtils.getWorldCoordinates(this, this.screenLookAt);
          // TODO: update camPos and lookAt with intersection
          final PickingRay ray = new PickingRay(this.cameraPosition, TupleMath.sub(worldTarget, this.cameraPosition));
          final List<PickingHit> hits = new ArrayList<PickingHit>();
@@ -159,6 +200,14 @@ public class Scene extends GLCanvas implements GLEventListener {
 
          for (final Animation animation : this.animations) {
             hit = animation.getIntersection(ray);
+
+            if (hit != PickingRay.NO_HIT) {
+               hits.add(hit);
+            }
+         }
+
+         for (final Renderable renderable : this.renderables) {
+            hit = renderable.getIntersection(ray);
 
             if (hit != PickingRay.NO_HIT) {
                hits.add(hit);
@@ -187,11 +236,32 @@ public class Scene extends GLCanvas implements GLEventListener {
          this.lookAt.set(this.followTarget.getPosition());
          this.cameraPosition.set(TupleMath.add(dir, this.lookAt));
       }
+      
+      gl.glGetDoublev(GL2.GL_PROJECTION_MATRIX, projection, 0);
+      gl.glGetDoublev(GL2.GL_MODELVIEW_MATRIX, modelview, 0);
+      gl.glGetIntegerv(GL2.GL_VIEWPORT, viewport, 0);
 
       // setup is done; rendering time
       for (final Animation animation : this.animations) {
          animation.render(gl, this.glu, glDrawable, this);
       }
+      
+      // this is for mostly static objects or those that don't need a custom animation
+      for(final Renderable renderable : this.renderables) {
+         renderable.render(gl, glu, glDrawable, this);
+      }
+   }
+   
+   public double[] getProjectionMatrix() {
+      return this.projection;
+   }
+   
+   public double[] getModelViewMatrix() {
+      return this.modelview;
+   }
+   
+   public int[] getViewport() {
+      return this.viewport;
    }
 
    @Override
@@ -210,6 +280,15 @@ public class Scene extends GLCanvas implements GLEventListener {
       for (final Animation animation : this.animations) {
          nearFar = animation.getNearFar(this);
 
+         if (nearFar != null) {
+            this.near = Math.min(this.near, nearFar[0]);
+            this.far = Math.max(this.far, nearFar[1]);
+         }
+      }
+
+      for (final Renderable renderable : this.renderables) {
+         nearFar = renderable.getNearFar(this);
+         
          if (nearFar != null) {
             this.near = Math.min(this.near, nearFar[0]);
             this.far = Math.max(this.far, nearFar[1]);
@@ -269,6 +348,10 @@ public class Scene extends GLCanvas implements GLEventListener {
 
    public synchronized Tuple3d getLookAt() {
       return new Tuple3d(this.lookAt);
+   }
+
+   public synchronized Vector3d getUp() {
+      return new Vector3d(this.up);
    }
 
    public double getFOV() {

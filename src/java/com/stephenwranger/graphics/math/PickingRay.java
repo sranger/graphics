@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import com.stephenwranger.graphics.renderables.Renderable;
 import com.stephenwranger.graphics.renderables.Sphere;
 import com.stephenwranger.graphics.utils.TupleMath;
 
@@ -35,8 +36,8 @@ public class PickingRay {
     * @param sphere
     * @return
     */
-   public PickingHit raySphereIntersection(final Sphere sphere) {
-      final Tuple3d spherePosition = sphere.getPosition();
+   public PickingHit raySphereIntersection(final Renderable renderable, final Tuple3d origin, final double sphereRadius, final double sphereScale) {
+      final Tuple3d spherePosition = origin;
       final Tuple3d rayOriginToSphereOrigin = TupleMath.sub(spherePosition, this.origin);
 
       if (TupleMath.dot(rayOriginToSphereOrigin, direction) < 0) {
@@ -44,7 +45,7 @@ public class PickingRay {
       } else {
          final Tuple3d projectedCenter = projectToRay(spherePosition);
          final double distanceSquared = TupleMath.distanceSquared(spherePosition, projectedCenter);
-         final double radius = sphere.radius * sphere.getScale();
+         final double radius = sphereRadius * sphereScale;
          final double radius2 = radius * radius;
 
 
@@ -64,11 +65,21 @@ public class PickingRay {
             final Tuple3d scaledDirection = new Tuple3d(direction);
             TupleMath.scale(scaledDirection, di1);
 
-            return new PickingHit(sphere, TupleMath.add(origin, scaledDirection));
+            return new PickingHit(renderable, TupleMath.add(origin, scaledDirection));
          }
       }
 
       return PickingRay.NO_HIT;
+   }
+
+   /**
+    * http://www.lighthouse3d.com/tutorials/maths/ray-sphere-intersection/
+    * 
+    * @param sphere
+    * @return
+    */
+   public PickingHit raySphereIntersection(final Sphere sphere) {
+      return this.raySphereIntersection(sphere, sphere.getPosition(), sphere.radius, sphere.getScale());
    }
 
    /**

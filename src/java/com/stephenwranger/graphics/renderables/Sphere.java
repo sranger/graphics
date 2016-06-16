@@ -1,9 +1,5 @@
 package com.stephenwranger.graphics.renderables;
 
-import java.nio.ByteBuffer;
-import java.util.LinkedList;
-import java.util.List;
-
 import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.glu.GLU;
@@ -15,16 +11,8 @@ import com.stephenwranger.graphics.color.Color4f;
 import com.stephenwranger.graphics.math.CameraUtils;
 import com.stephenwranger.graphics.math.PickingHit;
 import com.stephenwranger.graphics.math.PickingRay;
-import com.stephenwranger.graphics.math.Tuple2d;
 import com.stephenwranger.graphics.math.Tuple3d;
 import com.stephenwranger.graphics.utils.TupleMath;
-import com.stephenwranger.graphics.utils.buffers.BufferRegion;
-import com.stephenwranger.graphics.utils.buffers.DataType;
-import com.stephenwranger.graphics.utils.buffers.NormalRegion;
-import com.stephenwranger.graphics.utils.buffers.TextureRegion;
-import com.stephenwranger.graphics.utils.buffers.Vertex;
-import com.stephenwranger.graphics.utils.buffers.VertexBufferObject;
-import com.stephenwranger.graphics.utils.buffers.VertexRegion;
 import com.stephenwranger.graphics.utils.textures.Texture2d;
 
 /**
@@ -33,19 +21,14 @@ import com.stephenwranger.graphics.utils.textures.Texture2d;
  * @author rangers
  * 
  */
-public class Sphere extends Renderable {
+public class Sphere extends RenderablePhysics {
    
    private Texture2d          texture             = null;
-   
-   // TODO: use shader
-   private final Tuple3d[]    mainVertices        = new Tuple3d[12];
-   private final int[][]      mainFaces           = new int[20][3];
    public final double        radius;
    private final Color4f      color               = Color4f.white();
    private boolean            isCollidable        = true;
    
-   private final List<Vertex> vertices            = new LinkedList<Vertex>();
-   private VertexBufferObject vbo                 = null;
+   private EllipticalGeometry geometry            = null;
    
    private boolean            enableScreenScaling = false;
    private int                minScreenSize       = 10;
@@ -71,58 +54,6 @@ public class Sphere extends Renderable {
       super(mass, restitution, muStatic, muKinetic);
       
       this.radius = radius;
-      
-      // icosahedron vertices
-      final double t = (1.0 + Math.sqrt(5.0)) / 2.0;
-      
-      this.mainVertices[0] = new Tuple3d(-1, t, 0);
-      this.mainVertices[1] = new Tuple3d(1, t, 0);
-      this.mainVertices[2] = new Tuple3d(-1, -t, 0);
-      this.mainVertices[3] = new Tuple3d(1, -t, 0);
-      
-      this.mainVertices[4] = new Tuple3d(0, -1, t);
-      this.mainVertices[5] = new Tuple3d(0, 1, t);
-      this.mainVertices[6] = new Tuple3d(0, -1, -t);
-      this.mainVertices[7] = new Tuple3d(0, 1, -t);
-      
-      this.mainVertices[8] = new Tuple3d(t, 0, -1);
-      this.mainVertices[9] = new Tuple3d(t, 0, 1);
-      this.mainVertices[10] = new Tuple3d(-t, 0, -1);
-      this.mainVertices[11] = new Tuple3d(-t, 0, 1);
-      
-      // faces near v0
-      this.mainFaces[0] = new int[] { 0, 11, 5 };
-      this.mainFaces[1] = new int[] { 0, 5, 1 };
-      this.mainFaces[2] = new int[] { 0, 1, 7 };
-      this.mainFaces[3] = new int[] { 0, 7, 10 };
-      this.mainFaces[4] = new int[] { 0, 10, 11 };
-      
-      // faces next to v0
-      this.mainFaces[5] = new int[] { 1, 5, 9 };
-      this.mainFaces[6] = new int[] { 5, 11, 4 };
-      this.mainFaces[7] = new int[] { 11, 10, 2 };
-      this.mainFaces[8] = new int[] { 10, 7, 6 };
-      this.mainFaces[9] = new int[] { 7, 1, 8 };
-      
-      // faces near v3
-      this.mainFaces[10] = new int[] { 3, 9, 4 };
-      this.mainFaces[11] = new int[] { 3, 4, 2 };
-      this.mainFaces[12] = new int[] { 3, 2, 6 };
-      this.mainFaces[13] = new int[] { 3, 6, 8 };
-      this.mainFaces[14] = new int[] { 3, 8, 9 };
-      
-      // faces next to v3
-      this.mainFaces[15] = new int[] { 4, 9, 5 };
-      this.mainFaces[16] = new int[] { 2, 4, 11 };
-      this.mainFaces[17] = new int[] { 6, 2, 10 };
-      this.mainFaces[18] = new int[] { 8, 6, 7 };
-      this.mainFaces[19] = new int[] { 9, 8, 1 };
-      
-      for (int i = 0; i < this.mainFaces.length; i++) {
-         this.split(new Tuple3d[] { this.mainVertices[this.mainFaces[i][0]], this.mainVertices[this.mainFaces[i][1]], this.mainVertices[this.mainFaces[i][2]] }, subdivisions);
-      }
-      
-      correctSeam(this.vertices, true);
    }
    
    public void setScreenScaling(final boolean enableScreenScaling, final int minScreenSize) {
@@ -138,69 +69,13 @@ public class Sphere extends Renderable {
       this.texture = texture;
    }
    
-   private void split(final Tuple3d[] triangle, final int repeat) {
-      // replace triangle by 4 triangles
-      final Tuple3d a = this.bisect(triangle[0], triangle[1]);
-      final Tuple3d b = this.bisect(triangle[1], triangle[2]);
-      final Tuple3d c = this.bisect(triangle[2], triangle[0]);
-      
-      final Tuple3d[][] newTriangles = new Tuple3d[4][3];
-      
-      newTriangles[0] = new Tuple3d[] { triangle[0], a, c };
-      newTriangles[1] = new Tuple3d[] { triangle[1], b, a };
-      newTriangles[2] = new Tuple3d[] { triangle[2], c, b };
-      newTriangles[3] = new Tuple3d[] { a, b, c };
-      
-      if (repeat > 0) {
-         this.split(newTriangles[0], repeat - 1);
-         this.split(newTriangles[1], repeat - 1);
-         this.split(newTriangles[2], repeat - 1);
-         this.split(newTriangles[3], repeat - 1);
-      } else {
-         Tuple3d vertex;
-         Tuple3d normal;
-         Tuple2d texCoord;
-         
-         for (final Tuple3d[] t : newTriangles) {
-            for (final Tuple3d v : t) {
-               vertex = new Tuple3d(v);
-               normal = new Tuple3d(v);
-               texCoord = new Tuple2d(0.5 + Math.atan2(v.z, v.x) / (2.0 * Math.PI), 1.0 - (0.5 - Math.asin(v.y) / Math.PI));
-               TupleMath.scale(vertex, this.radius);
-               
-               this.vertices.add(new Vertex(vertex, normal, texCoord));
-            }
-         }
-      }
-   }
-   
-   // return index of point in the middle of p0 and p1
-   private Tuple3d bisect(final Tuple3d p0, final Tuple3d p1) {
-      TupleMath.normalize(p0);
-      TupleMath.normalize(p1);
-      // not in cache, calculate it
-      final Tuple3d center = new Tuple3d((p0.x + p1.x) / 2.0, (p0.y + p1.y) / 2.0, (p0.z + p1.z) / 2.0);
-      // normalize to make sure it's as close to the sphere's surface as possible
-      TupleMath.normalize(center);
-      return center;
-   }
-   
    private void initializeVbo(final GL2 gl) {
-      this.vbo = new VertexBufferObject(this.vertices.size(), true, GL2.GL_TRIANGLES, new BufferRegion[] { new VertexRegion(3, DataType.FLOAT), new NormalRegion(DataType.FLOAT),
-            new TextureRegion(2, DataType.FLOAT) });
-      final ByteBuffer buffer = this.vbo.mapBuffer(gl);
-      
-      for (final Vertex vert : this.vertices) {
-         vert.vertexIntoBuffer(buffer);
-      }
-      
-      buffer.rewind();
-      this.vbo.unmapBuffer(gl);
+      this.geometry = new EllipticalGeometry(gl, this.radius, 1, (azimuth, elevation) -> { return this.radius; });
    }
    
    @Override
    public void render(final GL2 gl, final GLU glu, final GLAutoDrawable glDrawable, final Scene scene) {
-      if (this.vbo == null) {
+      if (this.geometry == null) {
          this.initializeVbo(gl);
       }
       
@@ -220,9 +95,9 @@ public class Sphere extends Renderable {
       this.scale = 1.0;
       
       if (this.enableScreenScaling) {
-         final Tuple3d posScreen = CameraUtils.getScreenCoordinates(gl, glu, this.position);
+         final Tuple3d posScreen = CameraUtils.getScreenCoordinates(scene, this.position);
          final Tuple3d posSide = TupleMath.add(posScreen, new Tuple3d(this.minScreenSize / 2.0, 0, 0));
-         final Tuple3d worldSide = CameraUtils.getWorldCoordinates(gl, glu, posSide);
+         final Tuple3d worldSide = CameraUtils.getWorldCoordinates(scene, posSide);
          final double distance = TupleMath.distance(this.position, worldSide);
          
          if (distance > this.radius) {
@@ -236,7 +111,7 @@ public class Sphere extends Renderable {
       gl.glRotatef((float) Math.toDegrees(axisAngle[0]), axisAngle[1], axisAngle[2], axisAngle[3]);
       gl.glScalef((float) this.scale, 1f, (float) this.scale);
       
-      this.vbo.render(gl);
+      this.geometry.render(gl, glu, glDrawable, scene);
       
       gl.glFlush();
       
@@ -245,35 +120,6 @@ public class Sphere extends Renderable {
       }
       
       gl.glPopMatrix();
-   }
-   
-   public static void fixTextureCoordinates(final Tuple2d t0, final Tuple2d t1) {
-      final double tt = 0.75;
-      final double nn = 1.0 - tt;
-      
-      if (Math.abs(t0.x - t1.x) > tt) {
-         if (t0.x < nn) {
-            t0.x += 1.f;
-         }
-         
-         if (t1.x < nn) {
-            t1.x += 1.f;
-         }
-      }
-   }
-   
-   public static void correctSeam(final List<Vertex> vertices, final boolean counterClockwise) {
-      Tuple2d v0, v1, v2;
-      
-      for (int i = 0; i < vertices.size() / 3; i++) {
-         v0 = vertices.get(i * 3 + 0).getTextureCoordinates();
-         v1 = vertices.get(i * 3 + 1).getTextureCoordinates();
-         v2 = vertices.get(i * 3 + 2).getTextureCoordinates();
-         
-         fixTextureCoordinates(v0, v1);
-         fixTextureCoordinates(v1, v2);
-         fixTextureCoordinates(v2, v0);
-      }
    }
    
    public double getScale() {

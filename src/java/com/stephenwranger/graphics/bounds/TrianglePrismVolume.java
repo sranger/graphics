@@ -42,6 +42,10 @@ public class TrianglePrismVolume extends BoundingBox {
       this.faces[7] = this.bottom;
    }
    
+   public Triangle3d[] getFaces() {
+      return this.faces;
+   }
+   
    @Override
    public boolean contains(final Tuple3d point) {
 //      System.out.println("TPV.aabb: " + super.toString());
