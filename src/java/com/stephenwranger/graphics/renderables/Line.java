@@ -10,7 +10,7 @@ import com.stephenwranger.graphics.bounds.BoundingVolume;
 import com.stephenwranger.graphics.color.Color4f;
 import com.stephenwranger.graphics.math.Tuple3d;
 
-public class Line extends Renderable {
+public class Line extends RenderablePhysics {
    private final Tuple3d p0, p1;
    private final BoundingBox bounds;
    private final Color4f color = new Color4f(1,1,1,1);

@@ -11,7 +11,7 @@ import com.stephenwranger.graphics.bounds.BoundingVolume;
 import com.stephenwranger.graphics.color.Color4f;
 import com.stephenwranger.graphics.math.Tuple3d;
 
-public class Triangle extends Renderable {
+public class Triangle extends RenderablePhysics {
    
    private final double baseWidth;
    private final double height;

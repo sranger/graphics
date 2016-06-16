@@ -1,7 +1,7 @@
 package com.stephenwranger.graphics.bounds;
 
 import com.stephenwranger.graphics.math.Tuple3d;
-import com.stephenwranger.graphics.renderables.Renderable;
+import com.stephenwranger.graphics.renderables.RenderablePhysics;
 import com.stephenwranger.graphics.utils.TupleMath;
 
 public class BoundsUtils {
@@ -223,7 +223,7 @@ public class BoundsUtils {
       }
    }
 
-   public static boolean intersect(final Renderable obj0, final Renderable obj1) {
+   public static boolean intersect(final RenderablePhysics obj0, final RenderablePhysics obj1) {
       return BoundsUtils.intersectVolumes(obj0.getBoundingVolume(), obj1.getBoundingVolume());
    }
 }

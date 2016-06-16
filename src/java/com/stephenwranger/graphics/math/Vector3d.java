@@ -54,6 +54,12 @@ public class Vector3d extends Tuple3d implements Vector {
       return this.x * other.x + this.y * other.y + this.z * other.z;
    }
 
+   /**
+    * Returns angle between two vectors in radians.
+    * 
+    * @param other
+    * @return
+    */
    public double angle(final Vector3d other) {
       return Math.acos(this.dot(other));
    }

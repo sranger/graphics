@@ -10,28 +10,16 @@ import com.stephenwranger.graphics.math.PickingHit;
 import com.stephenwranger.graphics.math.PickingRay;
 import com.stephenwranger.graphics.math.Quat4d;
 import com.stephenwranger.graphics.math.Tuple3d;
+import com.stephenwranger.graphics.math.Vector3d;
 import com.stephenwranger.graphics.utils.TupleMath;
 
 public abstract class Renderable {
-   protected final Tuple3d position = new Tuple3d();
-   protected Quat4d rotation = new Quat4d();
-   private final double mass;
-   private final double restitution;
-   private double uS;
-   private double uK;
-   private final Tuple3d velocity = new Tuple3d(0, 0, 0);
+   protected final Tuple3d position;
+   protected Quat4d rotation;
 
-   /**
-    * Creates a {@link Renderable} with the given mass in kilograms.
-    * 
-    * @param mass
-    *           mass of {@link Renderable} in kilograms
-    */
-   public Renderable(final double mass, final double restitution, final double muStatic, final double muKinetic) {
-      this.mass = (mass == 0) ? Double.POSITIVE_INFINITY : mass;
-      this.restitution = Math.min(1.0, Math.max(0.0, restitution));
-      this.uS = muStatic;
-      this.uK = muKinetic;
+   public Renderable(final Tuple3d position, final Quat4d rotation) {
+      this.position = new Tuple3d(position);
+      this.rotation = new Quat4d(rotation);
    }
 
    public void setPosition(final Tuple3d position) {
@@ -47,7 +35,7 @@ public abstract class Renderable {
    }
 
    public void setRotation(final Quat4d quaternion) {
-      rotation = quaternion;
+      rotation = new Quat4d(quaternion);
    }
 
    public Tuple3d getPosition() {
@@ -58,76 +46,21 @@ public abstract class Renderable {
       return new Quat4d(rotation);
    }
 
-   public void setFrictionStatic(final double uS) {
-      this.uS = uS;
-   }
-
-   public void setFrictionKinetic(final double uK) {
-      this.uK = uK;
-   }
-
-   /**
-    * Returns mass in kg.
-    * 
-    * @return
-    */
-   public double getMass() {
-      return mass;
-   }
-
-   public double getInverseMass() {
-      return ((mass <= 0) || (mass == Double.POSITIVE_INFINITY)) ? 0 : 1.0 / mass;
-   }
-
-   /**
-    * Returns the coefficient of restitution in the range [0,1].
-    * 
-    * @return
-    */
-   public double getCoefficientOfRestitution() {
-      return restitution;
-   }
-
-   /**
-    * The coefficient of static friction.
-    * 
-    * @return
-    */
-   public double getMuStatic() {
-      return uS;
-   }
-
-   /**
-    * The coefficient of kinetic friction.
-    * 
-    * @return
-    */
-   public double getMuKinetic() {
-      return uK;
-   }
-
-   public Tuple3d getVelocity() {
-      return new Tuple3d(velocity);
-   }
-
-   /**
-    * Sets the velocity direction and magnitude.
-    * 
-    * @param velocity
-    *           the direction of velocity and magnitude as length of direction vector
-    */
-   public void setVelocity(final Tuple3d velocity) {
-      this.velocity.set(velocity);
-   }
-
    public PickingHit getIntersection(final PickingRay ray) {
       return PickingRay.NO_HIT;
    }
-
-
-   public abstract void setCollidable(final boolean value);
-
-   public abstract boolean isCollidable();
+   
+   public double[] getNearFar(final Scene scene) {
+      final Tuple3d cameraPosition = scene.getCameraPosition();
+      final Tuple3d origin = this.getPosition();
+      final Vector3d lookAt = new Vector3d();
+      lookAt.subtract(origin, cameraPosition);
+      lookAt.normalize();
+      final double distance = origin.distance(cameraPosition);
+      final double range = this.getBoundingVolume().getSpannedDistance(lookAt);
+      
+      return new double[] { distance - range, distance + range };
+   }
 
    public abstract void render(final GL2 gl, final GLU glu, final GLAutoDrawable glDrawable, final Scene scene);
 

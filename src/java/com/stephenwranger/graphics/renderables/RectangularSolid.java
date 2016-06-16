@@ -11,7 +11,7 @@ import com.stephenwranger.graphics.color.Color4f;
 import com.stephenwranger.graphics.math.Tuple3d;
 import com.stephenwranger.graphics.utils.TupleMath;
 
-public class RectangularSolid extends Renderable {
+public class RectangularSolid extends RenderablePhysics {
    private static final double[][] CUBE_VERTICES = new double[][] { { -0.5, -0.5, -0.5 }, // LEFT BOTTOM FAR
          { -0.5, 0.5, -0.5 }, // LEFT TOP FAR
          { 0.5, -0.5, -0.5 }, // RIGHT BOTTOM FAR
