@@ -7,5 +7,5 @@
 
 ant dist
 
-cp dist/com.stephenwranger.graphics.jar ../thesis/lib
+cp dist/com.stephenwranger.graphics.jar ../com.stephenwranger.thesis/lib
 cp dist/com.stephenwranger.graphics.jar ../com.stephenwranger.compgeo/lib

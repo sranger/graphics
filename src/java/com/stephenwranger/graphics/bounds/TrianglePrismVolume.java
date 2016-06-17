@@ -48,23 +48,21 @@ public class TrianglePrismVolume extends BoundingBox {
    
    @Override
    public boolean contains(final Tuple3d point) {
-//      System.out.println("TPV.aabb: " + super.toString());
+      int ctr = 0;
+
       // check the easier contains computation as an early termination step
       if(super.contains(point)) {
 //         System.out.println("inside aabb");
          for(int i = 0; i < this.faces.length; i++) {
             final Triangle3d face = this.faces[i];
-//            System.out.println("face #" + i + " isBehind? " + face.isBehind(point));
-            if(!face.isBehind(point)) {
-               return false;
+            System.out.println("\tface #" + i + " isBehind? " + face.isBehind(point));
+            if(face.isBehind(point)) {
+               ctr++;
             }
          }
-      } else {
-//         System.out.println("outside aabb");
-         return false;
       }
       
-      return true;
+      return ctr == this.faces.length;
    }
    
    private static Tuple3d getMin(final Tuple3d[] top, final Tuple3d[] bottom) {
