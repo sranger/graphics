@@ -22,12 +22,20 @@ public class PickingRay {
    };
 
    private final Tuple3d origin;
-   private final Tuple3d direction;
+   private final Vector3d direction;
 
-   public PickingRay(final Tuple3d origin, final Tuple3d direction) {
+   public PickingRay(final Tuple3d origin, final Vector3d direction) {
       this.origin = new Tuple3d(origin);
-      this.direction = new Tuple3d(direction);
+      this.direction = new Vector3d(direction);
       TupleMath.normalize(this.direction);
+   }
+   
+   public Tuple3d getOrigin() {
+      return new Tuple3d(this.origin);
+   }
+   
+   public Vector3d getDirection() {
+      return new Vector3d(this.direction);
    }
 
    /**

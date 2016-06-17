@@ -151,3 +151,4 @@ Export-Package: com.jogamp.common,
  jogamp.opengl.x11.glx
 Bundle-Vendor: com.stephenwranger
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Import-Package: com.stephenwranger.graphics.math

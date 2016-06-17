@@ -6,7 +6,7 @@ public class Quat4d extends Quaternion {
    // TODO: implement own quaternion class
 
    public Quat4d() {
-      super();
+      super(0,0,0,1);
    }
 
    public Quat4d(final Quat4d quaternion) {
@@ -35,5 +35,12 @@ public class Quat4d extends Quaternion {
       offset.x = vector[0];
       offset.y = vector[1];
       offset.z = vector[2];
+   }
+   
+   public void set(final double x, final double y, final double z, final double w) {
+      this.x = (float) x;
+      this.y = (float) y;
+      this.z = (float) z;
+      this.w = (float) w;
    }
 }

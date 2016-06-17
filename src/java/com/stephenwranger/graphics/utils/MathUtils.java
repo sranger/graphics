@@ -32,6 +32,7 @@ public class MathUtils {
    public static final double  METERS_TO_CENTIMETERS       = 100;
 
    public static final double  TWO_PI                      = Math.PI * 2.0;
+   public static final double  HALF_PI                     = Math.PI / 2.0;
 
    public static final double  ASTRONOMICAL_UNIT_METERS    = 149597870700.0;
 
@@ -69,6 +70,10 @@ public class MathUtils {
 
    public static Double getDouble(final String value, final Double defaultValue) {
       return value == null || value.length() == 0 ? defaultValue : Double.valueOf(value);
+   }
+   
+   public static int getSign(final double value) {
+      return (value < 0.0) ? -1 : 1;
    }
 
    /**

@@ -17,8 +17,8 @@ public class TrianglePrismVolume extends BoundingBox {
 
    /**
     * Creates a new {@link TrianglePrismVolume} with the given vertices in top as one triangular face and the vertices
-    * in bottom as the other. It is assumed that top[n] is connected to bottom[n] and wound counter-clockwise as looking
-    * from behind the face.
+    * in bottom as the other. It is assumed that top[n] is connected to bottom[n] and top is wound counter-clockwise as
+    * looking from behind the face.
     * 
     * @param top
     * @param bottom
@@ -27,15 +27,15 @@ public class TrianglePrismVolume extends BoundingBox {
       super(getMin(top, bottom), getMax(top, bottom));
 
       this.top = new Triangle3d(top[0], top[1], top[2]);
-      this.bottom = new Triangle3d(bottom[0], bottom[1], bottom[2]);
-      this.faces[0] = new Triangle3d(top[0], bottom[0], top[2]);
-      this.faces[1] = new Triangle3d(bottom[0], bottom[1], top[2]);
+      this.bottom = new Triangle3d(bottom[2], bottom[1], bottom[0]);
+      this.faces[0] = new Triangle3d(top[0], top[2], bottom[0]);
+      this.faces[1] = new Triangle3d(bottom[0], top[2], bottom[2]);
       
       this.faces[2] = new Triangle3d(top[2], top[1], bottom[2]);
-      this.faces[3] = new Triangle3d(top[2], bottom[2], bottom[1]);
+      this.faces[3] = new Triangle3d(top[2], bottom[1], bottom[2]);
       
-      this.faces[4] = new Triangle3d(top[1], top[0], bottom[2]);
-      this.faces[5] = new Triangle3d(top[0], bottom[0], bottom[2]);
+      this.faces[4] = new Triangle3d(top[1], top[0], bottom[1]);
+      this.faces[5] = new Triangle3d(top[0], bottom[0], bottom[1]);
 
       // added so loop can be used for contains check
       this.faces[6] = this.top;
