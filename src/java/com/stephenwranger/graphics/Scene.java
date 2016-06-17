@@ -193,8 +193,11 @@ public class Scene extends GLCanvas implements GLEventListener {
       if (this.screenLookAt != null) {
          this.followTarget = null;
          final Tuple3d worldTarget = CameraUtils.getWorldCoordinates(this, this.screenLookAt);
+         final Vector3d direction = new Vector3d(TupleMath.sub(worldTarget, this.cameraPosition));
+         direction.normalize();
+         
          // TODO: update camPos and lookAt with intersection
-         final PickingRay ray = new PickingRay(this.cameraPosition, TupleMath.sub(worldTarget, this.cameraPosition));
+         final PickingRay ray = new PickingRay(this.cameraPosition, direction);
          final List<PickingHit> hits = new ArrayList<PickingHit>();
          PickingHit hit;
 
@@ -302,13 +305,19 @@ public class Scene extends GLCanvas implements GLEventListener {
             TupleMath.normalize(direction);
             final double distance = this.sceneBounds.getSpannedDistance(null);
             this.far = distance + ((directionDistance - (distance / 2.0)) * 5.0);
-            this.near = this.far / 1000.0;
-            // System.out.println(this.near + ", " + this.far + ", " + distance + ", " + directionDistance);
+            this.near = this.far / 3000.0;
          } else {
             this.far = TupleMath.length(TupleMath.sub(this.cameraPosition, this.lookAt)) * 5.0;
-            this.near = this.far / 1000.0;
-            // System.out.println(this.near + ", " + this.far);
+            this.near = this.far / 3000.0;
          }
+      }
+      
+      if(this.near < 0.01) {
+         this.near = 0.01;
+      }
+      
+      if(this.far < this.near * 3000.0) {
+         this.far = this.near * 3000.0;
       }
    }
 
