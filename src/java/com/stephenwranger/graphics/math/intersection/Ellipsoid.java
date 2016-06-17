@@ -1,8 +1,5 @@
 package com.stephenwranger.graphics.math.intersection;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.stephenwranger.graphics.math.PickingRay;
 import com.stephenwranger.graphics.math.Tuple3d;
 import com.stephenwranger.graphics.math.Vector3d;
@@ -32,16 +29,19 @@ public class Ellipsoid {
       this.secondEccentricitySquared = secondEccentricitySquared;
    }
    
-   public List<Tuple3d> getIntersectionGeodetic(final PickingRay ray) {
-      final List<Tuple3d> cartesianIntersections = this.getIntersection(ray);
-      final List<Tuple3d> geodeticIntersections = new ArrayList<>();
+   public Tuple3d intersectionToLonLat(final PickingRay ray, final double distance) {
+      final Vector3d dir = new Vector3d(ray.getDirection());
+      dir.scale(distance);
+      final Vector3d translatedPt = new Vector3d();
+      final Vector3d intersectionPt = new Vector3d(ray.getOrigin());
 
-      for(final Tuple3d cartesian : cartesianIntersections) {
-         cartesian.subtract(center);
-         geodeticIntersections.add(toLonLatAlt(cartesian));
+      if (IntersectionUtils.isGreaterThan(Math.abs(distance), 0)) {
+         intersectionPt.add(dir);
       }
+
+      translatedPt.subtract(intersectionPt, center);
       
-      return geodeticIntersections;
+      return toLonLatAlt(translatedPt);
    }
 
    /**
@@ -51,12 +51,9 @@ public class Ellipsoid {
     * @param ray
     * @return
     */
-   public List<Tuple3d> getIntersection(final PickingRay ray) {
-      final double[] lineParmsAtIntersect = new double[2];
+   public double[] getIntersection(final PickingRay ray) {
+      double[] lineParmsAtIntersect = new double[0];
       final double a, b, c, discrminant;
-      int numSoln = 0;
-      lineParmsAtIntersect[0] = 0.0;
-      lineParmsAtIntersect[1] = 0.0;
 
       final Tuple3d origin = ray.getOrigin();
       final Vector3d direction = ray.getDirection();
@@ -75,38 +72,19 @@ public class Ellipsoid {
 
          if (IntersectionUtils.isGreaterThan(discrminant, 0.0)) {
             final double dRoot = Math.sqrt(discrminant);
-            lineParmsAtIntersect[numSoln] = (-b + dRoot) / (2.0 * a);
-            numSoln++;
-            lineParmsAtIntersect[numSoln] = (-b - dRoot) / (2.0 * a);
-            numSoln++;
+            lineParmsAtIntersect = new double[] { (-b + dRoot) / (2.0 * a), (-b - dRoot) / (2.0 * a) };
          } else if (discrminant >= 0.0) {
             // 0 <= discrm <= nearZero, line is tangent to ellipsoid
-            lineParmsAtIntersect[numSoln] = -b / (2.0 * a);
-            numSoln++;
+            lineParmsAtIntersect = new double[] { -b / (2.0 * a) };
          } else if ((IntersectionUtils.isLessOrEqual(Math.abs(b), 0.0)) && (-1 == (MathUtils.getSign(a) * MathUtils.getSign(c)))) {
-            lineParmsAtIntersect[numSoln] = Math.sqrt(-c / a);
-            numSoln++;
-            lineParmsAtIntersect[numSoln] = -Math.sqrt(-c / a);
-            numSoln++;
+            lineParmsAtIntersect = new double[] { Math.sqrt(-c / a), -Math.sqrt(-c / a) };
          }
       } else if (IntersectionUtils.isGreaterThan(Math.abs(b), 0.0)) {
          // a = 0 ==> t = -c / b, and also not quadratic, therefore tangent to ellipsoid
-         lineParmsAtIntersect[0] = -c / b;
-         numSoln++;
+         lineParmsAtIntersect = new double[] { -c / b };
       }
       
-      final List<Tuple3d> intersections = new ArrayList<>();
-      
-      for(int i = 0; i < numSoln; i++) {
-         final double dist = lineParmsAtIntersect[i];
-         final Vector3d dir = new Vector3d(direction);
-         dir.scale(dist);
-         final Tuple3d intersection = new Tuple3d(origin);
-         intersection.add(dir);
-         intersections.add(intersection);
-      }
-
-      return intersections;
+      return lineParmsAtIntersect;
    }
 
    /**
