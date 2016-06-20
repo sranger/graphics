@@ -60,12 +60,22 @@ public class Vector3d extends Tuple3d implements Vector {
     * @param other
     * @return
     */
-   public double angle(final Vector3d other) {
+   public double angleRadians(final Vector3d other) {
       return Math.acos(this.dot(other));
    }
 
+   /**
+    * Returns angle between two vectors in degrees.
+    * 
+    * @param other
+    * @return
+    */
+   public double angleDegrees(final Vector3d other) {
+      return Math.toDegrees(this.angleRadians(other));
+   }
+
    public double angleSigned(final Vector3d other) {
-      final double angle = this.angle(other);
+      final double angle = this.angleRadians(other);
       final double sign = (this.dot(other)) >= 0 ? 1 : -1;
 
       return sign * angle;

@@ -95,9 +95,9 @@ public class Sphere extends RenderablePhysics {
       this.scale = 1.0;
       
       if (this.enableScreenScaling) {
-         final Tuple3d posScreen = CameraUtils.getScreenCoordinates(scene, this.position);
+         final Tuple3d posScreen = CameraUtils.gluProject(scene, this.position);
          final Tuple3d posSide = TupleMath.add(posScreen, new Tuple3d(this.minScreenSize / 2.0, 0, 0));
-         final Tuple3d worldSide = CameraUtils.getWorldCoordinates(scene, posSide);
+         final Tuple3d worldSide = CameraUtils.gluUnProject(scene, posSide);
          final double distance = TupleMath.distance(this.position, worldSide);
          
          if (distance > this.radius) {
