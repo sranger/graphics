@@ -43,6 +43,7 @@ public class TriangleMesh extends Renderable {
 
    @Override
    public void render(final GL2 gl, final GLU glu, final GLAutoDrawable glDrawable, final Scene scene) {
+      gl.glPushAttrib(GL2.GL_POLYGON_BIT | GL2.GL_LIGHTING_BIT);
       gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, GL2.GL_LINE);
       gl.glDisable(GL2.GL_LIGHTING);
       gl.glDisable(GL2.GL_CULL_FACE);
@@ -58,6 +59,7 @@ public class TriangleMesh extends Renderable {
       }
       
       gl.glEnd();
+      gl.glPopAttrib();
    }
 
    @Override
