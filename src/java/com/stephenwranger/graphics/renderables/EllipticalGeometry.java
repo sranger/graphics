@@ -49,7 +49,8 @@ public class EllipticalGeometry extends Renderable {
       
       // icosahedron vertices
       final double t = (1.0 + Math.sqrt(5.0)) / 2.0;
-      
+    
+      // original geometry
       this.mainVertices[0] = new Tuple3d(-1, t, 0);
       this.mainVertices[1] = new Tuple3d(1, t, 0);
       this.mainVertices[2] = new Tuple3d(-1, -t, 0);
@@ -138,7 +139,7 @@ public class EllipticalGeometry extends Renderable {
             for (final Tuple3d v : t) {
                vertex = new Tuple3d(v);
                normal = new Tuple3d(v);
-               texCoord = new Tuple2d(0.5 + Math.atan2(v.z, v.x) / (2.0 * Math.PI), (0.5 - Math.asin(v.y) / Math.PI));
+               texCoord = new Tuple2d(0.5 + Math.atan2(v.y, v.x) / (2.0 * Math.PI), (0.5 + Math.asin(v.z) / Math.PI));
 
                final double azimuth = texCoord.x * MathUtils.TWO_PI - Math.PI;
                final double elevation = texCoord.y * Math.PI - Math.PI / 2.0;

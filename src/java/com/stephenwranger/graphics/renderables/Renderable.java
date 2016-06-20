@@ -51,15 +51,25 @@ public abstract class Renderable {
    }
    
    public double[] getNearFar(final Scene scene) {
-      final Tuple3d cameraPosition = scene.getCameraPosition();
-      final Tuple3d origin = this.getPosition();
-      final Vector3d lookAt = new Vector3d();
-      lookAt.subtract(origin, cameraPosition);
-      lookAt.normalize();
-      final double distance = origin.distance(cameraPosition);
-      final double range = this.getBoundingVolume().getSpannedDistance(lookAt);
+      final BoundingVolume bounds = this.getBoundingVolume();
+      final double[] nearFar = new double[2];
       
-      return new double[] { distance - range, distance + range };
+      if(bounds == null) {
+         nearFar[0] = Double.NaN;
+         nearFar[1] = Double.NaN;
+      } else {
+         final Tuple3d cameraPosition = scene.getCameraPosition();
+         final Tuple3d origin = this.getPosition();
+         final Vector3d lookAt = new Vector3d();
+         lookAt.subtract(origin, cameraPosition);
+         lookAt.normalize();
+         final double distance = origin.distance(cameraPosition);
+         final double range = this.getBoundingVolume().getSpannedDistance(lookAt);
+         nearFar[0] = distance - range;
+         nearFar[1] = distance + range;
+      }
+      
+      return nearFar;
    }
 
    public abstract void render(final GL2 gl, final GLU glu, final GLAutoDrawable glDrawable, final Scene scene);

@@ -17,12 +17,14 @@ import javax.media.opengl.glu.GLU;
 import com.jogamp.opengl.util.FPSAnimator;
 import com.stephenwranger.graphics.bounds.BoundingVolume;
 import com.stephenwranger.graphics.math.CameraUtils;
+import com.stephenwranger.graphics.math.Matrix4d;
 import com.stephenwranger.graphics.math.PickingHit;
 import com.stephenwranger.graphics.math.PickingRay;
 import com.stephenwranger.graphics.math.Tuple3d;
 import com.stephenwranger.graphics.math.Vector3d;
 import com.stephenwranger.graphics.math.intersection.IntersectionUtils;
 import com.stephenwranger.graphics.renderables.Renderable;
+import com.stephenwranger.graphics.renderables.RenderableOrthographic;
 import com.stephenwranger.graphics.utils.AnimationListener;
 import com.stephenwranger.graphics.utils.MathUtils;
 import com.stephenwranger.graphics.utils.TupleMath;
@@ -34,23 +36,26 @@ public class Scene extends GLCanvas implements GLEventListener {
    private final double[] modelview = new double[16];
    private final int[] viewport = new int[4];
    
-   private final Set<AnimationListener> listeners          = new HashSet<AnimationListener>();
-   private final Set<Animation>         animations         = new HashSet<Animation>();
-   private final Set<Renderable>        renderables        = new HashSet<Renderable>();
+   private final Set<AnimationListener> listeners                                   = new HashSet<AnimationListener>();
+   private final Set<Animation>         animations                                  = new HashSet<Animation>();
+   private final Set<Renderable>        renderables                                 = new HashSet<Renderable>();
+   private final Set<RenderableOrthographic>        renderablesOrthographic         = new HashSet<RenderableOrthographic>();
    private final FPSAnimator            animator;
-   private final GLU                    glu                = new GLU();
+   private final GLU                    glu                                         = new GLU();
    private long                         current, delta;
-   private final Tuple3d                cameraPosition     = new Tuple3d(0, 0, 10);
-   private final Tuple3d                lookAt             = new Vector3d(0, 0, 0);
-   private final Vector3d               up                 = new Vector3d(0, 1, 0);
-   private BoundingVolume               sceneBounds        = null;
-   private volatile double              animationSpeed     = 1.0;
-   private volatile boolean             updateStep         = true;
+   private final Tuple3d                cameraPosition                              = new Tuple3d(0, 0, 10);
+   private final Tuple3d                lookAt                                      = new Vector3d(0, 0, 0);
+   private final Vector3d               up                                          = new Vector3d(0, 1, 0);
+   private BoundingVolume               sceneBounds                                 = null;
+   private volatile double              animationSpeed                              = 1.0;
+   private volatile boolean             updateStep                                  = true;
 
-   private double                       near, far, fov = 45.0;
-   private Tuple3d                      screenLookAt       = null;
-   private boolean                      enableFollowTarget = false;
-   private Renderable                   followTarget       = null;
+   private double                       near;
+   private double                       far;
+   private double                       fov                                         = 45.0;
+   private Tuple3d                      screenLookAt                                = null;
+   private boolean                      enableFollowTarget                          = false;
+   private Renderable                   followTarget                                = null;
 
    public Scene(final Dimension preferredSize) {
       this(preferredSize, 60);
@@ -66,8 +71,13 @@ public class Scene extends GLCanvas implements GLEventListener {
       this.addGLEventListener(this);
    }
 
-   public synchronized void setCameraPosition(final Tuple3d cameraPosition) {
+   public synchronized void setCameraPosition(final Tuple3d cameraPosition, final Tuple3d lookAt, final Vector3d up) {
+      this.lookAt.set(lookAt);
+      this.up.set(up);
       this.cameraPosition.set(cameraPosition);
+      
+      final Matrix4d mv = CameraUtils.gluLookAt(cameraPosition, lookAt, up);
+      mv.get(this.modelview);
    }
    
    public synchronized void setViewingVolume(final BoundingVolume boundingVolume) {
@@ -90,11 +100,9 @@ public class Scene extends GLCanvas implements GLEventListener {
       
       viewDirection.scale(maxSpannedDistance * 2.0);
       this.cameraPosition.subtract(center, viewDirection);
-   }
-
-   public synchronized void setLookAt(final Tuple3d lookAt, final Vector3d up) {
-      this.lookAt.set(lookAt);
-      this.up.set(up);
+      
+      final Matrix4d mv = CameraUtils.gluLookAt(cameraPosition, lookAt, up);
+      mv.get(this.modelview);
    }
 
    public synchronized void setFov(final double fov) {
@@ -123,6 +131,14 @@ public class Scene extends GLCanvas implements GLEventListener {
 
    public synchronized void removeRenderable(final Renderable renderable) {
       this.renderables.remove(renderable);
+   }
+
+   public synchronized void addRenderableOrthographic(final RenderableOrthographic renderableOrthographic) {
+      this.renderablesOrthographic.add(renderableOrthographic);
+   }
+
+   public synchronized void removeRenderableOrthographic(final RenderableOrthographic renderableOrthographic) {
+      this.renderablesOrthographic.remove(renderableOrthographic);
    }
 
    private synchronized void notifyListeners(final long frameTime) {
@@ -186,7 +202,7 @@ public class Scene extends GLCanvas implements GLEventListener {
          this.updateStep = true;
       }
 
-      this.reshape(glDrawable, 0, 0, this.getWidth(), this.getHeight());
+      this.reshape(glDrawable, this.viewport[0], this.viewport[1], this.viewport[2], this.viewport[3]);
       this.setMatrices(gl);
 
       // now that all elements are in the proper location, move camera to match
@@ -225,6 +241,9 @@ public class Scene extends GLCanvas implements GLEventListener {
             final Tuple3d dir = TupleMath.sub(this.cameraPosition, this.lookAt);
             this.lookAt.set(closestHit.getHitLocation());
             this.cameraPosition.set(TupleMath.add(dir, this.lookAt));
+            
+            final Matrix4d mv = CameraUtils.gluLookAt(cameraPosition, lookAt, up);
+            mv.get(this.modelview);
 
             if (this.enableFollowTarget) {
                this.followTarget = closestHit.getHitObject();
@@ -238,11 +257,10 @@ public class Scene extends GLCanvas implements GLEventListener {
          final Tuple3d dir = TupleMath.sub(this.cameraPosition, this.lookAt);
          this.lookAt.set(this.followTarget.getPosition());
          this.cameraPosition.set(TupleMath.add(dir, this.lookAt));
+         
+         final Matrix4d mv = CameraUtils.gluLookAt(cameraPosition, lookAt, up);
+         mv.get(this.modelview);
       }
-      
-      gl.glGetDoublev(GL2.GL_PROJECTION_MATRIX, projection, 0);
-      gl.glGetDoublev(GL2.GL_MODELVIEW_MATRIX, modelview, 0);
-      gl.glGetIntegerv(GL2.GL_VIEWPORT, viewport, 0);
 
       // setup is done; rendering time
       for (final Animation animation : this.animations) {
@@ -252,6 +270,11 @@ public class Scene extends GLCanvas implements GLEventListener {
       // this is for mostly static objects or those that don't need a custom animation
       for(final Renderable renderable : this.renderables) {
          renderable.render(gl, glu, glDrawable, this);
+      }
+      
+      // this is for screen-space renderables
+      for(final RenderableOrthographic renderableOrthographic : this.renderablesOrthographic) {
+         renderableOrthographic.render(gl, glu, glDrawable, this);
       }
    }
    
@@ -269,12 +292,14 @@ public class Scene extends GLCanvas implements GLEventListener {
 
    @Override
    public void reshape(final GLAutoDrawable glDrawable, final int x, final int y, final int width, int height) {
-      final GL2 gl = (GL2) glDrawable.getGL();
+      this.viewport[0] = x;
+      this.viewport[1] = y;
+      this.viewport[2] = width;
+      this.viewport[3] = height;
 
       if (height <= 0) {
          height = 1;
       }
-      gl.glViewport(0, 0, width, height);
 
       this.near = Double.MAX_VALUE;
       this.far = -Double.MAX_VALUE;
@@ -292,7 +317,7 @@ public class Scene extends GLCanvas implements GLEventListener {
       for (final Renderable renderable : this.renderables) {
          nearFar = renderable.getNearFar(this);
          
-         if (nearFar != null) {
+         if (nearFar != null && Double.isFinite(nearFar[0]) && Double.isFinite(nearFar[1])) {
             this.near = Math.min(this.near, nearFar[0]);
             this.far = Math.max(this.far, nearFar[1]);
          }
@@ -319,6 +344,9 @@ public class Scene extends GLCanvas implements GLEventListener {
       if(this.far < this.near * 3000.0) {
          this.far = this.near * 3000.0;
       }
+      
+      final Matrix4d projectionMatrix = CameraUtils.gluPerspective(this.fov, this.viewport[2] / (double) this.viewport[3], this.near, this.far);
+      projectionMatrix.get(this.projection);
    }
 
    @Override
@@ -332,14 +360,13 @@ public class Scene extends GLCanvas implements GLEventListener {
       gl.glHint(GL2.GL_PERSPECTIVE_CORRECTION_HINT, GL2.GL_NICEST); // Really Nice Perspective Calculations
    }
 
-   public synchronized void setMatrices(final GL2 gl) {
+   public synchronized void setMatrices(final GL2 gl) {      
       gl.glMatrixMode(GL2.GL_PROJECTION);
-      gl.glLoadIdentity();
-      this.glu.gluPerspective(this.fov, (double) this.getWidth() / (double) this.getHeight(), this.near, this.far);
-
+      gl.glLoadMatrixd(this.projection, 0);
       gl.glMatrixMode(GL2.GL_MODELVIEW);
-      gl.glLoadIdentity();
-      this.glu.gluLookAt(this.cameraPosition.x, this.cameraPosition.y, this.cameraPosition.z, this.lookAt.x, this.lookAt.y, this.lookAt.z, this.up.x, this.up.y, this.up.z);
+      gl.glLoadMatrixd(this.modelview, 0);
+      
+      gl.glViewport(this.viewport[0], this.viewport[1], this.viewport[2], this.viewport[3]);
    }
 
    @Override
