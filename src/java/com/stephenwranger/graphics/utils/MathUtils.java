@@ -175,4 +175,34 @@ public class MathUtils {
    public static double getDistanceSquared(final Vector3d p1, final double[] p2) {
       return (p1.x - p2[0]) * (p1.x - p2[0]) + (p1.y - p2[1]) * (p1.y - p2[1]) + (p1.z - p2[2]) * (p1.z - p2[2]);
    }
+   
+   /**
+    * Returns true if any component of the given {@link Tuple3d} is NaN.
+    * 
+    * @param tuple
+    * @return
+    */
+   public static boolean isNaN(final Tuple3d tuple) {
+      return Double.isNaN(tuple.x) || Double.isNaN(tuple.y) || Double.isNaN(tuple.z);
+   }
+   
+   /**
+    * Returns true if any component of the given {@link Tuple3d} is Infinite.
+    * 
+    * @param tuple
+    * @return
+    */
+   public static boolean isInfinite(final Tuple3d tuple) {
+      return Double.isInfinite(tuple.x) || Double.isInfinite(tuple.y) || Double.isInfinite(tuple.z);
+   }
+   
+   /**
+    * Return true if all components of the given {@link Tuple3d} are finite.
+    * 
+    * @param tuple
+    * @return
+    */
+   public static boolean isFinite(final Tuple3d tuple) {
+      return Double.isFinite(tuple.x) && Double.isFinite(tuple.y) && Double.isFinite(tuple.z);
+   }
 }
