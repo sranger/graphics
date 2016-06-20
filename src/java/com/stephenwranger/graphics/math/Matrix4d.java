@@ -174,6 +174,16 @@ public class Matrix4d {
       
       return this;
    }
+   
+   public double[] multiply(final double[] in) {
+      final double[] result = new double[4];
+      result[0] = m[0] * in[0] + m[4] * in[1] + m[8] * in[2] + m[12] * in[3];
+      result[1] = m[1] * in[0] + m[5] * in[1] + m[9] * in[2] + m[13] * in[3];
+      result[2] = m[2] * in[0] + m[6] * in[1] + m[10] * in[2] + m[14] * in[3];
+      result[3] = m[3] * in[0] + m[7] * in[1] + m[11] * in[2] + m[15] * in[3];
+
+      return result;
+   }
 
    public Matrix4d translate(final Tuple3d translation) {
       this.m[12] = translation.x;
@@ -181,5 +191,63 @@ public class Matrix4d {
       this.m[14] = translation.z;
       
       return this;
+   }
+   
+   public static double[] invert(final double[] in) {
+      final Matrix4d inMatrix = new Matrix4d(in);
+      final Matrix4d outMatrix = Matrix4d.invert(inMatrix);
+      
+      return outMatrix.m;
+   }
+   
+   public static Matrix4d invert(final Matrix4d in) {
+      double[] inv = new double[16];
+      double det;
+      int i;
+
+      inv[0] =   in.m[5]*in.m[10]*in.m[15]   - in.m[5]*in.m[11]*in.m[14]   - in.m[9]*in.m[6]*in.m[15]
+               + in.m[9]*in.m[7]*in.m[14]    + in.m[13]*in.m[6]*in.m[11]   - in.m[13]*in.m[7]*in.m[10];
+      inv[4] =  -in.m[4]*in.m[10]*in.m[15]   + in.m[4]*in.m[11]*in.m[14]   + in.m[8]*in.m[6]*in.m[15]
+               - in.m[8]*in.m[7]*in.m[14]    - in.m[12]*in.m[6]*in.m[11]   + in.m[12]*in.m[7]*in.m[10];
+      inv[8] =   in.m[4]*in.m[9]*in.m[15]    - in.m[4]*in.m[11]*in.m[13]   - in.m[8]*in.m[5]*in.m[15]
+               + in.m[8]*in.m[7]*in.m[13]    + in.m[12]*in.m[5]*in.m[11]   - in.m[12]*in.m[7]*in.m[9];
+      inv[12] = -in.m[4]*in.m[9]*in.m[14]    + in.m[4]*in.m[10]*in.m[13]   + in.m[8]*in.m[5]*in.m[14]
+               - in.m[8]*in.m[6]*in.m[13]    - in.m[12]*in.m[5]*in.m[10]   + in.m[12]*in.m[6]*in.m[9];
+      inv[1] =  -in.m[1]*in.m[10]*in.m[15]   + in.m[1]*in.m[11]*in.m[14]   + in.m[9]*in.m[2]*in.m[15]
+               - in.m[9]*in.m[3]*in.m[14]    - in.m[13]*in.m[2]*in.m[11]   + in.m[13]*in.m[3]*in.m[10];
+      inv[5] =   in.m[0]*in.m[10]*in.m[15]   - in.m[0]*in.m[11]*in.m[14]   - in.m[8]*in.m[2]*in.m[15]
+               + in.m[8]*in.m[3]*in.m[14]    + in.m[12]*in.m[2]*in.m[11]   - in.m[12]*in.m[3]*in.m[10];
+      inv[9] =  -in.m[0]*in.m[9]*in.m[15]    + in.m[0]*in.m[11]*in.m[13]   + in.m[8]*in.m[1]*in.m[15]
+               - in.m[8]*in.m[3]*in.m[13]    - in.m[12]*in.m[1]*in.m[11]   + in.m[12]*in.m[3]*in.m[9];
+      inv[13] =  in.m[0]*in.m[9]*in.m[14]    - in.m[0]*in.m[10]*in.m[13]   - in.m[8]*in.m[1]*in.m[14]
+               + in.m[8]*in.m[2]*in.m[13]    + in.m[12]*in.m[1]*in.m[10]   - in.m[12]*in.m[2]*in.m[9];
+      inv[2] =   in.m[1]*in.m[6]*in.m[15]    - in.m[1]*in.m[7]*in.m[14]    - in.m[5]*in.m[2]*in.m[15]
+               + in.m[5]*in.m[3]*in.m[14]    + in.m[13]*in.m[2]*in.m[7]    - in.m[13]*in.m[3]*in.m[6];
+      inv[6] =  -in.m[0]*in.m[6]*in.m[15]    + in.m[0]*in.m[7]*in.m[14]    + in.m[4]*in.m[2]*in.m[15]
+               - in.m[4]*in.m[3]*in.m[14]    - in.m[12]*in.m[2]*in.m[7]    + in.m[12]*in.m[3]*in.m[6];
+      inv[10] =  in.m[0]*in.m[5]*in.m[15]    - in.m[0]*in.m[7]*in.m[13]    - in.m[4]*in.m[1]*in.m[15]
+               + in.m[4]*in.m[3]*in.m[13]    + in.m[12]*in.m[1]*in.m[7]    - in.m[12]*in.m[3]*in.m[5];
+      inv[14] = -in.m[0]*in.m[5]*in.m[14]    + in.m[0]*in.m[6]*in.m[13]    + in.m[4]*in.m[1]*in.m[14]
+               - in.m[4]*in.m[2]*in.m[13]    - in.m[12]*in.m[1]*in.m[6]    + in.m[12]*in.m[2]*in.m[5];
+      inv[3] =  -in.m[1]*in.m[6]*in.m[11]    + in.m[1]*in.m[7]*in.m[10]    + in.m[5]*in.m[2]*in.m[11]
+               - in.m[5]*in.m[3]*in.m[10]    - in.m[9]*in.m[2]*in.m[7]     + in.m[9]*in.m[3]*in.m[6];
+      inv[7] =   in.m[0]*in.m[6]*in.m[11]    - in.m[0]*in.m[7]*in.m[10]    - in.m[4]*in.m[2]*in.m[11]
+               + in.m[4]*in.m[3]*in.m[10]    + in.m[8]*in.m[2]*in.m[7]     - in.m[8]*in.m[3]*in.m[6];
+      inv[11] = -in.m[0]*in.m[5]*in.m[11]    + in.m[0]*in.m[7]*in.m[9]     + in.m[4]*in.m[1]*in.m[11]
+               - in.m[4]*in.m[3]*in.m[9]     - in.m[8]*in.m[1]*in.m[7]     + in.m[8]*in.m[3]*in.m[5];
+      inv[15] =  in.m[0]*in.m[5]*in.m[10]    - in.m[0]*in.m[6]*in.m[9]     - in.m[4]*in.m[1]*in.m[10]
+               + in.m[4]*in.m[2]*in.m[9]     + in.m[8]*in.m[1]*in.m[6]     - in.m[8]*in.m[2]*in.m[5];
+      
+      det = in.m[0]*inv[0] + in.m[1]*inv[4] + in.m[2]*inv[8] + in.m[3]*inv[12];
+      if (det == 0)
+          return null;
+
+      det = 1.0 / det;
+
+      final double[] out = new double[16];
+      for (i = 0; i < 16; i++)
+          out[i] = inv[i] * det;
+
+      return new Matrix4d(out);
    }
 }

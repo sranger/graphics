@@ -90,11 +90,6 @@ public class Scene extends GLCanvas implements GLEventListener {
       final Vector3d right = new Vector3d();
       right.cross(viewDirection, this.up);
       
-      if(IntersectionUtils.isEqual(right.angle(viewDirection), Math.PI)) {
-         // TODO: is this right?
-         right.cross(this.up, viewDirection);
-      }
-      
       this.up.cross(viewDirection, right);
       this.lookAt.set(center);
       
@@ -205,62 +200,62 @@ public class Scene extends GLCanvas implements GLEventListener {
       this.reshape(glDrawable, this.viewport[0], this.viewport[1], this.viewport[2], this.viewport[3]);
       this.setMatrices(gl);
 
-      // now that all elements are in the proper location, move camera to match
-      if (this.screenLookAt != null) {
-         this.followTarget = null;
-         final Tuple3d worldTarget = CameraUtils.getWorldCoordinates(this, this.screenLookAt);
-         final Vector3d direction = new Vector3d(TupleMath.sub(worldTarget, this.cameraPosition));
-         direction.normalize();
-         
-         // TODO: update camPos and lookAt with intersection
-         final PickingRay ray = new PickingRay(this.cameraPosition, direction);
-         final List<PickingHit> hits = new ArrayList<PickingHit>();
-         PickingHit hit;
-
-         for (final Animation animation : this.animations) {
-            hit = animation.getIntersection(ray);
-
-            if (hit != PickingRay.NO_HIT) {
-               hits.add(hit);
-            }
-         }
-
-         for (final Renderable renderable : this.renderables) {
-            hit = renderable.getIntersection(ray);
-
-            if (hit != PickingRay.NO_HIT) {
-               hits.add(hit);
-            }
-         }
-
-         ray.sort(hits);
-
-         final PickingHit closestHit = hits.isEmpty() ? null : hits.get(0);
-
-         if (closestHit != null) {
-            final Tuple3d dir = TupleMath.sub(this.cameraPosition, this.lookAt);
-            this.lookAt.set(closestHit.getHitLocation());
-            this.cameraPosition.set(TupleMath.add(dir, this.lookAt));
-            
-            final Matrix4d mv = CameraUtils.gluLookAt(cameraPosition, lookAt, up);
-            mv.get(this.modelview);
-
-            if (this.enableFollowTarget) {
-               this.followTarget = closestHit.getHitObject();
-            }
-         }
-
-         this.screenLookAt = null;
-      }
-
-      if (this.followTarget != null) {
-         final Tuple3d dir = TupleMath.sub(this.cameraPosition, this.lookAt);
-         this.lookAt.set(this.followTarget.getPosition());
-         this.cameraPosition.set(TupleMath.add(dir, this.lookAt));
-         
-         final Matrix4d mv = CameraUtils.gluLookAt(cameraPosition, lookAt, up);
-         mv.get(this.modelview);
-      }
+//      // now that all elements are in the proper location, move camera to match
+//      if (this.screenLookAt != null) {
+//         this.followTarget = null;
+//         final Tuple3d worldTarget = CameraUtils.getWorldCoordinates(this, this.screenLookAt);
+//         final Vector3d direction = new Vector3d(TupleMath.sub(worldTarget, this.cameraPosition));
+//         direction.normalize();
+//         
+//         // TODO: update camPos and lookAt with intersection
+//         final PickingRay ray = new PickingRay(this.cameraPosition, direction);
+//         final List<PickingHit> hits = new ArrayList<PickingHit>();
+//         PickingHit hit;
+//
+//         for (final Animation animation : this.animations) {
+//            hit = animation.getIntersection(ray);
+//
+//            if (hit != PickingRay.NO_HIT) {
+//               hits.add(hit);
+//            }
+//         }
+//
+//         for (final Renderable renderable : this.renderables) {
+//            hit = renderable.getIntersection(ray);
+//
+//            if (hit != PickingRay.NO_HIT) {
+//               hits.add(hit);
+//            }
+//         }
+//
+//         ray.sort(hits);
+//
+//         final PickingHit closestHit = hits.isEmpty() ? null : hits.get(0);
+//
+//         if (closestHit != null) {
+//            final Tuple3d dir = TupleMath.sub(this.cameraPosition, this.lookAt);
+//            this.lookAt.set(closestHit.getHitLocation());
+//            this.cameraPosition.set(TupleMath.add(dir, this.lookAt));
+//            
+//            final Matrix4d mv = CameraUtils.gluLookAt(cameraPosition, lookAt, up);
+//            mv.get(this.modelview);
+//
+//            if (this.enableFollowTarget) {
+//               this.followTarget = closestHit.getHitObject();
+//            }
+//         }
+//
+//         this.screenLookAt = null;
+//      }
+//
+//      if (this.followTarget != null) {
+//         final Tuple3d dir = TupleMath.sub(this.cameraPosition, this.lookAt);
+//         this.lookAt.set(this.followTarget.getPosition());
+//         this.cameraPosition.set(TupleMath.add(dir, this.lookAt));
+//         
+//         final Matrix4d mv = CameraUtils.gluLookAt(cameraPosition, lookAt, up);
+//         mv.get(this.modelview);
+//      }
 
       // setup is done; rendering time
       for (final Animation animation : this.animations) {
@@ -278,20 +273,28 @@ public class Scene extends GLCanvas implements GLEventListener {
       }
    }
    
-   public double[] getProjectionMatrix() {
+   public synchronized double[] getProjectionMatrix() {
       return this.projection;
    }
    
-   public double[] getModelViewMatrix() {
+   public synchronized double[] getModelViewMatrix() {
       return this.modelview;
    }
    
-   public int[] getViewport() {
+   public synchronized int[] getViewport() {
       return this.viewport;
+   }
+   
+   public synchronized double getNear() {
+      return this.near;
+   }
+   
+   public synchronized double getFar() {
+      return this.far;
    }
 
    @Override
-   public void reshape(final GLAutoDrawable glDrawable, final int x, final int y, final int width, int height) {
+   public synchronized void reshape(final GLAutoDrawable glDrawable, final int x, final int y, final int width, int height) {
       this.viewport[0] = x;
       this.viewport[1] = y;
       this.viewport[2] = width;

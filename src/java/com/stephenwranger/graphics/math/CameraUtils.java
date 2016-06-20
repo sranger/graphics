@@ -5,7 +5,8 @@ import javax.media.opengl.glu.GLU;
 import com.stephenwranger.graphics.Scene;
 
 /**
- * http://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/building-basic-perspective-projection-matrix
+ * http://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/building-basic-perspective-projection-matrix<br/>
+ * https://www.opengl.org/wiki/GluProject_and_gluUnProject_code
  * 
  * @author rangers
  *
@@ -21,43 +22,106 @@ public class CameraUtils {
     * http://www.opengl.org/sdk/docs/man2/xhtml/gluProject.xml
     * 
     * @param scene 
-    * @param world coordinates to convert
+    * @param worldXyz coordinates to convert
     *           x,y,z cartesian world coordinate
     * @return screen coordinates as x,y in screen space and z being normalized depth
     */
-   public static Tuple3d getScreenCoordinates(final Scene scene, final Tuple3d world) {
-      final double[] proj = scene.getProjectionMatrix();
+   public static Tuple3d gluProject(final Scene scene, final Tuple3d worldXyz) {
       final double[] modelview = scene.getModelViewMatrix();
+      final double[] projection = scene.getProjectionMatrix();
       final int[] viewport = scene.getViewport();
       final double[] winPos = new double[3];
       
-      /*
-       * double objX, double objY, double objZ, double[] model, int model_offset, double[] proj, int proj_offset, int[] view, int view_offset, double[] winPos,
-       * int winPos_offset
-       */
-      GLU_CONTEXT.gluProject(world.x, world.y, world.z, modelview, 0, proj, 0, viewport, 0, winPos, 0);
-      
-      return new Tuple3d(winPos[0], winPos[1], winPos[2]);
+      if(GLU_CONTEXT.gluProject(worldXyz.x, worldXyz.y, worldXyz.z, modelview, 0, projection, 0, viewport, 0, winPos, 0)) {
+         return new Tuple3d(winPos);
+      } else {
+         return null;
+      }
+
+//      // Transformation vectors
+//      double[] fTempo = new double[8];
+//      // Modelview transform
+//      fTempo[0] = modelview[0] * worldXyz.x + modelview[4] * worldXyz.y + modelview[8] * worldXyz.z + modelview[12]; // w is always 1
+//      fTempo[1] = modelview[1] * worldXyz.x + modelview[5] * worldXyz.y + modelview[9] * worldXyz.z + modelview[13];
+//      fTempo[2] = modelview[2] * worldXyz.x + modelview[6] * worldXyz.y + modelview[10] * worldXyz.z + modelview[14];
+//      fTempo[3] = modelview[3] * worldXyz.x + modelview[7] * worldXyz.y + modelview[11] * worldXyz.z + modelview[15];
+//      // Projection transform, the final row of projection matrix is always [0 0 -1 0]
+//      // so we optimize for that.
+//      fTempo[4] = projection[0] * fTempo[0] + projection[4] * fTempo[1] + projection[8] * fTempo[2]
+//            + projection[12] * fTempo[3];
+//      fTempo[5] = projection[1] * fTempo[0] + projection[5] * fTempo[1] + projection[9] * fTempo[2]
+//            + projection[13] * fTempo[3];
+//      fTempo[6] = projection[2] * fTempo[0] + projection[6] * fTempo[1] + projection[10] * fTempo[2]
+//            + projection[14] * fTempo[3];
+//      fTempo[7] = -fTempo[2];
+//      // The result normalizes between -1 and 1
+//      if (fTempo[7] == 0.0) // The w value
+//         return null;
+//      fTempo[7] = 1.0 / fTempo[7];
+//      // Perspective division
+//      fTempo[4] *= fTempo[7];
+//      fTempo[5] *= fTempo[7];
+//      fTempo[6] *= fTempo[7];
+//      // Window coordinates
+//      // Map x, y to range 0-1
+//      final double windowX = (fTempo[4] * 0.5 + 0.5) * viewport[2] + viewport[0];
+//      final double windowY = (fTempo[5] * 0.5 + 0.5) * viewport[3] + viewport[1];
+//      // This is only correct when glDepthRange(0.0, 1.0)
+//      final double windowZ = (1.0 + fTempo[6]) * 0.5; // Between 0 and 1
+//      return new Tuple3d(windowX, windowY, windowZ);
    }
    
    /**
     * http://www.opengl.org/sdk/docs/man2/xhtml/gluUnProject.xml
     * 
-    * @param gl
-    * @param GLU_CONTEXT
-    * @param screen
+    * @param scene
+    * @param screenXyz
     *           screen coordinates as x,y in screen space and z being normalized depth
     * @return x,y,z cartesian world coordinates
     */
-   public static Tuple3d getWorldCoordinates(final Scene scene, final Tuple3d screen) {
-      final double[] proj = scene.getProjectionMatrix();
+   public static Tuple3d gluUnProject(final Scene scene, final Tuple3d screenXyz) {
       final double[] modelview = scene.getModelViewMatrix();
+      final double[] projection = scene.getProjectionMatrix();
       final int[] viewport = scene.getViewport();
       final double[] worldPos = new double[3];
+
+      if(GLU_CONTEXT.gluUnProject(screenXyz.x, screenXyz.y, screenXyz.z, modelview, 0, projection, 0, viewport, 0, worldPos, 0)) {
+         return new Tuple3d(worldPos);
+      } else {
+         return null;
+      }
       
-      GLU_CONTEXT.gluUnProject(screen.x, screen.y, screen.z, modelview, 0, proj, 0, viewport, 0, worldPos, 0);
       
-      return new Tuple3d(worldPos[0], worldPos[1], worldPos[2]);
+//      // Transformation matrices
+//      double[] m = null;
+//      double[] A = new double[16];
+//      double[] in = new double[4];
+//      // Calculation for inverting a matrix, compute projection x modelview
+//      // and store in A[16]
+//      final Matrix4d proj = new Matrix4d(projection);
+//      final Matrix4d mv = new Matrix4d(modelview);
+//      proj.multiply(mv);
+//      proj.get(A);
+//      // Now compute the inverse of matrix A
+//      if ((m = Matrix4d.invert(A)) == null) {
+//         return null;
+//      }
+//      // Transformation of normalized coordinates between -1 and 1
+//      in[0] = (screenXyz.x - (float) viewport[0]) / (float) viewport[2] * 2.0 - 1.0;
+//      in[1] = (screenXyz.y - (float) viewport[1]) / (float) viewport[3] * 2.0 - 1.0;
+//      in[2] = 2.0 * screenXyz.z - 1.0;
+//      in[3] = 1.0;
+//      // Objects coordinates
+//      final Matrix4d matrix = new Matrix4d(m);
+//      final double[] out = matrix.multiply(in);
+//      if (out[3] == 0.0)
+//         return null;
+//      out[3] = 1.0 / out[3];
+//      final double[] objectCoordinate = new double[3];
+//      objectCoordinate[0] = out[0] * out[3];
+//      objectCoordinate[1] = out[1] * out[3];
+//      objectCoordinate[2] = out[2] * out[3];
+//      return new Tuple3d(objectCoordinate);
    }
    
    /**
@@ -161,9 +225,9 @@ public class CameraUtils {
    }
    
    private static void glhTranslatef2(final double[] matrix, final double x, final double y, final double z) {
-      matrix[12]=matrix[0]*x+matrix[4]*y+matrix[8]*z+matrix[12];
-      matrix[13]=matrix[1]*x+matrix[5]*y+matrix[9]*z+matrix[13];
-      matrix[14]=matrix[2]*x+matrix[6]*y+matrix[10]*z+matrix[14];
-      matrix[15]=matrix[3]*x+matrix[7]*y+matrix[11]*z+matrix[15];
+      matrix[12] = matrix[0] * x + matrix[4] * y + matrix[8] * z + matrix[12];
+      matrix[13] = matrix[1] * x + matrix[5] * y + matrix[9] * z + matrix[13];
+      matrix[14] = matrix[2] * x + matrix[6] * y + matrix[10] * z + matrix[14];
+      matrix[15] = matrix[3] * x + matrix[7] * y + matrix[11]*z+matrix[15];
    }
 }
