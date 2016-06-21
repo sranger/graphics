@@ -61,7 +61,15 @@ public class Vector3d extends Tuple3d implements Vector {
     * @return
     */
    public double angleRadians(final Vector3d other) {
-      return Math.acos(this.dot(other));
+      // Math.acos(this.dot(other)) doesn't work well when angle is very close to 0 or PI
+      final double x1 = y * other.z - z * other.y;
+      final double y1 = z * other.x - x * other.z;
+      final double z1 = x * other.y - y * other.x;
+
+      final double z2 = Math.sqrt((x1 * x1) + (y1 * y1) + (z1 * z1));
+      final double result = Math.atan2(z2, this.dot(other));
+
+      return (result < 0 ? -result : result);
    }
 
    /**

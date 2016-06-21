@@ -1,6 +1,6 @@
 package com.stephenwranger.graphics.utils.buffers;
 
-import javax.media.opengl.GL2;
+import com.jogamp.opengl.GL2;
 
 public class TextureRegion extends BufferRegion {
 

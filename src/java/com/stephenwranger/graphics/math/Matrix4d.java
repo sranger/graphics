@@ -1,5 +1,7 @@
 package com.stephenwranger.graphics.math;
 
+import com.stephenwranger.graphics.math.intersection.IntersectionUtils;
+
 /**
  * A Column Major Matrix implementation. Reference: http://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/building-basic-perspective-projection-matrix
  * @author rangers
@@ -239,8 +241,9 @@ public class Matrix4d {
                + in.m[4]*in.m[2]*in.m[9]     + in.m[8]*in.m[1]*in.m[6]     - in.m[8]*in.m[2]*in.m[5];
       
       det = in.m[0]*inv[0] + in.m[1]*inv[4] + in.m[2]*inv[8] + in.m[3]*inv[12];
-      if (det == 0)
-          return null;
+      if (IntersectionUtils.isZero(det)) {
+         return null;
+      }
 
       det = 1.0 / det;
 

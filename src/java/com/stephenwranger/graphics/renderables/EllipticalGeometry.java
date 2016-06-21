@@ -4,10 +4,9 @@ import java.nio.ByteBuffer;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.media.opengl.GL2;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.glu.GLU;
-
+import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.glu.GLU;
 import com.stephenwranger.graphics.Scene;
 import com.stephenwranger.graphics.bounds.BoundingSphere;
 import com.stephenwranger.graphics.bounds.BoundingVolume;
@@ -214,10 +213,11 @@ public class EllipticalGeometry extends Renderable {
          this.texture.enable(gl);
       }
       
-      final float[] axisAngle = this.rotation.toAxis();
+      final float[] axis = new float[3];
+      final float angle = this.rotation.toAngleAxis(axis);
       
       gl.glTranslatef((float) this.position.x, (float) this.position.y, (float) this.position.z);
-      gl.glRotatef((float) Math.toDegrees(axisAngle[0]), axisAngle[1], axisAngle[2], axisAngle[3]);
+      gl.glRotatef((float) Math.toDegrees(angle), axis[0], axis[1], axis[2]);
       
       this.vbo.render(gl);
       

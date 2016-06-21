@@ -42,26 +42,27 @@ public class Keyframe implements Comparable<Keyframe> {
       }
 
       final double delta = (t - this.time) / (next.time - this.time);
-
+      final float[] temp = new float[3];
       final Quat4d q1 = new Quat4d();
-      q1.fromAxis(axis.toFloatArray(), (float) Math.toRadians(angle));
+      q1.setFromAngleAxis((float) Math.toRadians(angle), axis.toFloatArray(), temp);
       q1.normalize();
 
       final Quat4d q2 = new Quat4d();
-      q2.fromAxis(next.axis.toFloatArray(), (float) Math.toRadians(next.angle));
+      q2.setFromAngleAxis((float) Math.toRadians(next.angle), next.axis.toFloatArray(), temp  );
       q2.normalize();
 
       final Quat4d slerpd = new Quat4d();
-      slerpd.slerp(q1, q2, (float) (delta));
+      slerpd.setSlerp(q1, q2, (float) (delta));
       slerpd.normalize();
 
       final Tuple3d offset = TupleMath.sub(next.position, this.position);
       TupleMath.scale(offset, delta);
       offset.set(TupleMath.add(this.position, offset));
 
-      final float[] txyz = slerpd.toAxis();
-      final Tuple3d axis = new Tuple3d(txyz[1], txyz[2], txyz[3]);
-      final double angle = Math.toDegrees(txyz[0]);
+      final float[] slerpdAxis = new float[3];
+      final float slerpdAngle = slerpd.toAngleAxis(slerpdAxis);
+      final Tuple3d axis = new Tuple3d((double) slerpdAxis[0], (double) slerpdAxis[1], (double) slerpdAxis[2]);
+      final double angle = Math.toDegrees(slerpdAngle);
 
       return new Keyframe(t, offset, axis, angle);
    }
