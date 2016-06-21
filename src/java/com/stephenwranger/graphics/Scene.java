@@ -89,8 +89,10 @@ public class Scene extends GLCanvas implements GLEventListener {
       final double maxSpannedDistance = boundingVolume.getSpannedDistance(null);
       final Vector3d right = new Vector3d();
       right.cross(viewDirection, this.up);
+      right.normalize();
       
       this.up.cross(viewDirection, right);
+      this.up.normalize();
       this.lookAt.set(center);
       
       viewDirection.scale(maxSpannedDistance * 2.0);

@@ -19,6 +19,14 @@ public class Ellipsoid {
    private final double invFlattening;
    private final double firstEccentricitySquared;
    private final double secondEccentricitySquared;
+
+   private final double xAxisScale;
+   private final double yAxisScale;
+   private final double zAxisScale;
+
+   private final double xImplicitCoeff;
+   private final double yImplicitCoeff;
+   private final double zImplicitCoeff;
    
    public Ellipsoid(final Tuple3d center, final double semiMajorAxis, final double flattening, final double firstEccentricitySquared, final double secondEccentricitySquared) {
       this.center = new Tuple3d(center);
@@ -27,6 +35,13 @@ public class Ellipsoid {
       this.invFlattening = 1.0 - this.flattening;
       this.firstEccentricitySquared = firstEccentricitySquared;
       this.secondEccentricitySquared = secondEccentricitySquared;
+      
+      xAxisScale = 1.0;
+      yAxisScale = 1.0;
+      zAxisScale = this.invFlattening;
+      xImplicitCoeff = 1.0 / (this.xAxisScale * this.xAxisScale);
+      yImplicitCoeff = 1.0 / (this.yAxisScale * this.yAxisScale);
+      zImplicitCoeff = 1.0 / (this.zAxisScale * this.zAxisScale);
    }
    
    public Tuple3d intersectionToLonLat(final PickingRay ray, final double distance) {
@@ -52,38 +67,37 @@ public class Ellipsoid {
     * @return
     */
    public double[] getIntersection(final PickingRay ray) {
-      double[] lineParmsAtIntersect = new double[0];
-      final double a, b, c, discrminant;
-
+      double lineParmsAtIntersect[] = new double[0];
+      
       final Tuple3d origin = ray.getOrigin();
-      final Vector3d direction = ray.getDirection();
+      final Vector3d dir = ray.getDirection();
       final double diffX = origin.x - center.x;
       final double diffY = origin.y - center.y;
       final double diffZ = origin.z - center.z;
 
-      a = direction.x * direction.x + direction.y * direction.y + this.invFlattening * direction.z * direction.z;
+      final double a = xImplicitCoeff * dir.x * dir.x + yImplicitCoeff * dir.y * dir.y + zImplicitCoeff * dir.z * dir.z;
 
-      b = 2.0 * (diffX * direction.x + diffY * direction.y + this.invFlattening * diffZ * direction.z);
+      final double b = 2.0 * (xImplicitCoeff * diffX * dir.x + yImplicitCoeff * diffY * dir.y + zImplicitCoeff * diffZ * dir.z);
 
-      c = diffX * diffX + diffY * diffY + this.invFlattening * diffZ * diffZ - this.semiMajorAxis * this.semiMajorAxis;
+      final double c = xImplicitCoeff * diffX * diffX + yImplicitCoeff * diffY * diffY + zImplicitCoeff * diffZ * diffZ - this.semiMajorAxis * this.semiMajorAxis;
 
       if (Math.abs(a) > 0.0) {
-         discrminant = b * b - 4.0 * a * c;
+         // quadratic eq. solutions: (1/2a)( -b +/- sqrt( b*b - 4*a*c )
+         final double discrm = b * b - 4.0 * a * c;
 
-         if (IntersectionUtils.isGreaterThan(discrminant, 0.0)) {
-            final double dRoot = Math.sqrt(discrminant);
+         if (IntersectionUtils.isGreaterThan(discrm, 0)) {
+            final double dRoot = Math.sqrt(discrm);
             lineParmsAtIntersect = new double[] { (-b + dRoot) / (2.0 * a), (-b - dRoot) / (2.0 * a) };
-         } else if (discrminant >= 0.0) {
-            // 0 <= discrm <= nearZero, line is tangent to ellipsoid
-            lineParmsAtIntersect = new double[] { -b / (2.0 * a) };
-         } else if ((IntersectionUtils.isLessOrEqual(Math.abs(b), 0.0)) && (-1 == (MathUtils.getSign(a) * MathUtils.getSign(c)))) {
+         } else if (discrm >= 0.0) { // 0 <= discrm <= nearZero, line is tangent to ellipsoid
+            lineParmsAtIntersect[0] = -b / (2.0 * a);
+         } else if (IntersectionUtils.isLessOrEqual(Math.abs(b), 0) && (-1 == (MathUtils.getSign(a) * MathUtils.getSign(c)))) {
             lineParmsAtIntersect = new double[] { Math.sqrt(-c / a), -Math.sqrt(-c / a) };
          }
-      } else if (IntersectionUtils.isGreaterThan(Math.abs(b), 0.0)) {
+      } else if (IntersectionUtils.isGreaterThan(Math.abs(b), 0)) {
          // a = 0 ==> t = -c / b, and also not quadratic, therefore tangent to ellipsoid
-         lineParmsAtIntersect = new double[] { -c / b };
+         lineParmsAtIntersect[0] = -c / b;
       }
-      
+
       return lineParmsAtIntersect;
    }
 

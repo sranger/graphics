@@ -7,6 +7,12 @@ import com.stephenwranger.graphics.math.Tuple2d;
 import com.stephenwranger.graphics.math.Tuple3d;
 import com.stephenwranger.graphics.math.Vector3d;
 
+/**
+ * http://www.realtimerendering.com/intersections.html
+ * 
+ * @author rangers
+ *
+ */
 public class IntersectionUtils {
    private IntersectionUtils() {
       // statics only

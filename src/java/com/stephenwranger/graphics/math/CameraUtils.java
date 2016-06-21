@@ -199,6 +199,7 @@ public class CameraUtils {
       //Recompute up as: up = side x forward
       final Vector3d up = new Vector3d();
       up.cross(side, forward);
+      up.normalize();
       //------------------
       final double[] matrix = new double[16];
       matrix[0] = side.x;
