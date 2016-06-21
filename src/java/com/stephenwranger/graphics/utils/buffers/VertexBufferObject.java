@@ -4,7 +4,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.security.InvalidParameterException;
 
-import javax.media.opengl.GL2;
+import com.jogamp.opengl.GL2;
 
 public class VertexBufferObject {
    public final int vertexCount;

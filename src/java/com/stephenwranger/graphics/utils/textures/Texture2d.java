@@ -7,7 +7,7 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 
 import javax.imageio.ImageIO;
-import javax.media.opengl.GL2;
+import com.jogamp.opengl.GL2;
 
 import com.jogamp.opengl.util.GLBuffers;
 

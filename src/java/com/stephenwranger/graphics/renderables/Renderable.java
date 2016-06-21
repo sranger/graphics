@@ -1,8 +1,8 @@
 package com.stephenwranger.graphics.renderables;
 
-import javax.media.opengl.GL2;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.glu.GLU;
+import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.glu.GLU;
 
 import com.stephenwranger.graphics.Scene;
 import com.stephenwranger.graphics.bounds.BoundingVolume;

@@ -1,9 +1,8 @@
 package com.stephenwranger.graphics.renderables;
 
-import javax.media.opengl.GL2;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.glu.GLU;
-
+import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.glu.GLU;
 import com.stephenwranger.graphics.Scene;
 import com.stephenwranger.graphics.bounds.BoundingBox;
 import com.stephenwranger.graphics.bounds.BoundingVolume;
@@ -79,10 +78,11 @@ public class RectangularSolid extends RenderablePhysics {
       gl.glEnable(GL2.GL_COLOR_MATERIAL);
       gl.glColorMaterial(GL2.GL_FRONT, GL2.GL_AMBIENT_AND_DIFFUSE);
 
-      final float[] axisAngle = rotation.toAxis();
+      final float[] axis = new float[3];
+      final float angle = rotation.toAngleAxis(axis);
 
       gl.glTranslatef((float) position.x, (float) position.y, (float) position.z);
-      gl.glRotatef((float) Math.toDegrees(axisAngle[0]), axisAngle[1], axisAngle[2], axisAngle[3]);
+      gl.glRotatef((float) Math.toDegrees(angle), axis[0], axis[1], axis[2]);
 
       gl.glEnable(GL2.GL_DEPTH_TEST);
 

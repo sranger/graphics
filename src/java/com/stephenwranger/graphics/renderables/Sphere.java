@@ -1,8 +1,8 @@
 package com.stephenwranger.graphics.renderables;
 
-import javax.media.opengl.GL2;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.glu.GLU;
+import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.glu.GLU;
 
 import com.stephenwranger.graphics.Scene;
 import com.stephenwranger.graphics.bounds.BoundingSphere;
@@ -104,11 +104,12 @@ public class Sphere extends RenderablePhysics {
             this.scale = distance / this.radius;
          }
       }
-      
-      final float[] axisAngle = this.rotation.toAxis();
+
+      final float[] axis = new float[3];
+      final float angle = this.rotation.toAngleAxis(axis);
       
       gl.glTranslatef((float) this.position.x, (float) this.position.y, (float) this.position.z);
-      gl.glRotatef((float) Math.toDegrees(axisAngle[0]), axisAngle[1], axisAngle[2], axisAngle[3]);
+      gl.glRotatef((float) Math.toDegrees(angle), axis[0], axis[1], axis[2]);
       gl.glScalef((float) this.scale, 1f, (float) this.scale);
       
       this.geometry.render(gl, glu, glDrawable, scene);

@@ -1,28 +1,22 @@
 package com.stephenwranger.graphics;
 
 import java.awt.Dimension;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
-import javax.media.opengl.GL2;
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLProfile;
-import javax.media.opengl.awt.GLCanvas;
-import javax.media.opengl.glu.GLU;
+import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.awt.GLCanvas;
+import com.jogamp.opengl.glu.GLU;
 
 import com.jogamp.opengl.util.FPSAnimator;
 import com.stephenwranger.graphics.bounds.BoundingVolume;
 import com.stephenwranger.graphics.math.CameraUtils;
-import com.stephenwranger.graphics.math.Matrix4d;
-import com.stephenwranger.graphics.math.PickingHit;
-import com.stephenwranger.graphics.math.PickingRay;
 import com.stephenwranger.graphics.math.Tuple3d;
 import com.stephenwranger.graphics.math.Vector3d;
-import com.stephenwranger.graphics.math.intersection.IntersectionUtils;
 import com.stephenwranger.graphics.renderables.Renderable;
 import com.stephenwranger.graphics.renderables.RenderableOrthographic;
 import com.stephenwranger.graphics.utils.AnimationListener;
@@ -75,9 +69,6 @@ public class Scene extends GLCanvas implements GLEventListener {
       this.lookAt.set(lookAt);
       this.up.set(up);
       this.cameraPosition.set(cameraPosition);
-      
-      final Matrix4d mv = CameraUtils.gluLookAt(cameraPosition, lookAt, up);
-      mv.get(this.modelview);
    }
    
    public synchronized void setViewingVolume(final BoundingVolume boundingVolume) {
@@ -97,9 +88,6 @@ public class Scene extends GLCanvas implements GLEventListener {
       
       viewDirection.scale(maxSpannedDistance * 2.0);
       this.cameraPosition.subtract(center, viewDirection);
-      
-      final Matrix4d mv = CameraUtils.gluLookAt(cameraPosition, lookAt, up);
-      mv.get(this.modelview);
    }
 
    public synchronized void setFov(final double fov) {
@@ -199,7 +187,7 @@ public class Scene extends GLCanvas implements GLEventListener {
          this.updateStep = true;
       }
 
-      this.reshape(glDrawable, this.viewport[0], this.viewport[1], this.viewport[2], this.viewport[3]);
+//      this.reshape(glDrawable, this.viewport[0], this.viewport[1], this.viewport[2], this.viewport[3]);
       this.setMatrices(gl);
 
 //      // now that all elements are in the proper location, move camera to match
@@ -301,6 +289,11 @@ public class Scene extends GLCanvas implements GLEventListener {
       this.viewport[1] = y;
       this.viewport[2] = width;
       this.viewport[3] = height;
+      
+      final GL2 gl = glDrawable.getGL().getGL2();
+      gl.glViewport(this.viewport[0], this.viewport[1], this.viewport[2], this.viewport[3]);
+      gl.glGetIntegerv( GL2.GL_VIEWPORT, this.viewport, 0 );
+      
 
       if (height <= 0) {
          height = 1;
@@ -350,8 +343,12 @@ public class Scene extends GLCanvas implements GLEventListener {
          this.far = this.near * 3000.0;
       }
       
-      final Matrix4d projectionMatrix = CameraUtils.gluPerspective(this.fov, this.viewport[2] / (double) this.viewport[3], this.near, this.far);
-      projectionMatrix.get(this.projection);
+      if(this.near < this.far / 3000.0) {
+         this.near = this.far / 3000.0;
+      }
+      
+      final double[] proj = CameraUtils.gluPerspective(gl, this.fov, this.viewport[2] / (double) this.viewport[3], this.near, this.far);
+      System.arraycopy(proj, 0, this.projection, 0, 16);
    }
 
    @Override
@@ -366,12 +363,13 @@ public class Scene extends GLCanvas implements GLEventListener {
    }
 
    public synchronized void setMatrices(final GL2 gl) {      
-      gl.glMatrixMode(GL2.GL_PROJECTION);
-      gl.glLoadMatrixd(this.projection, 0);
-      gl.glMatrixMode(GL2.GL_MODELVIEW);
-      gl.glLoadMatrixd(this.modelview, 0);
+//      gl.glMatrixMode(GL2.GL_PROJECTION);
+//      gl.glLoadMatrixd(this.projection, 0);
+//      gl.glMatrixMode(GL2.GL_MODELVIEW);
+//      gl.glLoadMatrixd(this.modelview, 0);
       
-      gl.glViewport(this.viewport[0], this.viewport[1], this.viewport[2], this.viewport[3]);
+      final double[] mv = CameraUtils.gluLookAt(gl, cameraPosition, lookAt, up);
+      System.arraycopy(mv, 0, this.modelview, 0, 16);
    }
 
    @Override
