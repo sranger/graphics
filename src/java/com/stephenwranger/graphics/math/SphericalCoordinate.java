@@ -3,7 +3,7 @@ package com.stephenwranger.graphics.math;
 import com.stephenwranger.graphics.utils.MathUtils;
 
 public class SphericalCoordinate {
-   public static final Vector3d AZIMUTH_ROTATION_AXIS = new Vector3d(0,0,1);
+   public static final Vector3d AZIMUTH_ROTATION_AXIS = new Vector3d(0,1,0);
    public static final Vector3d ELEVATION_ROTATION_AXIS = new Vector3d(1,0,0);
    
    /** Azimuth coordinate in radians. */
@@ -66,8 +66,8 @@ public class SphericalCoordinate {
    
    public static Quat4d getOrientation(final double azimuthRads, final double elevationRads) {
       final Quat4d orientation = new Quat4d();
-      orientation.mult(new Quat4d(ELEVATION_ROTATION_AXIS, Math.toDegrees(elevationRads)));
       orientation.mult(new Quat4d(AZIMUTH_ROTATION_AXIS, Math.toDegrees(azimuthRads)));
+      orientation.mult(new Quat4d(ELEVATION_ROTATION_AXIS, Math.toDegrees(elevationRads)));
       
       return orientation;
    }
