@@ -11,7 +11,6 @@ import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.awt.GLCanvas;
 import com.jogamp.opengl.glu.GLU;
-
 import com.jogamp.opengl.util.FPSAnimator;
 import com.stephenwranger.graphics.bounds.BoundingVolume;
 import com.stephenwranger.graphics.math.CameraUtils;
@@ -187,7 +186,7 @@ public class Scene extends GLCanvas implements GLEventListener {
          this.updateStep = true;
       }
 
-//      this.reshape(glDrawable, this.viewport[0], this.viewport[1], this.viewport[2], this.viewport[3]);
+      this.reshape(glDrawable, this.viewport[0], this.viewport[1], this.viewport[2], this.viewport[3]);
       this.setMatrices(gl);
 
 //      // now that all elements are in the proper location, move camera to match

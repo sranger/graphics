@@ -1,6 +1,7 @@
 package com.stephenwranger.graphics.bounds;
 
 import com.stephenwranger.graphics.math.Tuple3d;
+import com.stephenwranger.graphics.math.intersection.Triangle3d;
 import com.stephenwranger.graphics.utils.TupleMath;
 
 public class BoundingBox extends BoundingVolume {
@@ -24,6 +25,33 @@ public class BoundingBox extends BoundingVolume {
    
    public BoundingBox(final BoundingVolume bv) {
       this(bv.getCenter(), bv.getSpannedDistance(Axis.X_AXIS.getAxis()), bv.getSpannedDistance(Axis.Y_AXIS.getAxis()), bv.getSpannedDistance(Axis.Z_AXIS.getAxis()));
+   }
+   
+   public Triangle3d[] getFaces() {
+      final Triangle3d[] faces = new Triangle3d[12];
+      final Tuple3d lll = new Tuple3d(this.min);
+      final Tuple3d llh = new Tuple3d(this.min.x, this.min.y, this.max.z);
+      final Tuple3d lhl = new Tuple3d(this.min.x, this.max.y, this.min.z);
+      final Tuple3d lhh = new Tuple3d(this.min.x, this.max.y, this.max.z);
+      final Tuple3d hll = new Tuple3d(this.max.x, this.min.y, this.min.z);
+      final Tuple3d hlh = new Tuple3d(this.max.x, this.min.y, this.max.z);
+      final Tuple3d hhl = new Tuple3d(this.max.x, this.max.y, this.min.z);
+      final Tuple3d hhh = new Tuple3d(this.max);
+
+      faces[0] = new Triangle3d(lll, lhl, lhh);
+      faces[1] = new Triangle3d(lll, lhh, llh);
+      faces[2] = new Triangle3d(lll, lhl, hhl);
+      faces[3] = new Triangle3d(lll, hhl, hll);
+      faces[4] = new Triangle3d(hll, hhl, hhh);
+      faces[5] = new Triangle3d(hll, hhh, hlh);
+      faces[6] = new Triangle3d(hlh, hhh, lhh);
+      faces[7] = new Triangle3d(hlh, lhh, llh);
+      faces[8] = new Triangle3d(lhl, lhh, hhh);
+      faces[9] = new Triangle3d(lhl, hhh, hhl);
+      faces[10] = new Triangle3d(lll, hll, hlh);
+      faces[11] = new Triangle3d(lll, hlh, llh);
+      
+      return faces;
    }
    
    @Override
