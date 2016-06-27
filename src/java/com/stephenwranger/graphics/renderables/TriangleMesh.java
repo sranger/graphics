@@ -16,6 +16,8 @@ public class TriangleMesh extends Renderable {
    private final Triangle3d[] triangles;
    private final BoundingVolume bounds;
    private final Color4f color;
+
+   private boolean isWireframe = false;
    
    public TriangleMesh(final Triangle3d[] triangles, final Color4f color) {
       super(new Tuple3d(), new Quat4d());
@@ -44,7 +46,7 @@ public class TriangleMesh extends Renderable {
    @Override
    public void render(final GL2 gl, final GLU glu, final GLAutoDrawable glDrawable, final Scene scene) {
       gl.glPushAttrib(GL2.GL_POLYGON_BIT | GL2.GL_LIGHTING_BIT);
-      gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, GL2.GL_LINE);
+      gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, (isWireframe) ? GL2.GL_LINE : GL2.GL_FILL);
       gl.glDisable(GL2.GL_LIGHTING);
       gl.glDisable(GL2.GL_CULL_FACE);
 
@@ -66,5 +68,12 @@ public class TriangleMesh extends Renderable {
    public BoundingVolume getBoundingVolume() {
       return this.bounds;
    }
-
+   
+   public void setWireframe(final boolean isWireframe) {
+      this.isWireframe = isWireframe;
+   }
+   
+   public boolean isWireframe() {
+      return this.isWireframe;
+   }
 }
