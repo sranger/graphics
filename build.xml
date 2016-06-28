@@ -6,11 +6,12 @@
 	<property name="src.main.resources.dir" value="${src.main.dir}/resources" />
 
 	<property name="build.main.dir" value="build/classes" />
+	<property name="build.deps.dir" value="build/dependencies" />
 
 	<property name="dist.dir" value="dist" />
 	<property name="lib.dir" value="lib" />
 	<property name="lib.build.dir" value="build.lib" />
-   <available file="${lib.build.dir}" property="build.lib.dir.exists" />
+	<available file="${lib.build.dir}" property="build.lib.dir.exists" />
 
 	<property name="artifact.name" value="com.stephenwranger.graphics" />
 
@@ -82,7 +83,7 @@
 		<delete dir="${dist.dir}" failonerror="false" />
 		<delete dir="${doc.javadoc.dir}" failonerror="false" />
 	</target>
-	
+
 	<!-- 
 	<target name="src-jar" depends="init" description="Creates a jar file containing graphics source code in the distribution directory.">
 		<jar jarfile="${dist.dir}/${artifact.name}-src.jar">
@@ -92,20 +93,20 @@
 		</jar>
 	</target>
    -->
-	
+
 	<target name="build" depends="init,compile_graphics_core,copy-resources" description="Builds graphics into build/" />
 
 	<target name="dist" depends="build" description="Generate the distribution (jar) and places it in the dist/ directory.">
 		<mkdir dir="${dist.dir}" />
+		<unzip dest="${build.deps.dir}">
+			<fileset dir="${lib.dir}">
+				<include name="**/*.jar" />
+			</fileset>
+		</unzip>
 
 		<jar jarfile="${dist.dir}/${artifact.name}.jar" duplicate="preserve" manifest="META-INF/MANIFEST.MF">
-			<fileset dir="${build.main.dir}" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
-			<!--<zipgroupfileset dir="${lib.dir}" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA">
-				<include name="**/*.jar" />
-			</zipgroupfileset>-->
-	      <fileset dir="${lib.dir}">
-	         <include name="**/*.jar" />
-	      </fileset>
+			<fileset dir="${build.main.dir}" excludes="**/*.SF,**/*.DSA,**/*.RSA,**/*.MF" />
+			<fileset dir="${build.deps.dir}" excludes="**/*.SF,**/*.DSA,**/*.RSA,**/*.MF" />
 		</jar>
 	</target>
 
