@@ -15,6 +15,27 @@ public class TupleMath {
    private TupleMath() {
       // nothing; statics only
    }
+   
+   public static Tuple3d average(final Tuple3d...tuples) {
+      final double length = tuples.length;
+      double x = 0;
+      double y = 0;
+      double z = 0;
+      
+      if(tuples.length > 0) {
+         for(final Tuple3d tuple : tuples) {
+            x += tuple.x;
+            y += tuple.y;
+            z += tuple.z;
+         }
+
+         x /= length;
+         y /= length;
+         z /= length;
+      }
+      
+      return new Tuple3d(x, y, z);
+   }
 
    public static Tuple3d add(final Tuple3d t1, final Tuple3d t2) {
       return new Tuple3d(t1.x + t2.x, t1.y + t2.y, t1.z + t2.z);

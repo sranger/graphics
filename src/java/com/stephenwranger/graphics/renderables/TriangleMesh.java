@@ -46,9 +46,13 @@ public class TriangleMesh extends Renderable {
    @Override
    public void render(final GL2 gl, final GLU glu, final GLAutoDrawable glDrawable, final Scene scene) {
       gl.glPushAttrib(GL2.GL_POLYGON_BIT | GL2.GL_LIGHTING_BIT);
-      gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, (isWireframe) ? GL2.GL_LINE : GL2.GL_FILL);
+//      gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, (isWireframe) ? GL2.GL_LINE : GL2.GL_FILL);
+
+      gl.glPolygonMode(GL2.GL_FRONT, GL2.GL_FILL);
+      
       gl.glDisable(GL2.GL_LIGHTING);
-      gl.glDisable(GL2.GL_CULL_FACE);
+//      gl.glDisable(GL2.GL_CULL_FACE);
+      gl.glColorMaterial(GL2.GL_FRONT, GL2.GL_DIFFUSE);
 
       gl.glBegin(GL2.GL_TRIANGLES);
 

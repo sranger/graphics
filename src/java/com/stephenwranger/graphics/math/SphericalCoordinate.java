@@ -7,9 +7,9 @@ public class SphericalCoordinate {
    public static final Vector3d ELEVATION_ROTATION_AXIS = new Vector3d(1,0,0);
    
    /** Azimuth coordinate in radians. */
-   public double azimuth;
+   private double azimuth;
    /** Elevation coordinate in radians. */
-   public double elevation;
+   private double elevation;
    /** Range coordinate in meters. */
    private double range;
    
@@ -21,9 +21,9 @@ public class SphericalCoordinate {
       this.update(coordinate.azimuth, coordinate.elevation, coordinate.range);
    }
    
-   public void update(final double azimuthRads, final double elevationRads, final double stepRange) {
-      if(elevationRads != 0) {
-         this.azimuth += azimuthRads;
+   public void update(final double stepAzimuthRads, final double stepElevationRads, final double stepRange) {
+      if(stepElevationRads != 0) {
+         this.azimuth += stepAzimuthRads;
          // make sure it stays between [-PI, PI]
          if (this.azimuth < -Math.PI) {
             this.azimuth += MathUtils.TWO_PI;
@@ -32,8 +32,8 @@ public class SphericalCoordinate {
          }
       }
    
-      if(azimuthRads != 0) {
-         this.elevation += elevationRads;
+      if(stepAzimuthRads != 0) {
+         this.elevation += stepElevationRads;
          
          // make sure it stays above the horizon and below the zenith
          this.elevation = MathUtils.clamp(Math.toRadians(0), Math.toRadians(90), this.elevation);
@@ -50,13 +50,27 @@ public class SphericalCoordinate {
    public double getAzimuth() {
       return this.azimuth;
    }
+
+   public void setAzimuth(final double newAzimuthRads) {
+      this.update(newAzimuthRads - this.azimuth, 0, 0);      
+   }
    
    public double getElevation() {
       return this.elevation;
    }
+
+   public void setElevation(final double newElevationRads) {
+      this.update(0, newElevationRads - this.elevation, 0);      
+   }
    
    public double getRange() {
       return this.range;
+   }
+
+   public void setRange(final double newRangeMeters) {
+      System.out.println("setRange: " + newRangeMeters);
+      this.update(0, 0, newRangeMeters - this.range);   
+      System.out.println("new range: " + this.range);
    }
    
    @Override

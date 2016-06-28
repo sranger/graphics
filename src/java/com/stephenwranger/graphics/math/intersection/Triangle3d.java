@@ -6,6 +6,7 @@ import java.util.HashSet;
 import com.stephenwranger.graphics.math.Tuple3d;
 import com.stephenwranger.graphics.math.Vector3d;
 import com.stephenwranger.graphics.utils.MathUtils;
+import com.stephenwranger.graphics.utils.TupleMath;
 
 public class Triangle3d {
    private final Tuple3d[] corners = new Tuple3d[3];
@@ -25,13 +26,25 @@ public class Triangle3d {
    
    public double pointDistance(final Tuple3d point) {
       Vector3d p2f = new Vector3d();
-      p2f.subtract(this.corners[0], point);  // arbitrary point on face
+      p2f.subtract(point, this.corners[0]);  // arbitrary point on face
       
       double d = p2f.dot(this.normal);
       p2f.normalize();
       d /= p2f.length();                     // for numeric stability
 
       return d;
+   }
+   
+   public boolean fixCounterClockwise(final Tuple3d internalPoint) {
+      if(!isInside(internalPoint)) {
+         final Tuple3d temp = this.corners[0];
+         this.corners[0] = this.corners[2];
+         this.corners[2] = temp;
+         this.normal.set(IntersectionUtils.calculateSurfaceNormal(this.corners));
+         return true;
+      }
+      
+      return false;
    }
    
    /**
@@ -92,8 +105,14 @@ public class Triangle3d {
     * @param point
     * @return
     */
-   public boolean isBehind(final Tuple3d point) {
-      return this.pointDistance(point) >= MathUtils.EPSILON;
+   public boolean isInside(final Tuple3d point) {
+      final Vector3d faceDirection = new Vector3d(point);
+      faceDirection.subtract(TupleMath.average(this.corners));
+      faceDirection.normalize();
+      
+      final double angle = faceDirection.angleRadians(this.normal);
+
+      return IntersectionUtils.isGreaterOrEqual(angle, MathUtils.HALF_PI);
    }
 
    public Tuple3d[] getCorners() {

@@ -4,13 +4,13 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 
-import com.jogamp.opengl.GL2;
-import com.jogamp.opengl.glu.GLU;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 
+import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.glu.GLU;
 import com.stephenwranger.graphics.Scene;
 
 /**
@@ -116,9 +116,12 @@ public class CameraUtils {
          System.err.println("cannot unproject: " + screenXyz);
          System.err.println("mv: " + Arrays.toString(modelview));
          System.err.println("p: " + Arrays.toString(projection));
-
-         System.err.println("inv mv: " + Matrix4d.invert(modelview));
-         System.err.println("inv proj: " + Matrix4d.invert(projection));
+         
+         Matrix4d.invert(modelview);
+         Matrix4d.invert(projection);
+         
+         System.err.println("inv mv: " + Arrays.toString(modelview));
+         System.err.println("inv proj: " + Arrays.toString(projection));
 
          
          if(!isVisible) {
