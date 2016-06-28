@@ -117,9 +117,7 @@ public class IntersectionUtils {
       v.subtract(corners[2], corners[0]);
       
       final Vector3d normal = new Vector3d();
-      normal.x = u.y * v.z - u.z - v.y;
-      normal.y = u.z * v.x - u.x * v.z;
-      normal.z = u.x * v.y - u.y * v.x;
+      normal.cross(u, v);
       
       normal.normalize();
       

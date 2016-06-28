@@ -47,7 +47,9 @@ public class Vector3d extends Tuple3d implements Vector {
       final double y = this.z * other.x - this.x * other.z;
       final double z = this.x * other.y - this.y * other.x;
 
-      return new Vector3d(x,y,z);
+      this.set(x, y, z);
+      
+      return this;
    }
 
    public double dot(final Vector3d other) {
