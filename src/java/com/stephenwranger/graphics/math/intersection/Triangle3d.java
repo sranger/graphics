@@ -5,12 +5,11 @@ import java.util.HashSet;
 
 import com.stephenwranger.graphics.math.Tuple3d;
 import com.stephenwranger.graphics.math.Vector3d;
-import com.stephenwranger.graphics.utils.MathUtils;
-import com.stephenwranger.graphics.utils.TupleMath;
 
 public class Triangle3d {
    private final Tuple3d[] corners = new Tuple3d[3];
    private final Vector3d normal;
+   private final double d;
 
    public Triangle3d(final Tuple3d c1, final Tuple3d c2, final Tuple3d c3) {
       this.corners[0] = new Tuple3d(c1);
@@ -18,21 +17,17 @@ public class Triangle3d {
       this.corners[2] = new Tuple3d(c3);
       
       this.normal = IntersectionUtils.calculateSurfaceNormal(this.corners);
+      this.d = -(this.normal.x * c1.x + this.normal.y * c1.y + this.normal.z * c1.z);
    }
    
    public Vector3d getNormal() {
       return new Vector3d(this.normal);
    }
    
-   public double pointDistance(final Tuple3d point) {
-      Vector3d p2f = new Vector3d();
-      p2f.subtract(point, this.corners[0]);  // arbitrary point on face
-      
-      double d = p2f.dot(this.normal);
-      p2f.normalize();
-      d /= p2f.length();                     // for numeric stability
-
-      return d;
+   public double distance(final Tuple3d point) {
+      // D = abs(aX + bY + cZ + d) / sqrt(a^2 + b^2 + c^2)
+      // D = abs(aX + bY + cZ + d) / 1.0  # sqrt part is length of normal which we normalized to length = 1
+      return this.normal.x * point.x + this.normal.y * point.y + this.normal.z * point.z + this.d;
    }
    
    public boolean fixCounterClockwise(final Tuple3d internalPoint) {
@@ -106,13 +101,9 @@ public class Triangle3d {
     * @return
     */
    public boolean isInside(final Tuple3d point) {
-      final Vector3d faceDirection = new Vector3d(point);
-      faceDirection.subtract(TupleMath.average(this.corners));
-      faceDirection.normalize();
-      
-      final double angle = faceDirection.angleRadians(this.normal);
+      final double distance = this.distance(point);
 
-      return IntersectionUtils.isGreaterOrEqual(angle, MathUtils.HALF_PI);
+      return IntersectionUtils.isGreaterOrEqual(distance, 0.0);
    }
 
    public Tuple3d[] getCorners() {

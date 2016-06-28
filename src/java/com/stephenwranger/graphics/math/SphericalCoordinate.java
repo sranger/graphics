@@ -68,9 +68,7 @@ public class SphericalCoordinate {
    }
 
    public void setRange(final double newRangeMeters) {
-      System.out.println("setRange: " + newRangeMeters);
       this.update(0, 0, newRangeMeters - this.range);   
-      System.out.println("new range: " + this.range);
    }
    
    @Override

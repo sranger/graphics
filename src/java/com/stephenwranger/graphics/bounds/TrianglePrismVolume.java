@@ -2,7 +2,6 @@ package com.stephenwranger.graphics.bounds;
 
 import com.stephenwranger.graphics.math.Tuple3d;
 import com.stephenwranger.graphics.math.intersection.Triangle3d;
-import com.stephenwranger.graphics.utils.TupleMath;
 
 /**
  * The {@link TrianglePrismVolume} acts as an axis aligned {@link BoundingBox} except for the contains method which 
@@ -38,42 +37,27 @@ public class TrianglePrismVolume extends BoundingBox {
       this.faces[4] = new Triangle3d(top[0], top[1], bottom[1]);
       this.faces[5] = new Triangle3d(bottom[0], top[0], bottom[1]);
 
-//      this.faces[0] = new Triangle3d(top[0], top[2], bottom[0]);
-//      this.faces[1] = new Triangle3d(bottom[0], top[2], bottom[2]);
-//      
-//      this.faces[2] = new Triangle3d(top[2], top[1], bottom[2]);
-//      this.faces[3] = new Triangle3d(top[1], bottom[1], bottom[2]);
-//      
-//      this.faces[4] = new Triangle3d(top[1], top[0], bottom[1]);
-//      this.faces[5] = new Triangle3d(top[0], bottom[0], bottom[1]);
-
       // added so loop can be used for contains check
       this.faces[6] = this.top;
       this.faces[7] = this.bottom;
       
 //      final Tuple3d center = TupleMath.average(TupleMath.average(top), TupleMath.average(bottom));
-//      System.out.println("\nTPV::init");
-//      for(final Triangle3d face : this.faces) {
-//         if(face.fixCounterClockwise(center)) {
-////            System.out.println("fixed face: " + face.isInside(center));
+//      final boolean contains = this.contains(center);
+//      
+//      if(!contains) {
+//         System.out.println(center.x + "," + center.y + "," + center.z + ",0");
+//         int ctr = 1;
+//         
+//         for(final Triangle3d face : this.faces) {
+//            final Tuple3d[] corners = face.getCorners();
 //            
-//            if(!face.isInside(center)) {
-////               System.out.flush();
-//               System.out.println("not inside after swapping winding order!");
-////               System.err.println("x,y,z,value");
-////               System.err.println(center.x + "," + center.y + "," + center.z + ",0.0");
-////               for(int i = 0; i < this.faces.length; i++) {
-////                  final Tuple3d[] corners = faces[i].getCorners();
-////                  System.err.println(corners[0].x + "," + corners[0].y + "," + corners[0].z + "," + (i + 1));
-////                  System.err.println(corners[1].x + "," + corners[1].y + "," + corners[1].z + "," + (i + 1));
-////                  System.err.println(corners[2].x + "," + corners[2].y + "," + corners[2].z + "," + (i + 1));
-////               }
-////               System.err.flush();
+//            for(final Tuple3d corner : corners) {
+//               System.out.println(corner.x + "," + corner.y + "," + corner.z + "," + ctr);
 //            }
+//            
+//            ctr++;
 //         }
 //      }
-//      
-//      System.out.println("is center in volume? " + this.contains(center));
    }
    
    public Triangle3d[] getFaces() {
@@ -94,10 +78,6 @@ public class TrianglePrismVolume extends BoundingBox {
                ctr++;
             }
          }
-         
-         System.out.println("contains? " + ctr + " of " + this.faces.length);
-      } else {
-         System.out.println("not in aabb");
       }
       
       return ctr == this.faces.length;
