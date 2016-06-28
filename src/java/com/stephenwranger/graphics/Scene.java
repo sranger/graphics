@@ -16,6 +16,7 @@ import com.stephenwranger.graphics.bounds.BoundingVolume;
 import com.stephenwranger.graphics.math.CameraUtils;
 import com.stephenwranger.graphics.math.Tuple3d;
 import com.stephenwranger.graphics.math.Vector3d;
+import com.stephenwranger.graphics.renderables.PreRenderable;
 import com.stephenwranger.graphics.renderables.Renderable;
 import com.stephenwranger.graphics.renderables.RenderableOrthographic;
 import com.stephenwranger.graphics.utils.AnimationListener;
@@ -31,6 +32,7 @@ public class Scene extends GLCanvas implements GLEventListener {
    
    private final Set<AnimationListener> listeners                                   = new HashSet<AnimationListener>();
    private final Set<Animation>         animations                                  = new HashSet<Animation>();
+   private final Set<PreRenderable>     preRenderables                              = new HashSet<PreRenderable>();
    private final Set<Renderable>        renderables                                 = new HashSet<Renderable>();
    private final Set<RenderableOrthographic>        renderablesOrthographic         = new HashSet<RenderableOrthographic>();
    private final FPSAnimator            animator;
@@ -107,6 +109,14 @@ public class Scene extends GLCanvas implements GLEventListener {
 
    public synchronized void removeAnimationListener(final AnimationListener listener) {
       this.listeners.remove(listener);
+   }
+
+   public synchronized void addPreRenderable(final PreRenderable renderable) {
+      this.preRenderables.add(renderable);
+   }
+
+   public synchronized void removePreRenderable(final PreRenderable renderable) {
+      this.preRenderables.remove(renderable);
    }
 
    public synchronized void addRenderable(final Renderable renderable) {
@@ -245,6 +255,10 @@ public class Scene extends GLCanvas implements GLEventListener {
 //         final Matrix4d mv = CameraUtils.gluLookAt(cameraPosition, lookAt, up);
 //         mv.get(this.modelview);
 //      }
+      
+      for(final PreRenderable renderable : this.preRenderables) {
+         renderable.preRender(gl, glu, glDrawable, this);
+      }
 
       // setup is done; rendering time
       for (final Animation animation : this.animations) {
