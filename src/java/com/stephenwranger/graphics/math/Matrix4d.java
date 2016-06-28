@@ -22,7 +22,7 @@ public class Matrix4d {
    public Matrix4d() {
       m[0] = 1.0;
       m[5] = 1.0;
-      m[4] = 1.0;
+      m[10] = 1.0;
       m[15] = 1.0;
    }
    
@@ -195,14 +195,19 @@ public class Matrix4d {
       return this;
    }
    
-   public static double[] invert(final double[] in) {
+   public static void invert(final double[] in) {
       final Matrix4d inMatrix = new Matrix4d(in);
-      final Matrix4d outMatrix = Matrix4d.invert(inMatrix);
+      Matrix4d.invert(inMatrix);
       
-      return outMatrix.m;
+      System.arraycopy(inMatrix.m, 0, in, 0, 16);
    }
    
-   public static Matrix4d invert(final Matrix4d in) {
+   public static void invert(final Matrix4d in, final Matrix4d out) {
+      out.set(in);
+      Matrix4d.invert(out);
+   }
+   
+   public static void invert(final Matrix4d in) {
       double[] inv = new double[16];
       double det;
       int i;
@@ -242,15 +247,14 @@ public class Matrix4d {
       
       det = in.m[0]*inv[0] + in.m[1]*inv[4] + in.m[2]*inv[8] + in.m[3]*inv[12];
       if (IntersectionUtils.isZero(det)) {
-         return null;
+         throw new RuntimeException("Matrix is singular; it cannot be inverted.");
       }
 
       det = 1.0 / det;
 
       final double[] out = new double[16];
-      for (i = 0; i < 16; i++)
+      for (i = 0; i < 16; i++) {
           out[i] = inv[i] * det;
-
-      return new Matrix4d(out);
+      }
    }
 }

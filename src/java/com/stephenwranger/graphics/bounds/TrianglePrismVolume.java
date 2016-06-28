@@ -2,6 +2,7 @@ package com.stephenwranger.graphics.bounds;
 
 import com.stephenwranger.graphics.math.Tuple3d;
 import com.stephenwranger.graphics.math.intersection.Triangle3d;
+import com.stephenwranger.graphics.utils.TupleMath;
 
 /**
  * The {@link TrianglePrismVolume} acts as an axis aligned {@link BoundingBox} except for the contains method which 
@@ -26,16 +27,16 @@ public class TrianglePrismVolume extends BoundingBox {
    public TrianglePrismVolume(final Tuple3d[] top, final Tuple3d[] bottom) {
       super(getMin(top, bottom), getMax(top, bottom));
 
-      this.top = new Triangle3d(top[0], top[1], top[2]);
-      this.bottom = new Triangle3d(bottom[2], bottom[1], bottom[0]);
-      this.faces[0] = new Triangle3d(top[0], top[2], bottom[0]);
-      this.faces[1] = new Triangle3d(bottom[0], top[2], bottom[2]);
+      this.top = new Triangle3d(top[1], top[0], top[2]);
+      this.bottom = new Triangle3d(bottom[0], bottom[1], bottom[2]);
+      this.faces[0] = new Triangle3d(top[2], top[0], bottom[0]);
+      this.faces[1] = new Triangle3d(top[2], bottom[0], bottom[2]);
       
-      this.faces[2] = new Triangle3d(top[2], top[1], bottom[2]);
-      this.faces[3] = new Triangle3d(top[1], bottom[1], bottom[2]);
+      this.faces[2] = new Triangle3d(top[1], top[2], bottom[2]);
+      this.faces[3] = new Triangle3d(bottom[1], top[1], bottom[2]);
       
-      this.faces[4] = new Triangle3d(top[1], top[0], bottom[1]);
-      this.faces[5] = new Triangle3d(top[0], bottom[0], bottom[1]);
+      this.faces[4] = new Triangle3d(top[0], top[1], bottom[1]);
+      this.faces[5] = new Triangle3d(bottom[0], top[0], bottom[1]);
 
 //      this.faces[0] = new Triangle3d(top[0], top[2], bottom[0]);
 //      this.faces[1] = new Triangle3d(bottom[0], top[2], bottom[2]);
@@ -49,6 +50,30 @@ public class TrianglePrismVolume extends BoundingBox {
       // added so loop can be used for contains check
       this.faces[6] = this.top;
       this.faces[7] = this.bottom;
+      
+//      final Tuple3d center = TupleMath.average(TupleMath.average(top), TupleMath.average(bottom));
+//      System.out.println("\nTPV::init");
+//      for(final Triangle3d face : this.faces) {
+//         if(face.fixCounterClockwise(center)) {
+////            System.out.println("fixed face: " + face.isInside(center));
+//            
+//            if(!face.isInside(center)) {
+////               System.out.flush();
+//               System.out.println("not inside after swapping winding order!");
+////               System.err.println("x,y,z,value");
+////               System.err.println(center.x + "," + center.y + "," + center.z + ",0.0");
+////               for(int i = 0; i < this.faces.length; i++) {
+////                  final Tuple3d[] corners = faces[i].getCorners();
+////                  System.err.println(corners[0].x + "," + corners[0].y + "," + corners[0].z + "," + (i + 1));
+////                  System.err.println(corners[1].x + "," + corners[1].y + "," + corners[1].z + "," + (i + 1));
+////                  System.err.println(corners[2].x + "," + corners[2].y + "," + corners[2].z + "," + (i + 1));
+////               }
+////               System.err.flush();
+//            }
+//         }
+//      }
+//      
+//      System.out.println("is center in volume? " + this.contains(center));
    }
    
    public Triangle3d[] getFaces() {
@@ -64,11 +89,15 @@ public class TrianglePrismVolume extends BoundingBox {
 //         System.out.println("inside aabb");
          for(int i = 0; i < this.faces.length; i++) {
             final Triangle3d face = this.faces[i];
-            System.out.println("\tface #" + i + " isBehind? " + face.isBehind(point));
-            if(face.isBehind(point)) {
+            
+            if(face.isInside(point)) {
                ctr++;
             }
          }
+         
+         System.out.println("contains? " + ctr + " of " + this.faces.length);
+      } else {
+         System.out.println("not in aabb");
       }
       
       return ctr == this.faces.length;

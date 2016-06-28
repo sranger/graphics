@@ -71,25 +71,6 @@ public class Scene extends GLCanvas implements GLEventListener {
       this.up.set(up);
       this.cameraPosition.set(cameraPosition);
    }
-   
-   public synchronized void setViewingVolume(final BoundingVolume boundingVolume) {
-      final Tuple3d center = boundingVolume.getCenter();
-      final Vector3d viewDirection = new Vector3d();
-      viewDirection.subtract(center, this.cameraPosition);
-      viewDirection.normalize();
-      
-      final double maxSpannedDistance = boundingVolume.getSpannedDistance(null);
-      final Vector3d right = new Vector3d();
-      right.cross(viewDirection, this.up);
-      right.normalize();
-      
-      this.up.cross(viewDirection, right);
-      this.up.normalize();
-      this.lookAt.set(center);
-      
-      viewDirection.scale(maxSpannedDistance * 2.0);
-      this.cameraPosition.subtract(center, viewDirection);
-   }
 
    public synchronized void setFov(final double fov) {
       this.fov = fov;
