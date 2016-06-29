@@ -64,6 +64,14 @@ public class TrianglePrismVolume extends BoundingBox {
       return this.faces;
    }
    
+   public Triangle3d getTopFace() {
+      return this.top;
+   }
+   
+   public double getDepth() {
+      return this.top.distance(this.bottom.getBarycentricOrigin());
+   }
+   
    @Override
    public boolean contains(final Tuple3d point) {
       int ctr = 0;
@@ -81,6 +89,19 @@ public class TrianglePrismVolume extends BoundingBox {
       }
       
       return ctr == this.faces.length;
+   }
+   
+   /**
+    * Returns a double array containing barycentric coordinates and depth from top face.
+    * 
+    * @param xyz
+    * @return u,v,w,depth coordinates
+    */
+   public double[] getBarycentricCoordinate(final Tuple3d xyz) {
+      final Tuple3d uvw = this.top.getBarycentricCoordinate(xyz);
+      final double depth = this.top.distance(xyz);
+      
+      return new double[] { uvw.x, uvw.y, uvw.z, depth };
    }
    
    private static Tuple3d getMin(final Tuple3d[] top, final Tuple3d[] bottom) {

@@ -3,7 +3,9 @@ package com.stephenwranger.graphics.math.intersection;
 import java.util.Arrays;
 import java.util.HashSet;
 
+import com.stephenwranger.graphics.math.Tuple2d;
 import com.stephenwranger.graphics.math.Tuple3d;
+import com.stephenwranger.graphics.math.Vector2d;
 import com.stephenwranger.graphics.math.Vector3d;
 
 public class Triangle3d {
@@ -138,24 +140,83 @@ public class Triangle3d {
    public String toString() {
       return "[Triangle3d: " + this.corners[0] + ", " + this.corners[1] + ", " + this.corners[2] + "]";
    }
+   
+   /**
+    * Returns a non-normalized {@link Vector3d} along the U-axis (in barycentric coordinates).
+    * 
+    * @return
+    */
+   public Vector3d getVectorU() {
+      final Vector3d vector = new Vector3d(this.corners[1]);
+      vector.subtract(this.corners[0]);
+      
+      return vector;
+   }
 
    /**
-    * TODO: does this work correctly in 3D?
+    * Returns a scaled {@link Vector3d} along the V-axis (in barycentric coordinates).
+    * 
+    * @return
+    */
+   public Vector3d getVectorV() {
+      final Vector3d vector = new Vector3d(this.corners[2]);
+      vector.subtract(this.corners[0]);
+      
+      return vector;
+   }
+
+   /**
+    * Returns the Tuple3d used as the origin for barycentric coordinate calculations.
+    * 
+    * @return
+    */
+   public Tuple3d getBarycentricOrigin() {
+      return new Tuple3d(this.corners[0]);
+   }
+
+   /**
+    * Projects the point onto the closest axis-aligned plane and computes the barycentric coordinates for the given 
+    * {@link Tuple3d} in this {@link Triangle3d}. The projected plane is chosen by ignoring the axis coordinate in this 
+    * triangle's normal with the largest absolute magnitude.<br/><br/>
+    * 
+    * http://stackoverflow.com/a/5145505/1451705
     * 
     * @param point
     * @return
     */
    public Tuple3d getBarycentricCoordinate(final Tuple3d point) {
+      final Vector3d normal = new Vector3d(this.normal);
       final Tuple3d[] corners = this.getCorners();
-      final Tuple3d a = corners[0];
-      final Tuple3d b = corners[1];
-      final Tuple3d c = corners[2];
-
-      final Vector3d v0 = new Vector3d(c);
+      final Tuple2d a = new Tuple2d();
+      final Tuple2d b = new Tuple2d();
+      final Tuple2d c = new Tuple2d();
+      final Tuple2d p = new Tuple2d();
+      final double x = Math.abs(normal.x);
+      final double y = Math.abs(normal.y);
+      final double z = Math.abs(normal.z);
+      
+      if(x > y && x > z) {
+         a.set(corners[0].y, corners[0].z);
+         b.set(corners[1].y, corners[1].z);
+         c.set(corners[2].y, corners[2].z);
+         p.set(point.y, point.z);
+      } else if(y > x && y > z) {
+         a.set(corners[0].x, corners[0].z);
+         b.set(corners[1].x, corners[1].z);
+         c.set(corners[2].x, corners[2].z);
+         p.set(point.x, point.z);
+      } else {
+         a.set(corners[0].x, corners[0].y);
+         b.set(corners[1].x, corners[1].y);
+         c.set(corners[2].x, corners[2].y);
+         p.set(point.x, point.y);
+      }
+      
+      final Vector2d v0 = new Vector2d(b);
       v0.subtract(a);
-      final Vector3d v1 = new Vector3d(b);
+      final Vector2d v1 = new Vector2d(c);
       v1.subtract(a);
-      final Vector3d v2 = new Vector3d(point);
+      final Vector2d v2 = new Vector2d(p);
       v2.subtract(a);
 
       final double dot00 = v0.dot(v0);
@@ -168,6 +229,7 @@ public class Triangle3d {
       final double u = (dot11 * dot02 - dot01 * dot12) * invDenom;
       final double v = (dot00 * dot12 - dot01 * dot02) * invDenom;
       final double w = 1.0 - u - v;
+      
       return new Tuple3d(u, v, w);
    }
 }

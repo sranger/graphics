@@ -4,6 +4,10 @@ public class Vector2d extends Tuple2d implements Vector {
    public Vector2d() {
       super(0, 0);
    }
+   
+   public Vector2d(final Tuple2d tuple) {
+      super(tuple.x, tuple.y);
+   }
 
    public Vector2d(final double x, final double y) {
       super(x,y);
