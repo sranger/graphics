@@ -40,8 +40,8 @@ public class MathUtils {
    public static final Tuple3d Y_AXIS                      = new Tuple3d(0, -1, 0);
    public static final Tuple3d Z_AXIS                      = new Tuple3d(0, 0, 1);
 
-   public static final double  EPSILON                     = 1e-15;
-   public static final float   EPSILON_F                   = 1e-8f;
+   public static final double  EPSILON                     = 1e-4;
+   public static final float   EPSILON_F                   = 1e-4f;
 
    private MathUtils() {
       // static only

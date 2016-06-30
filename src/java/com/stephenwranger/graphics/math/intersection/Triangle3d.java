@@ -92,6 +92,31 @@ public class Triangle3d {
    }
    
    /**
+    * Returns the {@link Triangle3d} parallel to the two given {@link Triangle3d} objects and equidistant to both.
+    * 
+    * @param top
+    * @param bottom
+    * @return
+    */
+   public static Triangle3d getMidFace(final Triangle3d top, final Triangle3d bottom) {
+      final Vector3d m0 = new Vector3d(top.corners[0]);
+      final Vector3d m1 = new Vector3d(top.corners[1]);
+      final Vector3d m2 = new Vector3d(top.corners[2]);
+
+      // add the bottom face corners to the top
+      m0.add(bottom.corners[0]);
+      m1.add(bottom.corners[1]);
+      m2.add(bottom.corners[2]);
+      
+      // multiply by 0.5 to get the "average" between the top and bottom points
+      m0.scale(0.5);
+      m1.scale(0.5);
+      m2.scale(0.5);
+      
+      return new Triangle3d(m0, m1, m2);
+   }
+   
+   /**
     * Returns true if the point given is on the same side as the face normal.
     * 
     * <pre>
