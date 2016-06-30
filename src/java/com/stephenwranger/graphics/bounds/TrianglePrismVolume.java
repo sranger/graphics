@@ -1,6 +1,7 @@
 package com.stephenwranger.graphics.bounds;
 
 import com.stephenwranger.graphics.math.Tuple3d;
+import com.stephenwranger.graphics.math.intersection.IntersectionUtils;
 import com.stephenwranger.graphics.math.intersection.Triangle3d;
 
 /**
@@ -68,9 +69,38 @@ public class TrianglePrismVolume extends BoundingBox {
       return this.top;
    }
    
+   public Triangle3d getBottomFace() {
+      return this.bottom;
+   }
+   
    public double getDepth() {
       return this.top.distance(this.bottom.getBarycentricOrigin());
    }
+   
+//   @Override
+//   public boolean contains(final Tuple3d point) {
+//      // check the easier contains computation as an early termination step
+//      if(super.contains(point)) {
+//         final Tuple3d topBarycentric = this.top.getBarycentricCoordinate(point);
+//         
+//         // check if its barycentric coordinates fall on the top face
+//         if(IntersectionUtils.isLessOrEqual(topBarycentric.x + topBarycentric.y + topBarycentric.z, 1.0)) {
+//            final Tuple3d bottomBarycentric = this.bottom.getBarycentricCoordinate(point);
+//
+//            // check if its barycentric coordinates fall on the bottom face
+//            if(IntersectionUtils.isLessOrEqual(bottomBarycentric.x + bottomBarycentric.y + bottomBarycentric.z, 1.0)) {
+//               final double totalDistance = this.top.distance(this.bottom.getBarycentricOrigin());
+//               final double toTop = this.top.distance(point);
+//               final double toBottom = this.bottom.distance(point);
+//               
+//               // make sure it's between the top and bottom faces
+//               return IntersectionUtils.isEqual(totalDistance, toTop + toBottom);
+//            }
+//         }
+//      }
+//      
+//      return false;
+//   }
    
    @Override
    public boolean contains(final Tuple3d point) {
@@ -78,7 +108,6 @@ public class TrianglePrismVolume extends BoundingBox {
 
       // check the easier contains computation as an early termination step
       if(super.contains(point)) {
-//         System.out.println("inside aabb");
          for(int i = 0; i < this.faces.length; i++) {
             final Triangle3d face = this.faces[i];
             

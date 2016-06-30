@@ -6,6 +6,7 @@ import java.util.List;
 import com.stephenwranger.graphics.math.Tuple2d;
 import com.stephenwranger.graphics.math.Tuple3d;
 import com.stephenwranger.graphics.math.Vector3d;
+import com.stephenwranger.graphics.utils.MathUtils;
 
 /**
  * http://www.realtimerendering.com/intersections.html
@@ -56,7 +57,7 @@ public class IntersectionUtils {
    }
 
    public static boolean isZero(final double value) {
-      return Math.abs(value) <= 1e-4;
+      return Math.abs(value) <= MathUtils.EPSILON;
    }
 
    public static boolean isEqual(final double value1, final double value2) {
@@ -64,7 +65,7 @@ public class IntersectionUtils {
    }
 
    public static boolean isLessThan(final double value, final double max) {
-      return (value < max) && !IntersectionUtils.isZero(value - max);
+      return value < max + MathUtils.EPSILON;
    }
 
    public static boolean isLessOrEqual(final double value, final double max) {
@@ -72,7 +73,7 @@ public class IntersectionUtils {
    }
 
    public static boolean isGreaterThan(final double value, final double min) {
-      return value > min && !IntersectionUtils.isZero(value - min);
+      return value > min - MathUtils.EPSILON && !IntersectionUtils.isZero(value - min);
    }
 
    public static boolean isGreaterOrEqual(final double value, final double min) {
