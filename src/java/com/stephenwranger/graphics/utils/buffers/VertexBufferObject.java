@@ -10,9 +10,9 @@ public class VertexBufferObject {
    public final int vertexCount;
    private int bytesPerVertex;
    private final boolean interleaved;
-   private final int glType;
-   private final BufferRegion[] regions;
-   private int vboId = -1;
+   protected final int glType;
+   protected final BufferRegion[] regions;
+   protected int vboId = -1;
    
    private ByteBuffer buffer;
 
