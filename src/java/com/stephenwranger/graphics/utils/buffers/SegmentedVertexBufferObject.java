@@ -22,8 +22,8 @@ public class SegmentedVertexBufferObject extends VertexBufferObject {
    private final int maxSegmentSize;
    private final int segmentsPerBuffer;
    
-   public SegmentedVertexBufferObject(final int maxSegmentSize, final int segmentsPerBuffer, final BufferRegion...bufferRegions) {
-      super(maxSegmentSize * segmentsPerBuffer, true, GL2.GL_FLOAT, bufferRegions);
+   public SegmentedVertexBufferObject(final int maxSegmentSize, final int segmentsPerBuffer, final int glPrimitiveType, final BufferRegion...bufferRegions) {
+      super(maxSegmentSize * segmentsPerBuffer, true, glPrimitiveType, bufferRegions);
       
       this.maxSegmentSize = maxSegmentSize;
       this.segmentsPerBuffer = segmentsPerBuffer;
@@ -39,6 +39,7 @@ public class SegmentedVertexBufferObject extends VertexBufferObject {
          buffer.position(this.maxSegmentSize * bufferIndex);
          buffer.put(segment.getBuffer());
          this.vertexCounts.put(bufferIndex, segment.getVertexCount());
+         this.unmapBuffer(gl);
       }
    }
    
@@ -75,7 +76,7 @@ public class SegmentedVertexBufferObject extends VertexBufferObject {
       for(final Entry<Integer, Integer> entry : this.vertexCounts.entrySet()) {
          final int index = entry.getKey() * this.maxSegmentSize;
          final int vertexCount = entry.getValue();
-         gl.glDrawArrays( glType, index, vertexCount );
+         gl.glDrawArrays( glPrimitiveType, index, vertexCount );
       }
        
       // disable arrays once we're done
@@ -96,7 +97,7 @@ public class SegmentedVertexBufferObject extends VertexBufferObject {
       for(final SegmentObject segment : segments) {
          final int index = segment.getBufferIndex() % this.segmentsPerBuffer * this.maxSegmentSize;
          final int vertexCount = segment.getVertexCount();
-         gl.glDrawArrays( glType, index, vertexCount );
+         gl.glDrawArrays( glPrimitiveType, index, vertexCount );
       }
        
       // disable arrays once we're done

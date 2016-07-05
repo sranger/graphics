@@ -10,7 +10,7 @@ public class VertexBufferObject {
    public final int vertexCount;
    private int bytesPerVertex;
    private final boolean interleaved;
-   protected final int glType;
+   protected final int glPrimitiveType;
    protected final BufferRegion[] regions;
    protected int vboId = -1;
    
@@ -27,7 +27,7 @@ public class VertexBufferObject {
 
       this.vertexCount = vertexCount;
       this.interleaved = interleaved;
-      this.glType = glType;
+      this.glPrimitiveType = glType;
       this.regions = regions.clone();
 
       bytesPerVertex = 0;
@@ -56,7 +56,7 @@ public class VertexBufferObject {
          region.enable(gl);
       }
       
-      gl.glDrawArrays( glType, 0, vertexCount );
+      gl.glDrawArrays( glPrimitiveType, 0, vertexCount );
        
       // disable arrays once we're done
       gl.glBindBuffer( GL2.GL_ARRAY_BUFFER, 0 );
@@ -96,5 +96,8 @@ public class VertexBufferObject {
       
       // Load The Data
       gl.glBufferData(GL2.GL_ARRAY_BUFFER, vertexCount * bytesPerVertex, null, GL2.GL_STATIC_DRAW);
+      
+      // unmap current buffer after initialization
+      gl.glUnmapBuffer(GL2.GL_ARRAY_BUFFER);
    }
 }

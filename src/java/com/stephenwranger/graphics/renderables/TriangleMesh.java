@@ -100,6 +100,7 @@ public class TriangleMesh extends Renderable {
          
          gl.glEnd();
       }
+      
       gl.glPopAttrib();
    }
 

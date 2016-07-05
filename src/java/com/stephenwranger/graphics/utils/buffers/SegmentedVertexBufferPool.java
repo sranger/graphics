@@ -41,11 +41,13 @@ public class SegmentedVertexBufferPool {
    private final Map<Integer, List<SegmentedVertexBufferObject>> buffers = new HashMap<>();
    private final int maxSegmentSize;
    private final int segmentsPerBuffer;
+   private final int glPrimitiveType;
    private final BufferRegion[] bufferRegions;
    
-   public SegmentedVertexBufferPool(final int maxSegmentSize, final int segmentsPerBuffer, final BufferRegion...bufferRegions) {
+   public SegmentedVertexBufferPool(final int maxSegmentSize, final int segmentsPerBuffer, final int glPrimitiveType, final BufferRegion...bufferRegions) {
       this.maxSegmentSize = maxSegmentSize;
       this.segmentsPerBuffer = segmentsPerBuffer;
+      this.glPrimitiveType = glPrimitiveType;
       this.bufferRegions = bufferRegions.clone();
       
       // so we can divide at start of loop; if we don't, we can't get the last pool to be less than 100
@@ -71,7 +73,7 @@ public class SegmentedVertexBufferPool {
          this.buffers.put(poolIndex, buffers);
       }
       
-      final SegmentedVertexBufferObject buffer = new SegmentedVertexBufferObject(poolIndex, this.segmentsPerBuffer, this.bufferRegions);
+      final SegmentedVertexBufferObject buffer = new SegmentedVertexBufferObject(poolIndex, this.segmentsPerBuffer, this.glPrimitiveType, this.bufferRegions);
       buffers.add(buffer);
       
       return buffer;
