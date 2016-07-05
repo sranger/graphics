@@ -37,7 +37,7 @@ public class SegmentedVertexBufferObject extends VertexBufferObject {
       if(bufferIndex > -1) {
          final ByteBuffer buffer = this.mapBuffer(gl);
          buffer.position(this.maxSegmentSize * bufferIndex);
-         buffer.put(segment.getBuffer());
+         segment.loadBuffer(buffer);
          this.vertexCounts.put(bufferIndex, segment.getVertexCount());
          this.unmapBuffer(gl);
       }

@@ -1,5 +1,7 @@
 package com.stephenwranger.graphics.utils.buffers;
 
+import java.nio.ByteBuffer;
+
 public interface SegmentObject {
    /**
     * Will store the segmented buffer pool key as the pool index and the buffer index where it has
@@ -25,12 +27,12 @@ public interface SegmentObject {
    public int getBufferIndex();
    
    /**
-    * Returns the data to be stored; this needs to be less than or equal to the max segment size defined when the
-    * segmented buffer pool was created.
+    * Puts the data to be stored into the given ByteBuffer; the number of points needs to be less than or equal to the
+    * max segment size defined when the segmented buffer pool was created.
     * 
     * @return
     */
-   public byte[] getBuffer();
+   public void loadBuffer(final ByteBuffer buffer);
    
    /**
     * Returns the number of vertices stored in this object's buffer.

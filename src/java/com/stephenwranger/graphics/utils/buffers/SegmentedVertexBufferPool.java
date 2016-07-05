@@ -89,14 +89,16 @@ public class SegmentedVertexBufferPool {
             int maxPoolIndex = -1;
             
             for(final int key : this.buffers.keySet()) {
-               if(vertexCount < key && key > maxPoolIndex) {
+               if(vertexCount <= key && key > maxPoolIndex) {
                   maxPoolIndex = key;
                }
             }
             
-            poolIndex = maxPoolIndex;
-            bufferIndex = this.getNextAvailableBufferIndex(maxPoolIndex);
-            segment.setSegmentLocation(poolIndex, bufferIndex);
+            if(maxPoolIndex != -1) {
+               poolIndex = maxPoolIndex;
+               bufferIndex = this.getNextAvailableBufferIndex(maxPoolIndex);
+               segment.setSegmentLocation(poolIndex, bufferIndex);
+            }
          }
          
          final SegmentedVertexBufferObject buffer = this.getBuffer(poolIndex, bufferIndex);
@@ -113,7 +115,13 @@ public class SegmentedVertexBufferPool {
    }
    
    private int getNextAvailableBufferIndex(final int poolIndex) {
-      final List<SegmentedVertexBufferObject> buffers = this.buffers.get(poolIndex);
+      List<SegmentedVertexBufferObject> buffers = this.buffers.get(poolIndex);
+      
+      if(buffers == null) {
+         System.err.println(poolIndex + " not initialized");
+         this.addBuffer(poolIndex);
+         buffers = this.buffers.get(poolIndex);
+      }
 
       int segmentBufferIndex = -1;
       int bufferIndex = -1;
