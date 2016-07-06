@@ -47,6 +47,10 @@ public class Matrix4d {
       this.set(array);
    }
    
+   public double get(final int row, final int column) {
+      return this.m[column * 4 + row];
+   }
+   
    public double[] get() {
       return this.get(null);
    }

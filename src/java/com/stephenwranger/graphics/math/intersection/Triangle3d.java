@@ -8,28 +8,15 @@ import com.stephenwranger.graphics.math.Tuple3d;
 import com.stephenwranger.graphics.math.Vector2d;
 import com.stephenwranger.graphics.math.Vector3d;
 
-public class Triangle3d {
-   private final Tuple3d[] corners = new Tuple3d[3];
-   private final Vector3d normal;
-   private final double d;
-
+public class Triangle3d extends Plane {
+   protected final Tuple3d[] corners = new Tuple3d[3];
+   
    public Triangle3d(final Tuple3d c1, final Tuple3d c2, final Tuple3d c3) {
+      super(c1, c2, c3);
+      
       this.corners[0] = new Tuple3d(c1);
       this.corners[1] = new Tuple3d(c2);
       this.corners[2] = new Tuple3d(c3);
-      
-      this.normal = IntersectionUtils.calculateSurfaceNormal(this.corners);
-      this.d = -(this.normal.x * c1.x + this.normal.y * c1.y + this.normal.z * c1.z);
-   }
-   
-   public Vector3d getNormal() {
-      return new Vector3d(this.normal);
-   }
-   
-   public double distance(final Tuple3d point) {
-      // D = abs(aX + bY + cZ + d) / sqrt(a^2 + b^2 + c^2)
-      // D = abs(aX + bY + cZ + d) / 1.0  # sqrt part is length of normal which we normalized to length = 1
-      return this.normal.x * point.x + this.normal.y * point.y + this.normal.z * point.z + this.d;
    }
    
    public boolean fixCounterClockwise(final Tuple3d internalPoint) {
@@ -42,6 +29,34 @@ public class Triangle3d {
       }
       
       return false;
+   }
+
+   public Tuple3d[] getCorners() {
+      return new Tuple3d[] { new Tuple3d(this.corners[0]), new Tuple3d(this.corners[1]), new Tuple3d(this.corners[2]) };
+   }
+
+   @Override
+   public int hashCode() {
+      final int prime = 31;
+      return prime * (this.corners[0].hashCode() + this.corners[1].hashCode() + this.corners[2].hashCode());
+   }
+
+   @Override
+   public boolean equals(Object obj) {
+      if (this == obj) {
+         return true;
+      }
+      if (obj == null) {
+         return false;
+      }
+      if (this.getClass() != obj.getClass()) {
+         return false;
+      }
+      final Triangle3d other = (Triangle3d) obj;
+      if (!new HashSet<Tuple3d>( Arrays.asList( this.corners )).equals( new HashSet<Tuple3d>( Arrays.asList( other.corners ) ))) {
+         return false;
+      }
+      return true;
    }
    
    /**
@@ -114,51 +129,6 @@ public class Triangle3d {
       m2.scale(0.5);
       
       return new Triangle3d(m0, m1, m2);
-   }
-   
-   /**
-    * Returns true if the point given is on the same side as the face normal.
-    * 
-    * <pre>
-    * http://stackoverflow.com/questions/8877872/determining-if-a-point-is-inside-a-polyhedron
-    * http://stackoverflow.com/a/33836085/1451705
-    * </pre>
-    * 
-    * @param point
-    * @return
-    */
-   public boolean isInside(final Tuple3d point) {
-      final double distance = this.distance(point);
-
-      return IntersectionUtils.isGreaterOrEqual(distance, 0.0);
-   }
-
-   public Tuple3d[] getCorners() {
-      return new Tuple3d[] { new Tuple3d(this.corners[0]), new Tuple3d(this.corners[1]), new Tuple3d(this.corners[2]) };
-   }
-
-   @Override
-   public int hashCode() {
-      final int prime = 31;
-      return prime * (this.corners[0].hashCode() + this.corners[1].hashCode() + this.corners[2].hashCode());
-   }
-
-   @Override
-   public boolean equals(Object obj) {
-      if (this == obj) {
-         return true;
-      }
-      if (obj == null) {
-         return false;
-      }
-      if (this.getClass() != obj.getClass()) {
-         return false;
-      }
-      final Triangle3d other = (Triangle3d) obj;
-      if (!new HashSet<Tuple3d>( Arrays.asList( this.corners )).equals( new HashSet<Tuple3d>( Arrays.asList( other.corners ) ))) {
-         return false;
-      }
-      return true;
    }
 
    @Override

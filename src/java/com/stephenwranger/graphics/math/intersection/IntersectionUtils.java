@@ -111,7 +111,7 @@ public class IntersectionUtils {
       return false;
    }
 
-   public static Vector3d calculateSurfaceNormal(final Tuple3d[] corners) {
+   public static Vector3d calculateSurfaceNormal(final Tuple3d... corners) {
       final Vector3d u = new Vector3d();
       u.subtract(corners[1], corners[0]);
       final Vector3d v = new Vector3d();
