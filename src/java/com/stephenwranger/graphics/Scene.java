@@ -14,8 +14,10 @@ import com.jogamp.opengl.glu.GLU;
 import com.jogamp.opengl.util.FPSAnimator;
 import com.stephenwranger.graphics.bounds.BoundingVolume;
 import com.stephenwranger.graphics.math.CameraUtils;
+import com.stephenwranger.graphics.math.Matrix4d;
 import com.stephenwranger.graphics.math.Tuple3d;
 import com.stephenwranger.graphics.math.Vector3d;
+import com.stephenwranger.graphics.math.intersection.Plane;
 import com.stephenwranger.graphics.renderables.PreRenderable;
 import com.stephenwranger.graphics.renderables.Renderable;
 import com.stephenwranger.graphics.renderables.RenderableOrthographic;
@@ -51,6 +53,7 @@ public class Scene extends GLCanvas implements GLEventListener {
    private Tuple3d                      screenLookAt                                = null;
    private boolean                      enableFollowTarget                          = false;
    private Renderable                   followTarget                                = null;
+   private Plane[]                      frustumPlanes                               = null;
 
    public Scene(final Dimension preferredSize) {
       this(preferredSize, 60);
@@ -343,6 +346,12 @@ public class Scene extends GLCanvas implements GLEventListener {
       
       final double[] proj = CameraUtils.gluPerspective(gl, this.fov, this.viewport[2] / (double) this.viewport[3], this.near, this.far);
       System.arraycopy(proj, 0, this.projection, 0, 16);
+      
+      this.frustumPlanes = CameraUtils.getFrustumPlanes(new Matrix4d(this.projection));
+   }
+   
+   public Plane[] getFrustumPlanes() {
+      return this.frustumPlanes;
    }
 
    @Override
@@ -383,8 +392,26 @@ public class Scene extends GLCanvas implements GLEventListener {
       return new Tuple3d(this.lookAt);
    }
 
-   public synchronized Vector3d getUp() {
+   public synchronized Vector3d getUpVector() {
       return new Vector3d(this.up);
+   }
+
+   public synchronized Vector3d getViewVector() {
+      final Vector3d view = new Vector3d();
+      view.subtract(this.lookAt, this.cameraPosition);
+      view.normalize();
+      
+      return view;
+   }
+
+   public synchronized Vector3d getRightVector() {
+      final Vector3d up = this.getUpVector();
+      final Vector3d view = this.getViewVector();
+      final Vector3d right = new Vector3d();
+      right.cross(view, up);
+      right.normalize();
+      
+      return right;
    }
 
    public double getFOV() {

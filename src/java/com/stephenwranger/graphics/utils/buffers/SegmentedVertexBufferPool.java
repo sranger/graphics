@@ -79,6 +79,19 @@ public class SegmentedVertexBufferPool {
       return buffer;
    }
    
+   public void clearSegmentObject(final GL2 gl, final SegmentObject segment) {
+      if(segment != null) {
+         final int poolIndex = segment.getSegmentPoolIndex();
+         final int bufferIndex = segment.getBufferIndex();
+         
+         if(poolIndex != -1 && bufferIndex != -1) {
+            final SegmentedVertexBufferObject buffer = this.getBuffer(poolIndex, bufferIndex);
+            final int segmentBufferIndex = (int) Math.floor(bufferIndex / this.segmentsPerBuffer);
+            buffer.clearIndex(segmentBufferIndex);
+         }
+      }
+   }
+   
    public void setSegmentObject(final GL2 gl, final SegmentObject segment) {
       if(segment != null) {
          int poolIndex = segment.getSegmentPoolIndex();

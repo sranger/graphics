@@ -1,12 +1,73 @@
 package com.stephenwranger.graphics.bounds;
 
 import com.stephenwranger.graphics.math.Tuple3d;
+import com.stephenwranger.graphics.math.Vector3d;
+import com.stephenwranger.graphics.math.intersection.IntersectionUtils;
+import com.stephenwranger.graphics.math.intersection.Plane;
 import com.stephenwranger.graphics.renderables.RenderablePhysics;
 import com.stephenwranger.graphics.utils.TupleMath;
 
 public class BoundsUtils {
+   public enum FrustumResult {
+      IN, OUT, INTERSECT
+   }
+   
    private BoundsUtils() {
       // statics only
+   }
+   
+   /**
+    * Checks whether the given {@link BoundingVolume} is inside, outside, or intersects with the given frustum planes.<br/><br/>
+    * 
+    * C++ Optimized algorithm from:
+    * http://www.gamedev.net/page/resources/_/technical/general-programming/useless-snippet-2-aabbfrustum-test-r3342
+    * 
+    * @param frustumPlanes
+    * @param bv
+    * @return
+    */
+   public static FrustumResult testFrustum(final Plane[] frustumPlanes, final BoundingVolume bv) {
+      final Vector3d[] absNormals = new Vector3d[6];
+      
+      for(int i = 0; i < 6; i++) {
+         absNormals[i] = frustumPlanes[i].getNormal();
+         absNormals[i].x = Math.abs(absNormals[i].x);
+         absNormals[i].y = Math.abs(absNormals[i].y);
+         absNormals[i].z = Math.abs(absNormals[i].z);
+      }
+
+      final Tuple3d aabbCenter = bv.getCenter();
+      final Tuple3d aabbSize = bv.getDimensions();
+
+      FrustumResult result = FrustumResult.IN; // Assume that the aabb will be inside the frustum
+      
+      for(int iPlane = 0;iPlane < 6;++iPlane) {
+         final Vector3d frustumPlaneNormal = frustumPlanes[iPlane].getNormal();
+         final double distance = frustumPlanes[iPlane].getDistance();
+
+         final double d = aabbCenter.x * frustumPlaneNormal.x + 
+              aabbCenter.y * frustumPlaneNormal.y + 
+              aabbCenter.z * frustumPlaneNormal.z;
+
+         final double r = aabbSize.x * absNormals[iPlane].x + 
+              aabbSize.y * absNormals[iPlane].y + 
+              aabbSize.z * absNormals[iPlane].z;
+
+         final double d_p_r = d + r + distance;
+         
+         if(IntersectionUtils.isLessThan(d_p_r, 0.0)) {
+            result = FrustumResult.OUT;
+            break;
+         }
+
+         final double d_m_r = d - r + distance;
+         
+         if(IntersectionUtils.isLessThan(d_m_r, 0.0)) {
+            result = FrustumResult.INTERSECT;
+         }
+      }
+
+      return result;
    }
 
    public static boolean intersectsVector(final BoundingVolume bv, final Tuple3d vector) {
