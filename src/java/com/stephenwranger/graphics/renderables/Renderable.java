@@ -59,14 +59,18 @@ public abstract class Renderable {
          nearFar[1] = Double.NaN;
       } else {
          final Tuple3d cameraPosition = scene.getCameraPosition();
-         final Tuple3d origin = this.getPosition();
-         final Vector3d lookAt = new Vector3d();
-         lookAt.subtract(origin, cameraPosition);
-         lookAt.normalize();
-         final double distance = origin.distance(cameraPosition);
-         final double range = this.getBoundingVolume().getSpannedDistance(lookAt);
-         nearFar[0] = distance - range;
-         nearFar[1] = distance + range;
+         
+         if(bounds.contains(cameraPosition)) {
+            nearFar[0] = 1;
+            nearFar[1] = 3000.0;//cameraPosition.distance(bounds.getCenter()) + bounds.getSpannedDistance(scene.getViewVector()) / 2.0;
+         } else {
+            final Tuple3d origin = this.getPosition();
+            final Vector3d viewVector = scene.getViewVector();
+            final double distance = origin.distance(cameraPosition);
+            final double range = this.getBoundingVolume().getSpannedDistance(viewVector);
+            nearFar[0] = distance - range;
+            nearFar[1] = distance + range;
+         }
       }
       
       return nearFar;

@@ -317,6 +317,8 @@ public class Scene extends GLCanvas implements GLEventListener {
             this.far = Math.max(this.far, nearFar[1]);
          }
       }
+      
+//      System.out.println(this.near + ", " + this.far);
 
       if (this.near >= this.far) {
          if (this.sceneBounds != null) {

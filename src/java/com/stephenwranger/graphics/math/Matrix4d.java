@@ -48,7 +48,7 @@ public class Matrix4d {
    }
    
    public double get(final int row, final int column) {
-      return this.m[column * 4 + row];
+      return this.m[row * 4 + column];
    }
    
    public double[] get() {

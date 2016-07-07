@@ -1,8 +1,6 @@
 package com.stephenwranger.graphics.bounds;
 
 import com.stephenwranger.graphics.math.Tuple3d;
-import com.stephenwranger.graphics.math.Vector3d;
-import com.stephenwranger.graphics.math.intersection.IntersectionUtils;
 import com.stephenwranger.graphics.math.intersection.Plane;
 import com.stephenwranger.graphics.renderables.RenderablePhysics;
 import com.stephenwranger.graphics.utils.TupleMath;
@@ -16,58 +14,161 @@ public class BoundsUtils {
       // statics only
    }
    
+//   /**
+//    * Checks whether the given {@link BoundingVolume} is inside, outside, or intersects with the given frustum planes.<br/><br/>
+//    * 
+//    * C++ Optimized algorithm from:
+//    * http://www.gamedev.net/page/resources/_/technical/general-programming/useless-snippet-2-aabbfrustum-test-r3342
+//    * 
+//    * @param frustumPlanes
+//    * @param bv
+//    * @return
+//    */
+//   public static FrustumResult testFrustum(final Plane[] frustumPlanes, final BoundingVolume bv) {
+//      final Vector3d[] absNormals = new Vector3d[6];
+//      
+//      for(int i = 0; i < 6; i++) {
+//         absNormals[i] = frustumPlanes[i].getNormal();
+//         absNormals[i].x = Math.abs(absNormals[i].x);
+//         absNormals[i].y = Math.abs(absNormals[i].y);
+//         absNormals[i].z = Math.abs(absNormals[i].z);
+//      }
+//
+//      final Tuple3d aabbCenter = bv.getCenter();
+//      final Tuple3d aabbSize = bv.getDimensions();
+//
+//      FrustumResult result = FrustumResult.IN; // Assume that the aabb will be inside the frustum
+//      
+//      for(int iPlane = 0;iPlane < 6;++iPlane) {
+//         final Vector3d frustumPlaneNormal = frustumPlanes[iPlane].getNormal();
+//         final double distance = frustumPlanes[iPlane].getDistance();
+//
+//         final double d = aabbCenter.x * frustumPlaneNormal.x + 
+//              aabbCenter.y * frustumPlaneNormal.y + 
+//              aabbCenter.z * frustumPlaneNormal.z;
+//
+//         final double r = aabbSize.x * absNormals[iPlane].x + 
+//              aabbSize.y * absNormals[iPlane].y + 
+//              aabbSize.z * absNormals[iPlane].z;
+//
+//         final double d_p_r = d + r + distance;
+//         
+//         if(IntersectionUtils.isLessThan(d_p_r, 0.0)) {
+//            result = FrustumResult.OUT;
+//            break;
+//         }
+//
+//         final double d_m_r = d - r + distance;
+//         
+//         if(IntersectionUtils.isLessThan(d_m_r, 0.0)) {
+//            result = FrustumResult.INTERSECT;
+//         }
+//      }
+//
+//      return result;
+//   }
+   
+   public static FrustumResult testFrustum(final Plane[] frustumPlanes, final BoundingVolume bounds) {
+      if(bounds instanceof BoundingBox) {
+         return BoundsUtils.testAABBInFrustum(frustumPlanes, (BoundingBox) bounds);
+      } else if(bounds instanceof BoundingSphere) {
+         return BoundsUtils.testSphereInFrustum(frustumPlanes, (BoundingSphere) bounds);
+      } else {
+         final BoundingBox box = new BoundingBox(bounds);
+         return BoundsUtils.testAABBInFrustum(frustumPlanes, box);
+      }
+   }
+
    /**
-    * Checks whether the given {@link BoundingVolume} is inside, outside, or intersects with the given frustum planes.<br/><br/>
-    * 
-    * C++ Optimized algorithm from:
-    * http://www.gamedev.net/page/resources/_/technical/general-programming/useless-snippet-2-aabbfrustum-test-r3342
+    * http://www.flipcode.com/archives/Frustum_Culling.shtml
     * 
     * @param frustumPlanes
-    * @param bv
+    * @param bounds
     * @return
     */
-   public static FrustumResult testFrustum(final Plane[] frustumPlanes, final BoundingVolume bv) {
-      final Vector3d[] absNormals = new Vector3d[6];
-      
-      for(int i = 0; i < 6; i++) {
-         absNormals[i] = frustumPlanes[i].getNormal();
-         absNormals[i].x = Math.abs(absNormals[i].x);
-         absNormals[i].y = Math.abs(absNormals[i].y);
-         absNormals[i].z = Math.abs(absNormals[i].z);
-      }
+   public static FrustumResult testSphereInFrustum(final Plane[] frustumPlanes, final BoundingSphere bounds) {
+      // various distances
+      double fDistance;
 
-      final Tuple3d aabbCenter = bv.getCenter();
-      final Tuple3d aabbSize = bv.getDimensions();
+      // calculate our distances to each of the planes
+      for (int i = 0; i < 6; ++i) {
+         // find the distance to this plane
+         fDistance = frustumPlanes[i].distanceToPoint(bounds.getCenter()) + frustumPlanes[i].getDistance();
 
-      FrustumResult result = FrustumResult.IN; // Assume that the aabb will be inside the frustum
-      
-      for(int iPlane = 0;iPlane < 6;++iPlane) {
-         final Vector3d frustumPlaneNormal = frustumPlanes[iPlane].getNormal();
-         final double distance = frustumPlanes[iPlane].getDistance();
-
-         final double d = aabbCenter.x * frustumPlaneNormal.x + 
-              aabbCenter.y * frustumPlaneNormal.y + 
-              aabbCenter.z * frustumPlaneNormal.z;
-
-         final double r = aabbSize.x * absNormals[iPlane].x + 
-              aabbSize.y * absNormals[iPlane].y + 
-              aabbSize.z * absNormals[iPlane].z;
-
-         final double d_p_r = d + r + distance;
-         
-         if(IntersectionUtils.isLessThan(d_p_r, 0.0)) {
-            result = FrustumResult.OUT;
-            break;
+         // if this distance is < -sphere.radius, we are outside
+         if (fDistance < -bounds.getRadius()) {
+            return FrustumResult.OUT;
          }
 
-         final double d_m_r = d - r + distance;
-         
-         if(IntersectionUtils.isLessThan(d_m_r, 0.0)) {
-            result = FrustumResult.INTERSECT;
+         // else if the distance is between +- radius, then we intersect
+         if ((float) Math.abs(fDistance) < bounds.getRadius()) {
+            return FrustumResult.INTERSECT;
          }
       }
 
-      return result;
+      // otherwise we are fully in view
+      return FrustumResult.IN;
+   }
+   
+   /**
+    * http://www.flipcode.com/archives/Frustum_Culling.shtml
+    * 
+    * @param frustumPlanes
+    * @param bounds
+    * @return
+    */
+   public static FrustumResult testAABBInFrustum(final Plane[] frustumPlanes, final BoundingBox bounds) {
+      final Tuple3d[] vCorner = bounds.getCorners();
+      int iTotalIn = 0;
+
+      // test all 8 corners against the 6 sides 
+      // if all points are behind 1 specific plane, we are out
+      // if we are in with all points, then we are fully in
+      for(int p = 0; p < 6; ++p) {
+         int iInCount = 8;
+         int iPtIn = 1;
+
+         for(int i = 0; i < 8; ++i) {
+
+            // test this point against the planes
+            if(frustumPlanes[p].isInside(vCorner[i])) {
+               iPtIn = 0;
+               --iInCount;
+            }
+         }
+
+         // were all the points outside of plane p?
+         if(iInCount == 0) {
+            return FrustumResult.OUT;
+         }
+
+         // check if they were all on the right side of the plane
+         iTotalIn += iPtIn;
+      }
+
+      // so if iTotalIn is 6, then all are inside the view
+      if(iTotalIn == 6) {
+         return FrustumResult.IN;
+      }
+
+      // we must be partly in then otherwise
+      return FrustumResult.INTERSECT;
+   }
+   
+   /**
+    * http://ruh.li/CameraViewFrustum.html
+    * 
+    * @param frustumPlanes
+    * @param xyz
+    * @return
+    */
+   public static boolean testPointInFrustum(final Plane[] frustumPlanes, final Tuple3d xyz) {
+      for (int i = 0; i < 6; i++) {
+         if (!frustumPlanes[i].isInside(xyz)) {
+            return false;
+         }
+      }
+      return true;
    }
 
    public static boolean intersectsVector(final BoundingVolume bv, final Tuple3d vector) {

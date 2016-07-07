@@ -74,7 +74,7 @@ public class TrianglePrismVolume extends BoundingBox {
    }
    
    public double getDepth() {
-      return this.top.distance(this.bottom.getBarycentricOrigin());
+      return this.top.distanceToPoint(this.bottom.getBarycentricOrigin());
    }
    
 //   @Override
@@ -128,7 +128,7 @@ public class TrianglePrismVolume extends BoundingBox {
     */
    public double[] getBarycentricCoordinate(final Tuple3d xyz) {
       final Tuple3d uvw = this.top.getBarycentricCoordinate(xyz);
-      final double depth = this.top.distance(xyz);
+      final double depth = this.top.distanceToPoint(xyz);
       
       return new double[] { uvw.x, uvw.y, uvw.z, depth };
    }
