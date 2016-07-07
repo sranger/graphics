@@ -27,7 +27,7 @@ public class Plane {
       return this.d;
    }
    
-   public double distance(final Tuple3d point) {
+   public double distanceToPoint(final Tuple3d point) {
       // D = abs(aX + bY + cZ + d) / sqrt(a^2 + b^2 + c^2)
       // D = abs(aX + bY + cZ + d) / 1.0  # sqrt part is length of normal which we normalized to length = 1
       return this.normal.x * point.x + this.normal.y * point.y + this.normal.z * point.z + this.d;
@@ -45,7 +45,7 @@ public class Plane {
     * @return
     */
    public boolean isInside(final Tuple3d point) {
-      final double distance = this.distance(point);
+      final double distance = this.distanceToPoint(point);
 
       return IntersectionUtils.isGreaterOrEqual(distance, 0.0);
    }

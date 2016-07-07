@@ -253,7 +253,8 @@ public class CameraUtils {
    /**
     * Generates the six frustum planes using the projection matrix. The index constants can be accessed from this class
     * as static values.<br/><br/>
-    * http://ruh.li/CameraViewFrustum.html
+    * http://ruh.li/CameraViewFrustum.html<br/>
+    * http://gamedevs.org/uploads/fast-extraction-viewing-frustum-planes-from-world-view-projection-matrix.pdf
     * 
     * @param projection
     * @return
@@ -262,58 +263,45 @@ public class CameraUtils {
       final Plane[] planes = new Plane[6];
       // left
       final Vector3d leftNormal = new Vector3d();
-      leftNormal.x = projection.get(0, 3) + projection.get(0, 0);
-      leftNormal.y = projection.get(1, 3) + projection.get(1, 0);
-      leftNormal.z = projection.get(2, 3) + projection.get(2, 0);
-      leftNormal.normalize();
-      final double leftD = projection.get(3, 3) + projection.get(3, 0);
+      leftNormal.x = projection.get(3, 0) + projection.get(0, 0);
+      leftNormal.y = projection.get(3, 1) + projection.get(0, 1);
+      leftNormal.z = projection.get(3, 2) + projection.get(0, 2);
+      final double leftD = projection.get(3, 3) + projection.get(0, 3);
       
       // right
       final Vector3d rightNormal = new Vector3d();
-      rightNormal.x = projection.get(0, 3) - projection.get(0, 0);
-      rightNormal.y = projection.get(1, 3) - projection.get(1, 0);
-      rightNormal.z = projection.get(2, 3) - projection.get(2, 0);
-      rightNormal.normalize();
-      final double rightD = projection.get(3, 3) - projection.get(3, 0);
+      rightNormal.x = projection.get(3, 0) - projection.get(0, 0);
+      rightNormal.y = projection.get(3, 1) - projection.get(0, 1);
+      rightNormal.z = projection.get(3, 2) - projection.get(0, 2);
+      final double rightD = projection.get(3, 3) - projection.get(0, 3);
       
       // bottom
       final Vector3d bottomNormal = new Vector3d();
-      bottomNormal.x = projection.get(0, 3) + projection.get(0, 1);
-      bottomNormal.y = projection.get(1, 3) + projection.get(1, 1);
-      bottomNormal.z = projection.get(2, 3) + projection.get(2, 1);
-      bottomNormal.normalize();
-      final double bottomD = projection.get(3, 3) + projection.get(3, 1);
+      bottomNormal.x = projection.get(3, 0) + projection.get(1, 0);
+      bottomNormal.y = projection.get(3, 1) + projection.get(1, 1);
+      bottomNormal.z = projection.get(3, 2) + projection.get(1, 2);
+      final double bottomD = projection.get(3, 3) + projection.get(1, 3);
       
       // top
       final Vector3d topNormal = new Vector3d();
-      topNormal.x = projection.get(0, 3) - projection.get(0, 1);
-      topNormal.y = projection.get(1, 3) - projection.get(1, 1);
-      topNormal.z = projection.get(2, 3) - projection.get(2, 1);
-      topNormal.normalize();
-      final double topD = projection.get(3, 3) - projection.get(3, 1);
+      topNormal.x = projection.get(3, 0) - projection.get(3, 0);
+      topNormal.y = projection.get(3, 1) - projection.get(3, 1);
+      topNormal.z = projection.get(3, 2) - projection.get(3, 2);
+      final double topD = projection.get(3, 3) - projection.get(3, 3);
       
       // near
       final Vector3d nearNormal = new Vector3d();
-      nearNormal.x = projection.get(0, 3) + projection.get(0, 2);
-      nearNormal.y = projection.get(1, 3) + projection.get(1, 2);
-      nearNormal.z = projection.get(2, 3) + projection.get(2, 2);
-      nearNormal.normalize();
-      final double nearD = projection.get(3, 3) + projection.get(3, 2);
+      nearNormal.x = projection.get(3, 0) + projection.get(2, 0);
+      nearNormal.y = projection.get(3, 1) + projection.get(2, 1);
+      nearNormal.z = projection.get(3, 2) + projection.get(2, 2);
+      final double nearD = projection.get(2, 3);
       
       // far
       final Vector3d farNormal = new Vector3d();
-      farNormal.x = projection.get(0, 3) - projection.get(0, 2);
-      farNormal.y = projection.get(1, 3) - projection.get(1, 2);
-      farNormal.z = projection.get(2, 3) - projection.get(2, 2);
-      farNormal.normalize();
-      final double farD = projection.get(3, 3) - projection.get(3, 2);
-      
-      // normalize
-//      for(int i = 0; i < 6; i++) {
-//          float length = planes[i].normal.length();
-//          planes[i].normal /= length;
-//          planes[i].d /= length; // d also has to be divided by the length of the normal
-//      }
+      farNormal.x = projection.get(3, 0) - projection.get(2, 0);
+      farNormal.y = projection.get(3, 1) - projection.get(2, 1);
+      farNormal.z = projection.get(3, 2) - projection.get(2, 2);
+      final double farD = projection.get(3, 3) - projection.get(2, 3);
 
       planes[LEFT_PLANE] = new Plane(leftNormal, leftD);
       planes[RIGHT_PLANE] = new Plane(rightNormal, rightD);
@@ -322,8 +310,95 @@ public class CameraUtils {
       planes[NEAR_PLANE] = new Plane(nearNormal, nearD);
       planes[FAR_PLANE] = new Plane(farNormal, farD);
       
+      // normalize
+      for(int i = 0; i < 6; i++) {
+         final Vector3d normal = planes[i].getNormal();
+         final double length = normal.length();
+         normal.x /= length;
+         normal.y /= length;
+         normal.z /= length;
+         // d also has to be divided by the length of the normal
+         planes[i] = new Plane(normal, planes[i].getDistance() / length);
+      }
+      
       return planes;
    }
+   
+//   /**
+//    * Generates the six frustum planes using the projection matrix. The index constants can be accessed from this class
+//    * as static values.<br/><br/>
+//    * http://ruh.li/CameraViewFrustum.html
+//    * 
+//    * @param projection
+//    * @return
+//    */
+//   public static Plane[] getFrustumPlanes(final Matrix4d projection) {
+//      final Plane[] planes = new Plane[6];
+//      // left
+//      final Vector3d leftNormal = new Vector3d();
+//      leftNormal.x = projection.get(0, 3) + projection.get(0, 0);
+//      leftNormal.y = projection.get(1, 3) + projection.get(1, 0);
+//      leftNormal.z = projection.get(2, 3) + projection.get(2, 0);
+//      final double leftD = projection.get(3, 3) + projection.get(3, 0);
+//      
+//      // right
+//      final Vector3d rightNormal = new Vector3d();
+//      rightNormal.x = projection.get(0, 3) - projection.get(0, 0);
+//      rightNormal.y = projection.get(1, 3) - projection.get(1, 0);
+//      rightNormal.z = projection.get(2, 3) - projection.get(2, 0);
+//      final double rightD = projection.get(3, 3) - projection.get(3, 0);
+//      
+//      // bottom
+//      final Vector3d bottomNormal = new Vector3d();
+//      bottomNormal.x = projection.get(0, 3) + projection.get(0, 1);
+//      bottomNormal.y = projection.get(1, 3) + projection.get(1, 1);
+//      bottomNormal.z = projection.get(2, 3) + projection.get(2, 1);
+//      final double bottomD = projection.get(3, 3) + projection.get(3, 1);
+//      
+//      // top
+//      final Vector3d topNormal = new Vector3d();
+//      topNormal.x = projection.get(0, 3) - projection.get(0, 1);
+//      topNormal.y = projection.get(1, 3) - projection.get(1, 1);
+//      topNormal.z = projection.get(2, 3) - projection.get(2, 1);
+//      final double topD = projection.get(3, 3) - projection.get(3, 1);
+//      
+//      // near
+//      final Vector3d nearNormal = new Vector3d();
+////    nearNormal.x = projection.get(0, 3) + projection.get(0, 2);
+////    nearNormal.y = projection.get(1, 3) + projection.get(1, 2);
+////    nearNormal.z = projection.get(2, 3) + projection.get(2, 2);
+//      nearNormal.x = projection.get(0, 2);
+//      nearNormal.y = projection.get(1, 2);
+//      nearNormal.z = projection.get(2, 2);
+//      final double nearD = projection.get(3, 2);
+//      
+//      // far
+//      final Vector3d farNormal = new Vector3d();
+//      farNormal.x = projection.get(0, 3) - projection.get(0, 2);
+//      farNormal.y = projection.get(1, 3) - projection.get(1, 2);
+//      farNormal.z = projection.get(2, 3) - projection.get(2, 2);
+//      final double farD = projection.get(3, 3) - projection.get(3, 2);
+//
+//      planes[LEFT_PLANE] = new Plane(leftNormal, leftD);
+//      planes[RIGHT_PLANE] = new Plane(rightNormal, rightD);
+//      planes[BOTTOM_PLANE] = new Plane(bottomNormal, bottomD);
+//      planes[TOP_PLANE] = new Plane(topNormal, topD);
+//      planes[NEAR_PLANE] = new Plane(nearNormal, nearD);
+//      planes[FAR_PLANE] = new Plane(farNormal, farD);
+//      
+//      // normalize
+//      for(int i = 0; i < 6; i++) {
+//         final Vector3d normal = planes[i].getNormal();
+//         final double length = normal.length();
+//         normal.x /= length;
+//         normal.y /= length;
+//         normal.z /= length;
+//         // d also has to be divided by the length of the normal
+//         planes[i] = new Plane(normal, planes[i].getDistance() / length);
+//      }
+//      
+//      return planes;
+//   }
    
    /**
     * Computes the ModelView matrix; reference: https://www.opengl.org/wiki/GluLookAt_code.

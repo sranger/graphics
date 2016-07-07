@@ -63,6 +63,19 @@ public class BoundingBox extends BoundingVolume {
       return inX && inY && inZ;
    }
    
+   public Tuple3d[] getCorners() {
+      final Tuple3d lll = new Tuple3d(this.min);
+      final Tuple3d llh = new Tuple3d(this.min.x, this.min.y, this.max.z);
+      final Tuple3d lhl = new Tuple3d(this.min.x, this.max.y, this.min.z);
+      final Tuple3d lhh = new Tuple3d(this.min.x, this.max.y, this.max.z);
+      final Tuple3d hll = new Tuple3d(this.max.x, this.min.y, this.min.z);
+      final Tuple3d hlh = new Tuple3d(this.max.x, this.min.y, this.max.z);
+      final Tuple3d hhl = new Tuple3d(this.max.x, this.max.y, this.min.z);
+      final Tuple3d hhh = new Tuple3d(this.max);
+      
+      return new Tuple3d[] { lll, llh, lhl, lhh, hll, hlh, hhl, hhh };
+   }
+   
    public Tuple3d getMin() {
       return new Tuple3d(min);
    }
