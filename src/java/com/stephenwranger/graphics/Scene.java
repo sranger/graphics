@@ -54,6 +54,8 @@ public class Scene extends GLCanvas implements GLEventListener {
    private boolean                      enableFollowTarget                          = false;
    private Renderable                   followTarget                                = null;
    private Plane[]                      frustumPlanes                               = null;
+   private final Tuple3d                origin                                      = new Tuple3d(0,0,0);
+   private boolean                      originEnabled                               = false;
 
    public Scene(final Dimension preferredSize) {
       this(preferredSize, 60);
@@ -73,6 +75,14 @@ public class Scene extends GLCanvas implements GLEventListener {
       this.lookAt.set(lookAt);
       this.up.set(up);
       this.cameraPosition.set(cameraPosition);
+   }
+   
+   public synchronized void setOriginEnabled(final boolean isOriginEnabled) {
+      this.originEnabled = isOriginEnabled;
+   }
+   
+   public synchronized boolean isOriginEnabled() {
+      return this.originEnabled;
    }
 
    public synchronized void setFov(final double fov) {
@@ -178,6 +188,12 @@ public class Scene extends GLCanvas implements GLEventListener {
          }
       } else {
          this.updateStep = true;
+      }
+      
+      if(this.originEnabled && this.origin.distance(this.lookAt) > 1e6) {
+         this.origin.set(this.lookAt);             // update to lookAt
+         
+//         System.out.println("origin: " + this.origin);
       }
 
       this.reshape(glDrawable, this.viewport[0], this.viewport[1], this.viewport[2], this.viewport[3]);
@@ -375,7 +391,7 @@ public class Scene extends GLCanvas implements GLEventListener {
 //      gl.glMatrixMode(GL2.GL_MODELVIEW);
 //      gl.glLoadMatrixd(this.modelview, 0);
       
-      final double[] mv = CameraUtils.gluLookAt(gl, cameraPosition, lookAt, up);
+      final double[] mv = CameraUtils.gluLookAt(gl, TupleMath.sub(this.cameraPosition, this.origin), TupleMath.sub(this.lookAt, this.origin), up);
       System.arraycopy(mv, 0, this.modelview, 0, 16);
    }
 
@@ -416,6 +432,10 @@ public class Scene extends GLCanvas implements GLEventListener {
       right.normalize();
       
       return right;
+   }
+   
+   public synchronized Tuple3d getOrigin() {
+      return new Tuple3d(this.origin);
    }
 
    public double getFOV() {

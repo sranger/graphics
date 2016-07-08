@@ -32,9 +32,9 @@ public class Vertex {
       }
    }
    
-   public void vertexIntoBuffer(final ByteBuffer buffer) {
+   public void vertexIntoBuffer(final Tuple3d origin, final ByteBuffer buffer) {
       if(vertex != null)
-         buffer.putFloat((float) vertex.x).putFloat((float) vertex.y).putFloat((float) vertex.z);
+         buffer.putFloat((float) (vertex.x - origin.x)).putFloat((float) (vertex.y - origin.y)).putFloat((float) (vertex.z - origin.z));
       
       if(normal != null)
          buffer.putFloat((float) normal.x).putFloat((float) normal.y).putFloat((float) normal.z);
