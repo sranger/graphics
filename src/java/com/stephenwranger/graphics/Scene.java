@@ -240,6 +240,8 @@ public class Scene extends GLCanvas implements GLEventListener {
 //         mv.get(this.modelview);
 //      }
       
+//      System.out.println("near/far: " + ((int)(this.near * 100.0) / 100.0) + ", " + ((int)(this.far * 100.0) / 100.0));
+      
       for(final PreRenderable renderable : this.preRenderables) {
          renderable.preRender(gl, glu, glDrawable, this);
       }

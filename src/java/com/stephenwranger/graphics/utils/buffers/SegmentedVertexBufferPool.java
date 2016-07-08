@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.jogamp.opengl.GL2;
-import com.stephenwranger.graphics.utils.Timings;
 
 /**
  * This class handles a set of {@link VertexBufferObject} such that each is split into a number of segments up to the 
@@ -78,8 +77,35 @@ public class SegmentedVertexBufferPool {
       
       final SegmentedVertexBufferObject buffer = new SegmentedVertexBufferObject(poolIndex, this.segmentsPerBuffer, this.glPrimitiveType, this.usage, this.bufferRegions);
       buffers.add(buffer);
-      System.out.println("buffer added: " + poolIndex + ", " + buffers.size());
+//      System.out.println("buffer added: " + poolIndex + ", " + buffers.size());
+//      for(int i = 0; i < buffers.size(); i++) {
+//         final SegmentedVertexBufferObject vbo = buffers.get(i);
+//         System.out.println("\tbuffer " + i + ": " + vbo.getSegmentCount() + " (" + vbo.getSegmentUsagePercentage() + "), " + vbo.getPointCount() + " (" + vbo.getPointUsagePercentage() + ")");
+//      }
       return buffer;
+   }
+   
+   private void clearEmptyBuffers(final GL2 gl) {
+      for(final int poolIndex : this.buffers.keySet()) {
+         final List<SegmentedVertexBufferObject> pool = this.buffers.get(poolIndex);
+         
+         if(pool != null) {
+            final List<SegmentedVertexBufferObject> toRemove = new ArrayList<>();
+            
+            for(int i = pool.size(); i >= 0; i--) {
+               final SegmentedVertexBufferObject buffer = pool.get(i);
+               
+               if(buffer.isEmpty()) {
+                  toRemove.add(buffer);
+               } else {
+                  // stop when we reach the first non-empty buffer as we can only remove off the far end
+                  break;
+               }
+            }
+            
+            pool.removeAll(toRemove);
+         }
+      }
    }
    
    public void clearSegmentObject(final GL2 gl, final SegmentObject segment) {
@@ -91,42 +117,36 @@ public class SegmentedVertexBufferPool {
             final SegmentedVertexBufferObject buffer = this.getBuffer(poolIndex, bufferIndex);
             final int segmentBufferIndex = (int) Math.floor(bufferIndex / this.segmentsPerBuffer);
             buffer.clearIndex(segmentBufferIndex);
+            
+            this.clearEmptyBuffers(gl);
          }
       }
    }
    
-   private final Timings timings = new Timings(100);
-   
    public void setSegmentObject(final GL2 gl, final SegmentObject segment) {
       if(segment != null) {
-         timings.start("init");
          int poolIndex = segment.getSegmentPoolIndex();
          int bufferIndex = segment.getBufferIndex();
-         timings.end("init");
          
          if(poolIndex == -1 && bufferIndex == -1) {
-            timings.start("new pool location");
             final int vertexCount = segment.getVertexCount();
-            int maxPoolIndex = -1;
+            int maxPoolIndex = Integer.MAX_VALUE;
             
             for(final int key : this.buffers.keySet()) {
-               if(vertexCount <= key && key > maxPoolIndex) {
+               if(vertexCount <= key && key < maxPoolIndex) {
                   maxPoolIndex = key;
                }
             }
             
-            if(maxPoolIndex != -1) {
+            if(maxPoolIndex != Integer.MAX_VALUE) {
                poolIndex = maxPoolIndex;
                bufferIndex = this.getNextAvailableBufferIndex(maxPoolIndex);
                segment.setSegmentLocation(poolIndex, bufferIndex);
             }
-            timings.end("new pool location");
          }
 
-         timings.start("set buffer");
          final SegmentedVertexBufferObject buffer = this.getBuffer(poolIndex, bufferIndex);
          buffer.setSegmentObject(gl, segment);
-         timings.end("set buffer");
       }
    }
    
