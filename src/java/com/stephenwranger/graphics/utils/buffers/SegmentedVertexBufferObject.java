@@ -44,7 +44,7 @@ public class SegmentedVertexBufferObject extends VertexBufferObject {
          timings.end("map");
 
          timings.start("position");
-         buffer.position(this.maxSegmentSize * bufferIndex);
+         buffer.position(this.maxSegmentSize * bufferIndex * 32);
          timings.end("position");
          
          timings.start("load");

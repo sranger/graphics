@@ -1,6 +1,7 @@
 package com.stephenwranger.graphics.bounds;
 
 import com.stephenwranger.graphics.math.Tuple3d;
+import com.stephenwranger.graphics.utils.TupleMath;
 
 public class BoundingSphere extends BoundingVolume {
    private final Tuple3d center;
@@ -36,4 +37,8 @@ public class BoundingSphere extends BoundingVolume {
       return radius * 2.0;
    }
 
+   @Override
+   public BoundingVolume offset(final Tuple3d offset) {
+      return new BoundingSphere(TupleMath.sub(this.center, offset), this.radius);
+   }
 }

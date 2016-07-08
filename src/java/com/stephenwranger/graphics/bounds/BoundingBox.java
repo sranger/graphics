@@ -150,4 +150,9 @@ public class BoundingBox extends BoundingVolume {
          return false;
       return true;
    }
+
+   @Override
+   public BoundingVolume offset(final Tuple3d offset) {
+      return new BoundingBox(TupleMath.sub(this.min, offset), TupleMath.sub(this.max, offset));
+   }
 }

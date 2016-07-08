@@ -36,4 +36,6 @@ public abstract class BoundingVolume {
    public abstract double getRadius();
    
    public abstract double getSpannedDistance(final Tuple3d directionVector);
+   
+   public abstract BoundingVolume offset(final Tuple3d offset);
 }
