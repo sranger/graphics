@@ -2,6 +2,8 @@ package com.stephenwranger.graphics.utils.buffers;
 
 import java.nio.ByteBuffer;
 
+import com.stephenwranger.graphics.math.Tuple3d;
+
 public interface SegmentObject {
    /**
     * Will store the segmented buffer pool key as the pool index and the buffer index where it has
@@ -32,7 +34,7 @@ public interface SegmentObject {
     * 
     * @return
     */
-   public void loadBuffer(final ByteBuffer buffer);
+   public void loadBuffer(final Tuple3d origin, final ByteBuffer buffer);
    
    /**
     * Returns the number of vertices stored in this object's buffer.

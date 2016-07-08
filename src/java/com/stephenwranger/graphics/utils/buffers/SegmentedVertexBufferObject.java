@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 import com.jogamp.opengl.GL2;
+import com.stephenwranger.graphics.math.Tuple3d;
 import com.stephenwranger.graphics.utils.MathUtils;
 import com.stephenwranger.graphics.utils.Timings;
 
@@ -34,7 +35,7 @@ public class SegmentedVertexBufferObject extends VertexBufferObject {
       this.vertexCounts = new HashMap<Integer, Integer>();
    }
    
-   public void setSegmentObject(final GL2 gl, final SegmentObject segment) {
+   public void setSegmentObject(final GL2 gl, final Tuple3d origin, final SegmentObject segment) {
       final int bufferIndex = segment.getBufferIndex() % this.segmentsPerBuffer;
       
       if(bufferIndex > -1) {
@@ -47,7 +48,7 @@ public class SegmentedVertexBufferObject extends VertexBufferObject {
          timings.end("position");
          
          timings.start("load");
-         segment.loadBuffer(buffer);
+         segment.loadBuffer(origin, buffer);
          timings.end("load");
 
          timings.start("counts");

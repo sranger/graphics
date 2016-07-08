@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.jogamp.opengl.GL2;
+import com.stephenwranger.graphics.math.Tuple3d;
 
 /**
  * This class handles a set of {@link VertexBufferObject} such that each is split into a number of segments up to the 
@@ -92,7 +93,8 @@ public class SegmentedVertexBufferPool {
          if(pool != null) {
             final List<SegmentedVertexBufferObject> toRemove = new ArrayList<>();
             
-            for(int i = pool.size(); i >= 0; i--) {
+            // make sure we don't delete the last buffer so stop at i == 1
+            for(int i = pool.size(); i >= 1; i--) {
                final SegmentedVertexBufferObject buffer = pool.get(i);
                
                if(buffer.isEmpty()) {
@@ -123,7 +125,7 @@ public class SegmentedVertexBufferPool {
       }
    }
    
-   public void setSegmentObject(final GL2 gl, final SegmentObject segment) {
+   public void setSegmentObject(final GL2 gl, final Tuple3d origin, final SegmentObject segment) {
       if(segment != null) {
          int poolIndex = segment.getSegmentPoolIndex();
          int bufferIndex = segment.getBufferIndex();
@@ -146,7 +148,7 @@ public class SegmentedVertexBufferPool {
          }
 
          final SegmentedVertexBufferObject buffer = this.getBuffer(poolIndex, bufferIndex);
-         buffer.setSegmentObject(gl, segment);
+         buffer.setSegmentObject(gl, origin, segment);
       }
    }
    
@@ -155,6 +157,8 @@ public class SegmentedVertexBufferPool {
       // the index of the vertex buffer in the pool
       final int segmentBufferIndex = (int) Math.floor(bufferIndex / this.segmentsPerBuffer);
       
+//      System.out.println("\npool: " + poolIndex + ", buffer index: " + bufferIndex + ", " + segmentBufferIndex + " of " + (buffers == null ? null : buffers.size()));
+//      System.out.println("segment count: " + (buffers == null ? -1 : buffers.get(segmentBufferIndex).getSegmentCount()));
       return buffers.get(segmentBufferIndex);
    }
    

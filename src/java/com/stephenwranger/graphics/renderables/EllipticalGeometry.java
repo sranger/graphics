@@ -39,6 +39,7 @@ public class EllipticalGeometry extends Renderable {
    private final VertexBufferObject vbo;
    private Texture2d          texture             = null;
    private Color4f            color               = Color4f.white();
+   private final Tuple3d      origin              = new Tuple3d(0,0,0);
    
    public EllipticalGeometry(final GL2 gl, final double boundedRadius, final int subdivisions, final BiConsumerSupplier<Double, Double, Double> altitudeSupplier) {
       super(new Tuple3d(), new Quat4d());
@@ -101,10 +102,14 @@ public class EllipticalGeometry extends Renderable {
       
       this.vbo = new VertexBufferObject(this.vertices.size(), true, GL2.GL_TRIANGLES, GL2.GL_STATIC_DRAW, new BufferRegion[] { new VertexRegion(3, DataType.FLOAT), new NormalRegion(DataType.FLOAT),
             new TextureRegion(2, DataType.FLOAT) });
+      this.loadVertices(gl);
+   }
+   
+   private void loadVertices(final GL2 gl) {
       final ByteBuffer buffer = this.vbo.mapBuffer(gl);
       
       for (final Vertex vert : this.vertices) {
-         vert.vertexIntoBuffer(buffer);
+         vert.vertexIntoBuffer(this.origin, buffer);
       }
       
       buffer.rewind();
@@ -213,10 +218,17 @@ public class EllipticalGeometry extends Renderable {
          this.texture.enable(gl);
       }
       
+//      final Tuple3d origin = scene.getOrigin();
+//      
+//      if(this.origin.distance(origin) > 1) {
+//         this.origin.set(origin);
+//         this.loadVertices(gl);
+//      }
+      
       final float[] axis = new float[3];
       final float angle = this.rotation.toAngleAxis(axis);
-      
-      gl.glTranslatef((float) this.position.x, (float) this.position.y, (float) this.position.z);
+
+      gl.glTranslatef((float) (this.position.x - origin.x), (float) (this.position.y - origin.y), (float) (this.position.z - origin.z));
       gl.glRotatef((float) Math.toDegrees(angle), axis[0], axis[1], axis[2]);
       
       this.vbo.render(gl);
