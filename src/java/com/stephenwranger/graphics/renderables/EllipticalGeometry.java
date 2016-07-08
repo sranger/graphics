@@ -99,7 +99,7 @@ public class EllipticalGeometry extends Renderable {
       
       correctSeam(this.vertices, true);
       
-      this.vbo = new VertexBufferObject(this.vertices.size(), true, GL2.GL_TRIANGLES, new BufferRegion[] { new VertexRegion(3, DataType.FLOAT), new NormalRegion(DataType.FLOAT),
+      this.vbo = new VertexBufferObject(this.vertices.size(), true, GL2.GL_TRIANGLES, GL2.GL_STATIC_DRAW, new BufferRegion[] { new VertexRegion(3, DataType.FLOAT), new NormalRegion(DataType.FLOAT),
             new TextureRegion(2, DataType.FLOAT) });
       final ByteBuffer buffer = this.vbo.mapBuffer(gl);
       

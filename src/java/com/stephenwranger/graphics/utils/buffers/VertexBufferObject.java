@@ -11,12 +11,13 @@ public class VertexBufferObject {
    private int bytesPerVertex;
    private final boolean interleaved;
    protected final int glPrimitiveType;
+   protected final int usage;
    protected final BufferRegion[] regions;
    protected int vboId = -1;
    
    private ByteBuffer buffer;
 
-   public VertexBufferObject(final int vertexCount, final boolean interleaved, final int glType, final BufferRegion... regions) {
+   public VertexBufferObject(final int vertexCount, final boolean interleaved, final int glType, final int usage, final BufferRegion... regions) {
       if (regions == null || regions.length == 0) {
          throw new NullPointerException("Regions cannot be null or of zero length.");
       }
@@ -28,6 +29,7 @@ public class VertexBufferObject {
       this.vertexCount = vertexCount;
       this.interleaved = interleaved;
       this.glPrimitiveType = glType;
+      this.usage = usage;
       this.regions = regions.clone();
 
       bytesPerVertex = 0;
@@ -95,7 +97,7 @@ public class VertexBufferObject {
       gl.glBindBuffer(GL2.GL_ARRAY_BUFFER, vboId);
       
       // Load The Data
-      gl.glBufferData(GL2.GL_ARRAY_BUFFER, vertexCount * bytesPerVertex, null, GL2.GL_STATIC_DRAW);
+      gl.glBufferData(GL2.GL_ARRAY_BUFFER, vertexCount * bytesPerVertex, null, this.usage);
       
       // unmap current buffer after initialization
       gl.glUnmapBuffer(GL2.GL_ARRAY_BUFFER);

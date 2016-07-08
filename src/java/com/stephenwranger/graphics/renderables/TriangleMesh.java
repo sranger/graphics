@@ -56,7 +56,7 @@ public class TriangleMesh extends Renderable {
    @Override
    public void render(final GL2 gl, final GLU glu, final GLAutoDrawable glDrawable, final Scene scene) {
       if(this.vbo == null) {
-         this.vbo = new VertexBufferObject(triangles.length * 3, true, GL2.GL_TRIANGLES, new VertexRegion(3, DataType.FLOAT), new NormalRegion(DataType.FLOAT), new ColorRegion(4, DataType.FLOAT));
+         this.vbo = new VertexBufferObject(triangles.length * 3, true, GL2.GL_TRIANGLES, GL2.GL_STATIC_DRAW, new VertexRegion(3, DataType.FLOAT), new NormalRegion(DataType.FLOAT), new ColorRegion(4, DataType.FLOAT));
          final FloatBuffer buffer = this.vbo.mapBuffer(gl).asFloatBuffer();
          
          for(final Triangle3d triangle : this.triangles) {

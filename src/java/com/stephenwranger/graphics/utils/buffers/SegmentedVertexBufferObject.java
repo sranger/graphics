@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 import com.jogamp.opengl.GL2;
+import com.stephenwranger.graphics.utils.Timings;
 
 /**
  * This buffer splits itself into a number of segments and keeps track of which segments are currently in use.
@@ -21,9 +22,10 @@ public class SegmentedVertexBufferObject extends VertexBufferObject {
    private final Map<Integer, Integer> vertexCounts;
    private final int maxSegmentSize;
    private final int segmentsPerBuffer;
+   private final Timings timings = new Timings(100);
    
-   public SegmentedVertexBufferObject(final int maxSegmentSize, final int segmentsPerBuffer, final int glPrimitiveType, final BufferRegion...bufferRegions) {
-      super(maxSegmentSize * segmentsPerBuffer, true, glPrimitiveType, bufferRegions);
+   public SegmentedVertexBufferObject(final int maxSegmentSize, final int segmentsPerBuffer, final int glPrimitiveType, final int usage, final BufferRegion...bufferRegions) {
+      super(maxSegmentSize * segmentsPerBuffer, true, glPrimitiveType, usage, bufferRegions);
       
       this.maxSegmentSize = maxSegmentSize;
       this.segmentsPerBuffer = segmentsPerBuffer;
@@ -35,12 +37,28 @@ public class SegmentedVertexBufferObject extends VertexBufferObject {
       final int bufferIndex = segment.getBufferIndex() % this.segmentsPerBuffer;
       
       if(bufferIndex > -1) {
+         timings.start("map");
          final ByteBuffer buffer = this.mapBuffer(gl);
+         timings.end("map");
+
+         timings.start("position");
          buffer.position(this.maxSegmentSize * bufferIndex);
+         timings.end("position");
+         
+         timings.start("load");
          segment.loadBuffer(buffer);
+         timings.end("load");
+
+         timings.start("counts");
          this.vertexCounts.put(bufferIndex, segment.getVertexCount());
+         timings.end("counts");
+
+         timings.start("unmap");
          this.unmapBuffer(gl);
+         timings.end("unmap");
       }
+      
+//      System.out.println("\n" + timings);
    }
    
    /**
