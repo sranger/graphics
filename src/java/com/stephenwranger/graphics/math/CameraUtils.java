@@ -1,14 +1,5 @@
 package com.stephenwranger.graphics.math;
 
-import java.awt.Color;
-import java.awt.image.BufferedImage;
-import java.util.Arrays;
-
-import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.SwingUtilities;
-
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.glu.GLU;
 import com.stephenwranger.graphics.Scene;
@@ -48,56 +39,54 @@ public class CameraUtils {
       final int[] viewport = scene.getViewport();
       final double[] winPos = new double[3];
       
-      if(GLU_CONTEXT.gluProject(worldXyz.x, worldXyz.y, worldXyz.z, modelview, 0, projection, 0, viewport, 0, winPos, 0)) {
-         return new Tuple3d(winPos);
-      } else {
-         System.out.println("mv: " + Arrays.toString(modelview));
-         System.out.println("proj: " + Arrays.toString(projection));
-         System.out.println("viewport: " + Arrays.toString(viewport));
-         return null;
-      }
-
-//      // Transformation vectors
-//      double[] fTempo = new double[8];
-//      // Modelview transform
-//      fTempo[0] = modelview[0] * worldXyz.x + modelview[4] * worldXyz.y + modelview[8] * worldXyz.z + modelview[12]; // w is always 1
-//      fTempo[1] = modelview[1] * worldXyz.x + modelview[5] * worldXyz.y + modelview[9] * worldXyz.z + modelview[13];
-//      fTempo[2] = modelview[2] * worldXyz.x + modelview[6] * worldXyz.y + modelview[10] * worldXyz.z + modelview[14];
-//      fTempo[3] = modelview[3] * worldXyz.x + modelview[7] * worldXyz.y + modelview[11] * worldXyz.z + modelview[15];
-//      // Projection transform, the final row of projection matrix is always [0 0 -1 0]
-//      // so we optimize for that.
-//      fTempo[4] = projection[0] * fTempo[0] + projection[4] * fTempo[1] + projection[8] * fTempo[2]
-//            + projection[12] * fTempo[3];
-//      fTempo[5] = projection[1] * fTempo[0] + projection[5] * fTempo[1] + projection[9] * fTempo[2]
-//            + projection[13] * fTempo[3];
-//      fTempo[6] = projection[2] * fTempo[0] + projection[6] * fTempo[1] + projection[10] * fTempo[2]
-//            + projection[14] * fTempo[3];
-//      fTempo[7] = -fTempo[2];
-//      // The result normalizes between -1 and 1
-//      if (fTempo[7] == 0.0) // The w value
+//      if(GLU_CONTEXT.gluProject(worldXyz.x, worldXyz.y, worldXyz.z, modelview, 0, projection, 0, viewport, 0, winPos, 0)) {
+//         return new Tuple3d(winPos);
+//      } else {
 //         return null;
-//      fTempo[7] = 1.0 / fTempo[7];
-//      // Perspective division
-//      fTempo[4] *= fTempo[7];
-//      fTempo[5] *= fTempo[7];
-//      fTempo[6] *= fTempo[7];
-//      // Window coordinates
-//      // Map x, y to range 0-1
-//      final double windowX = (fTempo[4] * 0.5 + 0.5) * viewport[2] + viewport[0];
-//      final double windowY = (fTempo[5] * 0.5 + 0.5) * viewport[3] + viewport[1];
-//      // This is only correct when glDepthRange(0.0, 1.0)
-//      final double windowZ = (1.0 + fTempo[6]) * 0.5; // Between 0 and 1
-//      return new Tuple3d(windowX, windowY, windowZ);
+//      }
+
+      // Transformation vectors
+      double[] fTempo = new double[8];
+      // Modelview transform
+      fTempo[0] = modelview[0] * worldXyz.x + modelview[4] * worldXyz.y + modelview[8] * worldXyz.z + modelview[12]; // w is always 1
+      fTempo[1] = modelview[1] * worldXyz.x + modelview[5] * worldXyz.y + modelview[9] * worldXyz.z + modelview[13];
+      fTempo[2] = modelview[2] * worldXyz.x + modelview[6] * worldXyz.y + modelview[10] * worldXyz.z + modelview[14];
+      fTempo[3] = modelview[3] * worldXyz.x + modelview[7] * worldXyz.y + modelview[11] * worldXyz.z + modelview[15];
+      // Projection transform, the final row of projection matrix is always [0 0 -1 0]
+      // so we optimize for that.
+      fTempo[4] = projection[0] * fTempo[0] + projection[4] * fTempo[1] + projection[8] * fTempo[2]
+            + projection[12] * fTempo[3];
+      fTempo[5] = projection[1] * fTempo[0] + projection[5] * fTempo[1] + projection[9] * fTempo[2]
+            + projection[13] * fTempo[3];
+      fTempo[6] = projection[2] * fTempo[0] + projection[6] * fTempo[1] + projection[10] * fTempo[2]
+            + projection[14] * fTempo[3];
+      fTempo[7] = -fTempo[2];
+      // The result normalizes between -1 and 1
+      if (fTempo[7] == 0.0) // The w value
+         return null;
+      fTempo[7] = 1.0 / fTempo[7];
+      // Perspective division
+      fTempo[4] *= fTempo[7];
+      fTempo[5] *= fTempo[7];
+      fTempo[6] *= fTempo[7];
+      // Window coordinates
+      // Map x, y to range 0-1
+      final double windowX = (fTempo[4] * 0.5 + 0.5) * viewport[2] + viewport[0];
+      final double windowY = (fTempo[5] * 0.5 + 0.5) * viewport[3] + viewport[1];
+      // This is only correct when glDepthRange(0.0, 1.0)
+      final double windowZ = (1.0 + fTempo[6]) * 0.5; // Between 0 and 1
+      return new Tuple3d(windowX, windowY, windowZ);
    }
    
-   private static final JFrame errorFrame = new JFrame("Error Image");
-   private static final JLabel label = new JLabel();
-   private static boolean isVisible = false;
+//   private static final JFrame errorFrame = new JFrame("Error Image");
+//   private static final JLabel label = new JLabel();
+//   private static boolean isVisible = false;
+//   
+//   static {
+//      errorFrame.setLocation(3940, 100);
+//      errorFrame.getContentPane().add(label);
+//   }
    
-   static {
-      errorFrame.setLocation(3940, 100);
-      errorFrame.getContentPane().add(label);
-   }
    /**
     * http://www.opengl.org/sdk/docs/man2/xhtml/gluUnProject.xml
     * 
@@ -120,35 +109,35 @@ public class CameraUtils {
       if(GLU_CONTEXT.gluUnProject(screenXyz.x, screenXyz.y, scaledDistance, modelview, 0, projection, 0, viewport, 0, worldPos, 0)) {
          return new Tuple3d(worldPos);
       } else {
-         System.err.println("cannot unproject: " + screenXyz);
-         System.err.println("mv: " + Arrays.toString(modelview));
-         System.err.println("p: " + Arrays.toString(projection));
-         
-         Matrix4d.invert(modelview);
-         Matrix4d.invert(projection);
-         
-         System.err.println("inv mv: " + Arrays.toString(modelview));
-         System.err.println("inv proj: " + Arrays.toString(projection));
-
-         
-         if(!isVisible) {
-            isVisible = true;
-            final BufferedImage image = new BufferedImage(scene.getWidth(), scene.getHeight(), BufferedImage.TYPE_INT_ARGB);
-            
-            for(int x = 0; x < scene.getWidth(); x++) {
-               for(int y = 0; y < scene.getHeight(); y++) {
-                  final boolean valid = GLU_CONTEXT.gluUnProject(x, y, 0.5, modelview, 0, projection, 0, viewport, 0, worldPos, 0);
-                  final Color color = (valid) ? Color.white : Color.red;
-                  image.setRGB(x, y, color.getRGB());
-               }
-            }
-            
-            label.setIcon(new ImageIcon(image));
-            SwingUtilities.invokeLater(() -> {
-               errorFrame.pack();
-               errorFrame.setVisible(true);
-            });
-         }
+//         System.err.println("cannot unproject: " + screenXyz);
+//         System.err.println("mv: " + Arrays.toString(modelview));
+//         System.err.println("p: " + Arrays.toString(projection));
+//         
+//         Matrix4d.invert(modelview);
+//         Matrix4d.invert(projection);
+//         
+//         System.err.println("inv mv: " + Arrays.toString(modelview));
+//         System.err.println("inv proj: " + Arrays.toString(projection));
+//
+//         
+//         if(!isVisible) {
+//            isVisible = true;
+//            final BufferedImage image = new BufferedImage(scene.getWidth(), scene.getHeight(), BufferedImage.TYPE_INT_ARGB);
+//            
+//            for(int x = 0; x < scene.getWidth(); x++) {
+//               for(int y = 0; y < scene.getHeight(); y++) {
+//                  final boolean valid = GLU_CONTEXT.gluUnProject(x, y, 0.5, modelview, 0, projection, 0, viewport, 0, worldPos, 0);
+//                  final Color color = (valid) ? Color.white : Color.red;
+//                  image.setRGB(x, y, color.getRGB());
+//               }
+//            }
+//            
+//            label.setIcon(new ImageIcon(image));
+//            SwingUtilities.invokeLater(() -> {
+//               errorFrame.pack();
+//               errorFrame.setVisible(true);
+//            });
+//         }
          
          return null;
       }
@@ -156,26 +145,25 @@ public class CameraUtils {
       
       
 //      // Transformation matrices
-//      double[] m = null;
-//      double[] A = new double[16];
 //      double[] in = new double[4];
 //      // Calculation for inverting a matrix, compute projection x modelview
 //      // and store in A[16]
 //      final Matrix4d proj = new Matrix4d(projection);
 //      final Matrix4d mv = new Matrix4d(modelview);
 //      proj.multiply(mv);
-//      proj.get(A);
 //      // Now compute the inverse of matrix A
-//      if ((m = Matrix4d.invert(A)) == null) {
+//      if (Matrix4d.isSingular(proj)) {
 //         return null;
 //      }
+//      
 //      // Transformation of normalized coordinates between -1 and 1
 //      in[0] = (screenXyz.x - (float) viewport[0]) / (float) viewport[2] * 2.0 - 1.0;
 //      in[1] = (screenXyz.y - (float) viewport[1]) / (float) viewport[3] * 2.0 - 1.0;
 //      in[2] = 2.0 * screenXyz.z - 1.0;
 //      in[3] = 1.0;
 //      // Objects coordinates
-//      final Matrix4d matrix = new Matrix4d(m);
+//      final Matrix4d matrix = new Matrix4d(proj);
+//      matrix.invert();
 //      final double[] out = matrix.multiply(in);
 //      if (out[3] == 0.0)
 //         return null;

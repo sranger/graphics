@@ -26,6 +26,10 @@ public class Matrix4d {
       m[15] = 1.0;
    }
    
+   public Matrix4d(final Matrix4d toCopy) {
+      System.arraycopy(toCopy.m, 0, this.m, 0, 16);
+   }
+   
    /**
     * Creates a column major Matrix with the defined columns.
     * 
@@ -199,6 +203,10 @@ public class Matrix4d {
       return this;
    }
    
+   public void invert() {
+      Matrix4d.invert(this);
+   }
+   
    public static void invert(final double[] in) {
       final Matrix4d inMatrix = new Matrix4d(in);
       Matrix4d.invert(inMatrix);
@@ -206,15 +214,37 @@ public class Matrix4d {
       System.arraycopy(inMatrix.m, 0, in, 0, 16);
    }
    
-   public static void invert(final Matrix4d in, final Matrix4d out) {
-      out.set(in);
-      Matrix4d.invert(out);
+   public static Matrix4d invert(final Matrix4d in, final Matrix4d out) {
+      final Matrix4d outMatrix = (out == null) ? new Matrix4d() : out;
+      outMatrix.set(in);
+      Matrix4d.invert(outMatrix);
+      
+      return outMatrix;
+   }
+
+   public static boolean isSingular(final Matrix4d in) {
+      return Matrix4d.isSingular(in.m);
+   }
+
+   public static boolean isSingular(final double[] in) {
+      final double[] inv = new double[16];
+
+      inv[0] =   in[5]*in[10]*in[15]   - in[5]*in[11]*in[14]   - in[9]*in[6]*in[15]
+               + in[9]*in[7]*in[14]    + in[13]*in[6]*in[11]   - in[13]*in[7]*in[10];
+      inv[4] =  -in[4]*in[10]*in[15]   + in[4]*in[11]*in[14]   + in[8]*in[6]*in[15]
+               - in[8]*in[7]*in[14]    - in[12]*in[6]*in[11]   + in[12]*in[7]*in[10];
+      inv[8] =   in[4]*in[9]*in[15]    - in[4]*in[11]*in[13]   - in[8]*in[5]*in[15]
+               + in[8]*in[7]*in[13]    + in[12]*in[5]*in[11]   - in[12]*in[7]*in[9];
+      inv[12] = -in[4]*in[9]*in[14]    + in[4]*in[10]*in[13]   + in[8]*in[5]*in[14]
+               - in[8]*in[6]*in[13]    - in[12]*in[5]*in[10]   + in[12]*in[6]*in[9];
+      
+      final double det = in[0]*inv[0] + in[1]*inv[4] + in[2]*inv[8] + in[3]*inv[12];
+      
+      return IntersectionUtils.isZero(det);
    }
    
    public static void invert(final Matrix4d in) {
       double[] inv = new double[16];
-      double det;
-      int i;
 
       inv[0] =   in.m[5]*in.m[10]*in.m[15]   - in.m[5]*in.m[11]*in.m[14]   - in.m[9]*in.m[6]*in.m[15]
                + in.m[9]*in.m[7]*in.m[14]    + in.m[13]*in.m[6]*in.m[11]   - in.m[13]*in.m[7]*in.m[10];
@@ -249,16 +279,16 @@ public class Matrix4d {
       inv[15] =  in.m[0]*in.m[5]*in.m[10]    - in.m[0]*in.m[6]*in.m[9]     - in.m[4]*in.m[1]*in.m[10]
                + in.m[4]*in.m[2]*in.m[9]     + in.m[8]*in.m[1]*in.m[6]     - in.m[8]*in.m[2]*in.m[5];
       
-      det = in.m[0]*inv[0] + in.m[1]*inv[4] + in.m[2]*inv[8] + in.m[3]*inv[12];
+      double det = in.m[0]*inv[0] + in.m[1]*inv[4] + in.m[2]*inv[8] + in.m[3]*inv[12];
+      
       if (IntersectionUtils.isZero(det)) {
          throw new RuntimeException("Matrix is singular; it cannot be inverted.");
       }
 
       det = 1.0 / det;
 
-      final double[] out = new double[16];
-      for (i = 0; i < 16; i++) {
-          out[i] = inv[i] * det;
+      for (int i = 0; i < 16; i++) {
+          in.m[i] = inv[i] * det;
       }
    }
 }

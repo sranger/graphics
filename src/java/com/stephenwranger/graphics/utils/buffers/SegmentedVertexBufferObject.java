@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 import com.jogamp.opengl.GL2;
+import com.stephenwranger.graphics.utils.MathUtils;
 import com.stephenwranger.graphics.utils.Timings;
 
 /**
@@ -78,9 +79,30 @@ public class SegmentedVertexBufferObject extends VertexBufferObject {
       return -1;
    }
    
+   public boolean isEmpty() {
+      return this.usedIndices.isEmpty();
+   }
+   
+   public double getPointUsagePercentage() {
+      return MathUtils.sum(this.vertexCounts.values()) / (double) this.vertexCounts.size();
+   }
+   
+   public int getPointCount() {
+      return (int) MathUtils.sum(this.vertexCounts.values());
+   }
+   
+   public double getSegmentUsagePercentage() {
+      return this.usedIndices.size() / (double) this.segmentsPerBuffer;
+   }
+   
+   public int getSegmentCount() {
+      return this.usedIndices.size();
+   }
+   
    public void clearIndex(final int bufferIndex) {
-      this.usedIndices.remove(bufferIndex);
-      this.vertexCounts.remove(bufferIndex);
+      final int index = bufferIndex % this.segmentsPerBuffer;
+      this.usedIndices.remove(index);
+      this.vertexCounts.remove(index);
    }
    
    @Override
