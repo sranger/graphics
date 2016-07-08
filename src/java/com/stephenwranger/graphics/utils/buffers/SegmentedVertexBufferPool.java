@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.jogamp.opengl.GL2;
+import com.stephenwranger.graphics.utils.Timings;
 
 /**
  * This class handles a set of {@link VertexBufferObject} such that each is split into a number of segments up to the 
@@ -42,12 +43,14 @@ public class SegmentedVertexBufferPool {
    private final int maxSegmentSize;
    private final int segmentsPerBuffer;
    private final int glPrimitiveType;
+   private final int usage;
    private final BufferRegion[] bufferRegions;
    
-   public SegmentedVertexBufferPool(final int maxSegmentSize, final int segmentsPerBuffer, final int glPrimitiveType, final BufferRegion...bufferRegions) {
+   public SegmentedVertexBufferPool(final int maxSegmentSize, final int segmentsPerBuffer, final int glPrimitiveType, final int usage, final BufferRegion...bufferRegions) {
       this.maxSegmentSize = maxSegmentSize;
       this.segmentsPerBuffer = segmentsPerBuffer;
       this.glPrimitiveType = glPrimitiveType;
+      this.usage = usage;
       this.bufferRegions = bufferRegions.clone();
       
       // so we can divide at start of loop; if we don't, we can't get the last pool to be less than 100
@@ -73,9 +76,9 @@ public class SegmentedVertexBufferPool {
          this.buffers.put(poolIndex, buffers);
       }
       
-      final SegmentedVertexBufferObject buffer = new SegmentedVertexBufferObject(poolIndex, this.segmentsPerBuffer, this.glPrimitiveType, this.bufferRegions);
+      final SegmentedVertexBufferObject buffer = new SegmentedVertexBufferObject(poolIndex, this.segmentsPerBuffer, this.glPrimitiveType, this.usage, this.bufferRegions);
       buffers.add(buffer);
-      
+      System.out.println("buffer added: " + poolIndex + ", " + buffers.size());
       return buffer;
    }
    
@@ -92,12 +95,17 @@ public class SegmentedVertexBufferPool {
       }
    }
    
+   private final Timings timings = new Timings(100);
+   
    public void setSegmentObject(final GL2 gl, final SegmentObject segment) {
       if(segment != null) {
+         timings.start("init");
          int poolIndex = segment.getSegmentPoolIndex();
          int bufferIndex = segment.getBufferIndex();
+         timings.end("init");
          
          if(poolIndex == -1 && bufferIndex == -1) {
+            timings.start("new pool location");
             final int vertexCount = segment.getVertexCount();
             int maxPoolIndex = -1;
             
@@ -112,10 +120,13 @@ public class SegmentedVertexBufferPool {
                bufferIndex = this.getNextAvailableBufferIndex(maxPoolIndex);
                segment.setSegmentLocation(poolIndex, bufferIndex);
             }
+            timings.end("new pool location");
          }
-         
+
+         timings.start("set buffer");
          final SegmentedVertexBufferObject buffer = this.getBuffer(poolIndex, bufferIndex);
          buffer.setSegmentObject(gl, segment);
+         timings.end("set buffer");
       }
    }
    

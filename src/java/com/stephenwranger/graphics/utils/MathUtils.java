@@ -1,5 +1,6 @@
 package com.stephenwranger.graphics.utils;
 
+import java.util.Collection;
 import java.util.List;
 
 import com.stephenwranger.graphics.bounds.BoundingBox;
@@ -204,5 +205,53 @@ public class MathUtils {
     */
    public static boolean isFinite(final Tuple3d tuple) {
       return Double.isFinite(tuple.x) && Double.isFinite(tuple.y) && Double.isFinite(tuple.z);
+   }
+   
+   /**
+    * Returns the sum of all values in the given {@link Collection}.
+    * 
+    * @param values the values to sum
+    * @return the total sum of all values
+    */
+   public static double sum(final Collection<? extends Number> values) {
+      double sum = 0;
+      
+      for(final Number value : values) {
+         sum += value.doubleValue();
+      }
+      
+      return sum;
+   }
+   
+   /**
+    * Returns the minimum value in the given {@link Collection}.
+    * 
+    * @param values the values
+    * @return the minimum value or null if the collection was empty
+    */
+   public static Number getMin(final Collection<? extends Number> values) {
+      Number min = null;
+      
+      for(final Number value : values) {
+         min = (min == null) ? value : (min.doubleValue() < value.doubleValue()) ? min : value;
+      }
+      
+      return min;
+   }
+
+   /**
+    * Returns the maximum value in the given {@link Collection}.
+    * 
+    * @param values the values
+    * @return the maximum value or null if the collection was empty
+    */
+   public static Number getMax(final Collection<? extends Number> values) {
+      Number max = null;
+      
+      for(final Number value : values) {
+         max = (max == null) ? value : (max.doubleValue() > value.doubleValue()) ? max : value;
+      }
+      
+      return max;
    }
 }
