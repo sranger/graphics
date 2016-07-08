@@ -3,6 +3,7 @@ package com.stephenwranger.graphics.bounds;
 import com.stephenwranger.graphics.math.Tuple3d;
 import com.stephenwranger.graphics.math.intersection.IntersectionUtils;
 import com.stephenwranger.graphics.math.intersection.Triangle3d;
+import com.stephenwranger.graphics.utils.TupleMath;
 
 /**
  * The {@link TrianglePrismVolume} acts as an axis aligned {@link BoundingBox} except for the contains method which 
@@ -167,5 +168,22 @@ public class TrianglePrismVolume extends BoundingBox {
       }
       
       return max;
+   }
+
+   @Override
+   public BoundingVolume offset(final Tuple3d offset) {
+      final Tuple3d[] triangleTop = this.top.getCorners();
+      final Tuple3d[] top = new Tuple3d[3];
+      top[0] = TupleMath.sub(triangleTop[1], offset);
+      top[1] = TupleMath.sub(triangleTop[0], offset);
+      top[2] = TupleMath.sub(triangleTop[2], offset);
+
+      final Tuple3d[] triangleBottom = this.top.getCorners();
+      final Tuple3d[] bottom = new Tuple3d[3];
+      bottom[0] = TupleMath.sub(triangleBottom[0], offset);
+      bottom[1] = TupleMath.sub(triangleBottom[1], offset);
+      bottom[2] = TupleMath.sub(triangleBottom[2], offset);
+      
+      return new TrianglePrismVolume(top, bottom);
    }
 }

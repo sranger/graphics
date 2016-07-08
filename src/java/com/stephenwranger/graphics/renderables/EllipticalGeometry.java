@@ -218,18 +218,18 @@ public class EllipticalGeometry extends Renderable {
          this.texture.enable(gl);
       }
       
-//      final Tuple3d origin = scene.getOrigin();
-//      
-//      if(this.origin.distance(origin) > 1) {
-//         this.origin.set(origin);
-//         this.loadVertices(gl);
-//      }
+      final Tuple3d origin = scene.getOrigin();
       
-      final float[] axis = new float[3];
-      final float angle = this.rotation.toAngleAxis(axis);
-
-      gl.glTranslatef((float) (this.position.x - origin.x), (float) (this.position.y - origin.y), (float) (this.position.z - origin.z));
-      gl.glRotatef((float) Math.toDegrees(angle), axis[0], axis[1], axis[2]);
+      if(this.origin.distance(origin) > 1) {
+         this.origin.set(origin);
+         this.loadVertices(gl);
+      }
+      
+//      final float[] axis = new float[3];
+//      final float angle = this.rotation.toAngleAxis(axis);
+//
+//      gl.glTranslatef((float) (this.position.x - origin.x), (float) (this.position.y - origin.y), (float) (this.position.z - origin.z));
+//      gl.glRotatef((float) Math.toDegrees(angle), axis[0], axis[1], axis[2]);
       
       this.vbo.render(gl);
       

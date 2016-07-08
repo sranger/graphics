@@ -193,7 +193,7 @@ public class Scene extends GLCanvas implements GLEventListener {
       if(this.originEnabled && this.origin.distance(this.lookAt) > 1e6) {
          this.origin.set(this.lookAt);             // update to lookAt
          
-//         System.out.println("origin: " + this.origin);
+//         System.out.println("origin: " + this.origin + ", " + TupleMath.length(this.origin));
       }
 
       this.reshape(glDrawable, this.viewport[0], this.viewport[1], this.viewport[2], this.viewport[3]);
@@ -390,7 +390,7 @@ public class Scene extends GLCanvas implements GLEventListener {
 //      gl.glLoadMatrixd(this.projection, 0);
 //      gl.glMatrixMode(GL2.GL_MODELVIEW);
 //      gl.glLoadMatrixd(this.modelview, 0);
-      
+
       final double[] mv = CameraUtils.gluLookAt(gl, TupleMath.sub(this.cameraPosition, this.origin), TupleMath.sub(this.lookAt, this.origin), up);
       System.arraycopy(mv, 0, this.modelview, 0, 16);
    }

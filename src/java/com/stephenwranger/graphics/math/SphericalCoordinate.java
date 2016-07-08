@@ -40,7 +40,7 @@ public class SphericalCoordinate {
       }
       
       // make sure it stays above the anchor
-      this.range = Math.max(0.0, this.range + stepRange);
+      this.range = Math.max(10.0, this.range + stepRange);
    }
    
    public Quat4d getOrientation() {
