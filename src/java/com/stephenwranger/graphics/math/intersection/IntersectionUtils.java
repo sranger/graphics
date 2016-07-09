@@ -7,10 +7,11 @@ import com.stephenwranger.graphics.math.Tuple2d;
 import com.stephenwranger.graphics.math.Tuple3d;
 import com.stephenwranger.graphics.math.Vector3d;
 import com.stephenwranger.graphics.utils.MathUtils;
+import com.stephenwranger.graphics.utils.TupleMath;
 
 /**
  * http://www.realtimerendering.com/intersections.html
- * 
+ *
  * @author rangers
  *
  */
@@ -19,29 +20,105 @@ public class IntersectionUtils {
       // statics only
    }
 
-   public static boolean pointInTriangle(final Tuple2d point, final Triangle2d triangle) {
-      final Tuple3d barycentric = triangle.getBarycentricCoordinate(point);
+   public static Vector3d calculateSurfaceNormal(final Tuple3d... corners) {
+      final Vector3d u = new Vector3d();
+      u.subtract(corners[1], corners[0]);
+      final Vector3d v = new Vector3d();
+      v.subtract(corners[2], corners[0]);
 
-      return IntersectionUtils.isGreaterOrEqual(barycentric.x, 0) && IntersectionUtils.isGreaterOrEqual(barycentric.y, 0)
-            && IntersectionUtils.isLessOrEqual(barycentric.x + barycentric.y, 1);
+      final Vector3d normal = new Vector3d();
+      normal.cross(u, v);
+
+      normal.normalize();
+
+      return normal;
    }
 
-   public static List<Tuple2d> lineIntersectTriangle(final Triangle2d triangle, final LineSegment segment) {
-      final LineSegment[] segments = triangle.getLineSegments();
-      final List<Tuple2d> intersected = new ArrayList<Tuple2d>();
-      final Tuple2d temp = new Tuple2d();
+   /**
+    * Returns the unique intersection point between the three given planes or null if the planes do not intersect at a
+    * single point.<br/>
+    * <br/>
+    * http://geomalgorithms.com/a05-_intersect-1.html
+    * 
+    * @param p1
+    * @param p2
+    * @param p3
+    * @return
+    */
+   public static Tuple3d intersectingPlanes(final Plane p1, final Plane p2, final Plane p3) {
+      final Vector3d n1 = p1.getNormal();
+      final Vector3d n2 = p2.getNormal();
+      final Vector3d n3 = p3.getNormal();
 
-      for (final LineSegment edge : segments) {
-         if (IntersectionUtils.lineSegmentsIntersect(segment, edge, temp)) {
-            intersected.add(new Tuple2d(temp));
-         }
+      final double denom = TupleMath.dot(n1, TupleMath.cross(n2, n3));
+
+      // if the denominator is zero, there is not unique intersection
+      if (IntersectionUtils.isZero(denom)) {
+         return null;
       }
 
-      return intersected;
+      final double d1 = p1.getDistance();
+      final double d2 = p2.getDistance();
+      final double d3 = p3.getDistance();
+
+      final Vector3d cross12 = new Vector3d();
+      cross12.cross(n1, n2);
+      final Vector3d cross23 = new Vector3d();
+      cross23.cross(n2, n3);
+      final Vector3d cross31 = new Vector3d();
+      cross31.cross(n3, n1);
+
+      final Vector3d negD1cross23 = new Vector3d(cross23);
+      negD1cross23.scale(-d1);
+      final Vector3d negD2cross31 = new Vector3d(cross31);
+      negD2cross31.scale(-d2);
+      final Vector3d negD3cross12 = new Vector3d(cross12);
+      negD3cross12.scale(-d3);
+
+      final Tuple3d point = new Tuple3d();
+      point.add(negD1cross23);
+      point.add(negD2cross31);
+      point.add(negD3cross12);
+
+      TupleMath.scale(point, 1.0 / denom);
+
+      return point;
+   }
+
+   public static boolean isClampedExclusive(final double value, final double min, final double max) {
+      return IntersectionUtils.isGreaterThan(value, min) && IntersectionUtils.isLessThan(value, max);
+   }
+
+   public static boolean isClampedInclusive(final double value, final double min, final double max) {
+      return (IntersectionUtils.isGreaterThan(value, min) || IntersectionUtils.isEqual(value, min)) && (IntersectionUtils.isLessThan(value, max) || IntersectionUtils.isEqual(value, max));
+   }
+
+   public static boolean isEqual(final double value1, final double value2) {
+      return IntersectionUtils.isZero(value1 - value2);
+   }
+
+   public static boolean isGreaterOrEqual(final double value, final double min) {
+      return IntersectionUtils.isGreaterThan(value, min) || IntersectionUtils.isEqual(value, min);
+   }
+
+   public static boolean isGreaterThan(final double value, final double min) {
+      return (value > (min - MathUtils.EPSILON)) && !IntersectionUtils.isZero(value - min);
+   }
+
+   public static boolean isLessOrEqual(final double value, final double max) {
+      return IntersectionUtils.isLessThan(value, max) || IntersectionUtils.isEqual(value, max);
+   }
+
+   public static boolean isLessThan(final double value, final double max) {
+      return value < (max + MathUtils.EPSILON);
+   }
+
+   public static boolean isZero(final double value) {
+      return Math.abs(value) <= MathUtils.EPSILON;
    }
 
    public static List<Tuple2d> lineIntersectPolygon(final Tuple2d[] corners, final LineSegment segment) {
-      final List<Tuple2d> intersected = new ArrayList<Tuple2d>();
+      final List<Tuple2d> intersected = new ArrayList<>();
       final Tuple2d result = new Tuple2d();
       LineSegment temp;
 
@@ -56,37 +133,18 @@ public class IntersectionUtils {
       return intersected;
    }
 
-   public static boolean isZero(final double value) {
-      return Math.abs(value) <= MathUtils.EPSILON;
-   }
+   public static List<Tuple2d> lineIntersectTriangle(final Triangle2d triangle, final LineSegment segment) {
+      final LineSegment[] segments = triangle.getLineSegments();
+      final List<Tuple2d> intersected = new ArrayList<>();
+      final Tuple2d temp = new Tuple2d();
 
-   public static boolean isEqual(final double value1, final double value2) {
-      return IntersectionUtils.isZero(value1 - value2);
-   }
+      for (final LineSegment edge : segments) {
+         if (IntersectionUtils.lineSegmentsIntersect(segment, edge, temp)) {
+            intersected.add(new Tuple2d(temp));
+         }
+      }
 
-   public static boolean isLessThan(final double value, final double max) {
-      return value < max + MathUtils.EPSILON;
-   }
-
-   public static boolean isLessOrEqual(final double value, final double max) {
-      return IntersectionUtils.isLessThan(value, max) || IntersectionUtils.isEqual(value, max);
-   }
-
-   public static boolean isGreaterThan(final double value, final double min) {
-      return value > min - MathUtils.EPSILON && !IntersectionUtils.isZero(value - min);
-   }
-
-   public static boolean isGreaterOrEqual(final double value, final double min) {
-      return IntersectionUtils.isGreaterThan(value, min) || IntersectionUtils.isEqual(value, min);
-   }
-
-   public static boolean isClampedExclusive(final double value, final double min, final double max) {
-      return IntersectionUtils.isGreaterThan(value, min) && IntersectionUtils.isLessThan(value, max);
-   }
-
-   public static boolean isClampedInclusive(final double value, final double min, final double max) {
-      return (IntersectionUtils.isGreaterThan(value, min) || IntersectionUtils.isEqual(value, min))
-            && (IntersectionUtils.isLessThan(value, max) || IntersectionUtils.isEqual(value, max));
+      return intersected;
    }
 
    public static boolean lineSegmentsIntersect(final LineSegment s1, final LineSegment s2, final Tuple2d result) {
@@ -100,28 +158,20 @@ public class IntersectionUtils {
    }
 
    public static boolean overlap(final double firstMinY, final double firstMaxY, final double secondMinY, final double secondMaxY) {
-      if ((firstMinY >= secondMinY && firstMinY <= secondMaxY) || (firstMaxY >= secondMinY && firstMaxY <= secondMaxY)) {
+      if (((firstMinY >= secondMinY) && (firstMinY <= secondMaxY)) || ((firstMaxY >= secondMinY) && (firstMaxY <= secondMaxY))) {
          return true;
       }
 
-      if ((secondMinY >= firstMinY && secondMinY <= firstMaxY) || (secondMaxY >= firstMinY && secondMaxY <= firstMaxY)) {
+      if (((secondMinY >= firstMinY) && (secondMinY <= firstMaxY)) || ((secondMaxY >= firstMinY) && (secondMaxY <= firstMaxY))) {
          return true;
       }
 
       return false;
    }
 
-   public static Vector3d calculateSurfaceNormal(final Tuple3d... corners) {
-      final Vector3d u = new Vector3d();
-      u.subtract(corners[1], corners[0]);
-      final Vector3d v = new Vector3d();
-      v.subtract(corners[2], corners[0]);
-      
-      final Vector3d normal = new Vector3d();
-      normal.cross(u, v);
-      
-      normal.normalize();
-      
-      return normal;
+   public static boolean pointInTriangle(final Tuple2d point, final Triangle2d triangle) {
+      final Tuple3d barycentric = triangle.getBarycentricCoordinate(point);
+
+      return IntersectionUtils.isGreaterOrEqual(barycentric.x, 0) && IntersectionUtils.isGreaterOrEqual(barycentric.y, 0) && IntersectionUtils.isLessOrEqual(barycentric.x + barycentric.y, 1);
    }
 }
