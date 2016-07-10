@@ -108,6 +108,10 @@ public class Vertex {
       return result;
    }
 
+   public void setTextureCoordinates(final Tuple2d texCoord) {
+      this.texCoord.set(texCoord);
+   }
+
    public void vertexIntoBuffer(final Tuple3d origin, final ByteBuffer buffer) {
       if (this.vertex != null) {
          buffer.putFloat((float) (this.vertex.x - origin.x)).putFloat((float) (this.vertex.y - origin.y)).putFloat((float) (this.vertex.z - origin.z));

@@ -9,15 +9,19 @@ public class Pair<T1, T2> implements Comparable<Pair<T1, T2>> {
       @SuppressWarnings("unchecked")
       @Override
       public int compare(Pair<T1, T2> o1, Pair<T1, T2> o2) {
+         int value = 0;
+         
          if(o1 != null && o2 != null) {
             if(o1.left instanceof Comparable) {
-               return ((Comparable<T1>)o1.left).compareTo(o2.left);
-            } else if(o1.right instanceof Comparable) {
-               return ((Comparable<T2>)o1.right).compareTo(o2.right);
+               value = ((Comparable<T1>)o1.left).compareTo(o2.left);
+            }
+            
+            if(o1.right instanceof Comparable && value == 0) {
+               value = ((Comparable<T2>)o1.right).compareTo(o2.right);
             }
          }
 
-         return 0;
+         return value;
       }
    };
 

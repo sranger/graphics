@@ -73,7 +73,7 @@ public class PickingRay {
             final Tuple3d scaledDirection = new Tuple3d(direction);
             TupleMath.scale(scaledDirection, di1);
 
-            return new PickingHit(renderable, TupleMath.add(origin, scaledDirection));
+            return new PickingHit(renderable, TupleMath.add(origin, scaledDirection), di1);
          }
       }
 

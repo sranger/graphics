@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2;
@@ -35,22 +36,25 @@ import com.stephenwranger.graphics.utils.textures.Texture2d;
 public class EllipticalGeometry extends Renderable {
    // TODO: use shader
    private final BiConsumerSupplier<Double, Double, Double> altitudeSupplier;
+   private final Consumer<EllipticalSegment>                setTextureFunction;
    private final BoundingSphere                             bounds;
-   private final Tuple3d[]                                  mainVertices     = new Tuple3d[12];
-   private final int[][]                                    mainFaces        = new int[20][3];
-   private final List<EllipticalSegment>                    segments         = new LinkedList<>();
-   private final Set<EllipticalSegment>                     renderedSegments = new HashSet<>();
-   private final Tuple3d                                    origin           = new Tuple3d(0, 0, 0);
-   private final Color4f                                    color            = Color4f.white();
+   private final Tuple3d[]                                  mainVertices      = new Tuple3d[12];
+   private final int[][]                                    mainFaces         = new int[20][3];
+   private final List<EllipticalSegment>                    segments          = new LinkedList<>();
+   private final Set<EllipticalSegment>                     renderedSegments  = new HashSet<>();
+   private final Tuple3d                                    origin            = new Tuple3d(0, 0, 0);
+   private final Color4f                                    color             = Color4f.white();
    private final SegmentedVertexBufferPool                  vbo;
 
-   private Texture2d                                        texture          = null;
-   private double                                           loadFactor       = 0.75;
+   private Texture2d                                        texture           = null;
+   private double                                           loadFactor        = 0.75;
+   private boolean                                          isLightingEnabled = true;
 
-   public EllipticalGeometry(final GL2 gl, final double boundedRadius, final int subdivisions, final BiConsumerSupplier<Double, Double, Double> altitudeSupplier) {
+   public EllipticalGeometry(final GL2 gl, final double boundedRadius, final int subdivisions, final BiConsumerSupplier<Double, Double, Double> altitudeSupplier, final Consumer<EllipticalSegment> setTextureFunction) {
       super(new Tuple3d(), new Quat4d());
 
       this.altitudeSupplier = altitudeSupplier;
+      this.setTextureFunction = setTextureFunction;
       this.bounds = new BoundingSphere(new Tuple3d(), boundedRadius);
 
       // icosahedron vertices
@@ -105,11 +109,11 @@ public class EllipticalGeometry extends Renderable {
          final Tuple3d v1 = new Tuple3d(this.mainVertices[this.mainFaces[i][1]]);
          final Tuple3d v2 = new Tuple3d(this.mainVertices[this.mainFaces[i][2]]);
 
-         final EllipticalSegment segment = EllipticalSegment.createSegment(v0, v1, v2, altitudeSupplier);
-         final List<EllipticalSegment> children = segment.getChildSegments(this.altitudeSupplier);
+         final EllipticalSegment segment = EllipticalSegment.createSegment(v0, v1, v2, this.altitudeSupplier, this.setTextureFunction);
+         final List<EllipticalSegment> children = segment.getChildSegments(this.altitudeSupplier, this.setTextureFunction);
 
          for (final EllipticalSegment child : children) {
-            this.segments.addAll(child.getChildSegments(this.altitudeSupplier));
+            this.segments.addAll(child.getChildSegments(this.altitudeSupplier, this.setTextureFunction));
          }
       }
 
@@ -124,11 +128,25 @@ public class EllipticalGeometry extends Renderable {
 
    @Override
    public PickingHit getIntersection(final PickingRay ray) {
-      return ray.raySphereIntersection(this, this.getPosition(), this.bounds.getRadius(), 1.0);
+      PickingHit currentHit = PickingRay.NO_HIT;
+
+      for (final EllipticalSegment segment : this.segments) {
+         final PickingHit hit = segment.getIntersection(ray);
+
+         if ((currentHit == PickingRay.NO_HIT) || ((hit != null) && (hit.getDistance() < currentHit.getDistance()))) {
+            currentHit = hit;
+         }
+      }
+
+      return currentHit;
    }
 
    public double getLoadFactor() {
       return this.loadFactor;
+   }
+
+   public boolean isLightingEnabled() {
+      return this.isLightingEnabled;
    }
 
    @Override
@@ -136,8 +154,12 @@ public class EllipticalGeometry extends Renderable {
       gl.glPushMatrix();
       gl.glPushAttrib(GL2.GL_LIGHTING_BIT);
 
-      gl.glEnable(GLLightingFunc.GL_LIGHTING);
-      gl.glEnable(GLLightingFunc.GL_LIGHT0);
+      if (this.isLightingEnabled) {
+         gl.glEnable(GLLightingFunc.GL_LIGHTING);
+         gl.glEnable(GLLightingFunc.GL_LIGHT0);
+      } else {
+         gl.glDisable(GLLightingFunc.GL_LIGHTING);
+      }
 
       if (this.texture == null) {
          gl.glEnable(GLLightingFunc.GL_COLOR_MATERIAL);
@@ -192,6 +214,10 @@ public class EllipticalGeometry extends Renderable {
       this.color.setColor(color);
    }
 
+   public void setLightingEnabled(final boolean isLightingEnabled) {
+      this.isLightingEnabled = isLightingEnabled;
+   }
+
    public void setLoadFactor(final double loadFactor) {
       this.loadFactor = loadFactor;
    }
@@ -221,7 +247,7 @@ public class EllipticalGeometry extends Renderable {
          final double distance = scene.getCameraPosition().distance(boundsCenter);
 
          if ((radius >= (distance * this.loadFactor))) {
-            final List<EllipticalSegment> children = segment.getChildSegments(this.altitudeSupplier);
+            final List<EllipticalSegment> children = segment.getChildSegments(this.altitudeSupplier, this.setTextureFunction);
 
             for (final EllipticalSegment child : children) {
                toRender.addAll(this.getSegmentsToRender(gl, scene, child, ignoreFrustum, depth + 1));
