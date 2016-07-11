@@ -130,8 +130,8 @@ public class EllipticalGeometry extends Renderable {
    public PickingHit getIntersection(final PickingRay ray) {
       PickingHit currentHit = PickingRay.NO_HIT;
 
-      for (final EllipticalSegment segment : this.segments) {
-         final PickingHit hit = segment.getIntersection(ray);
+      for (final EllipticalSegment segment : this.renderedSegments) {
+         final PickingHit hit = segment.getIntersection(this, ray);
 
          if ((currentHit == PickingRay.NO_HIT) || ((hit != null) && (hit.getDistance() < currentHit.getDistance()))) {
             currentHit = hit;

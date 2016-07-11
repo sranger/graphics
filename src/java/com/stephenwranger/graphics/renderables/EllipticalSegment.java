@@ -12,6 +12,7 @@ import com.stephenwranger.graphics.math.PickingHit;
 import com.stephenwranger.graphics.math.PickingRay;
 import com.stephenwranger.graphics.math.Tuple2d;
 import com.stephenwranger.graphics.math.Tuple3d;
+import com.stephenwranger.graphics.math.intersection.IntersectionUtils;
 import com.stephenwranger.graphics.utils.BiConsumerSupplier;
 import com.stephenwranger.graphics.utils.MathUtils;
 import com.stephenwranger.graphics.utils.TupleMath;
@@ -94,8 +95,10 @@ public class EllipticalSegment implements SegmentObject {
       return Collections.unmodifiableList(this.splitSegments);
    }
 
-   public PickingHit getIntersection(final PickingRay ray) {
-      // TODO: ray-triangle intersection
+   public PickingHit getIntersection(final Renderable parent, final PickingRay ray) {
+      final Tuple3d hit = IntersectionUtils.rayTriangleIntersection(this.v0.getVertex(), this.v1.getVertex(), this.v2.getVertex(), ray.getOrigin(), ray.getDirection());
+
+      return (hit == null) ? PickingRay.NO_HIT : new PickingHit(parent, hit, ray.getOrigin().distance(hit));
    }
 
    @Override
