@@ -76,6 +76,18 @@ public class MathUtils {
    public static int getSign(final double value) {
       return (value < 0.0) ? -1 : 1;
    }
+   
+   public static double csc(final double angleRadians) {
+      return 1.0 / Math.sin(angleRadians);
+   }
+   
+   public static double sec(final double angleRadians) {
+      return 1.0 / Math.cos(angleRadians);
+   }
+   
+   public static double cot(final double angleRadians) {
+      return 1.0 / Math.tan(angleRadians);
+   }
 
    /**
     * Computes the normal from the given vertices.
@@ -216,11 +228,49 @@ public class MathUtils {
    public static double sum(final Collection<? extends Number> values) {
       double sum = 0;
       
-      for(final Number value : values) {
-         sum += value.doubleValue();
+      if(values != null) {
+         for(final Number value : values) {
+            sum += value.doubleValue();
+         }
       }
       
       return sum;
+   }
+   
+   /**
+    * Returns the sum of all values in the given array.
+    * 
+    * @param values the values to sum
+    * @return the total sum of all values
+    */
+   public static double sum(final double... values) {
+      double sum = 0;
+      
+      if(values != null) {
+         for(final double value : values) {
+            sum += value;
+         }
+      }
+      
+      return sum;
+   }
+   
+   /**
+    * Returns the minimum value in the given array.
+    * 
+    * @param values the values
+    * @return the minimum value or Double.MAX_VALUE if the collection was empty
+    */
+   public static double getMin(final double... values) {
+      double min = Double.MAX_VALUE;
+      
+      if(values != null) {
+         for(final double value : values) {
+            min = (min < value) ? min : value;
+         }
+      }
+      
+      return min;
    }
    
    /**
@@ -232,8 +282,10 @@ public class MathUtils {
    public static Number getMin(final Collection<? extends Number> values) {
       Number min = null;
       
-      for(final Number value : values) {
-         min = (min == null) ? value : (min.doubleValue() < value.doubleValue()) ? min : value;
+      if(values != null) {
+         for(final Number value : values) {
+            min = (min == null) ? value : (min.doubleValue() < value.doubleValue()) ? min : value;
+         }
       }
       
       return min;
@@ -248,10 +300,30 @@ public class MathUtils {
    public static Number getMax(final Collection<? extends Number> values) {
       Number max = null;
       
-      for(final Number value : values) {
-         max = (max == null) ? value : (max.doubleValue() > value.doubleValue()) ? max : value;
+      if(values != null) {
+         for(final Number value : values) {
+            max = (max == null) ? value : (max.doubleValue() > value.doubleValue()) ? max : value;
+         }
       }
       
       return max;
+   }
+   
+   /**
+    * Returns the maximum value in the given array.
+    * 
+    * @param values the values
+    * @return the maximum value or -Double.MAX_VALUE if the array was empty
+    */
+   public static double getMax(final double... values) {
+      double min = -Double.MAX_VALUE;
+      
+      if(values != null) {
+         for(final double value : values) {
+            min = (min > value) ? min : value;
+         }
+      }
+      
+      return min;
    }
 }

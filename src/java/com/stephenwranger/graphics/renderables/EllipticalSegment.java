@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
+import com.jogamp.opengl.GL2;
 import com.stephenwranger.graphics.bounds.BoundingBox;
 import com.stephenwranger.graphics.bounds.BoundingVolume;
 import com.stephenwranger.graphics.math.PickingHit;
@@ -26,19 +27,25 @@ public class EllipticalSegment implements SegmentObject {
    private final Vertex                  v2;
    private final List<EllipticalSegment> splitSegments = new ArrayList<>();
    private final BoundingVolume          bounds;
+   private final int                     depth;
 
    private Texture2d                     customTexture = null;
    private int                           poolIndex     = -1;
    private int                           bufferIndex   = -1;
 
-   public EllipticalSegment(final Vertex v0, final Vertex v1, final Vertex v2) {
+   public EllipticalSegment(final Vertex v0, final Vertex v1, final Vertex v2, final int depth) {
       this.v0 = v0;
       this.v1 = v1;
       this.v2 = v2;
+      this.depth = depth;
 
       final Tuple3d min = TupleMath.getMin(this.v0.getVertex(), this.v1.getVertex(), this.v2.getVertex());
       final Tuple3d max = TupleMath.getMax(this.v0.getVertex(), this.v1.getVertex(), this.v2.getVertex());
       this.bounds = new BoundingBox(min, max);
+   }
+   
+   public Vertex[] getVertices() {
+      return new Vertex[] { v0, v1, v2 };
    }
 
    @Override
@@ -130,6 +137,10 @@ public class EllipticalSegment implements SegmentObject {
       return !this.splitSegments.isEmpty();
    }
 
+   public int getDepth() {
+      return this.depth;
+   }
+   
    @Override
    public void loadBuffer(final Tuple3d origin, final ByteBuffer buffer) {
       this.v0.vertexIntoBuffer(origin, buffer);
@@ -152,8 +163,12 @@ public class EllipticalSegment implements SegmentObject {
          this.v2.setTextureCoordinates(texCoords[2]);
       }
    }
+   
+   public void clearTextures(final GL2 gl) {
+      this.customTexture.clear(gl);
+   }
 
-   public static EllipticalSegment createSegment(final Tuple3d v0, final Tuple3d v1, final Tuple3d v2, final BiConsumerSupplier<Double, Double, Double> altitudeSupplier, final Consumer<EllipticalSegment> setTextureFunction) {
+   public static EllipticalSegment createSegment(final Tuple3d v0, final Tuple3d v1, final Tuple3d v2, final int depth, final BiConsumerSupplier<Double, Double, Double> altitudeSupplier, final Consumer<EllipticalSegment> setTextureFunction) {
       final Tuple3d[] corners = new Tuple3d[] { v0, v1, v2 };
       final Vertex[] vertices = new Vertex[3];
 
@@ -179,7 +194,7 @@ public class EllipticalSegment implements SegmentObject {
       EllipticalSegment.fixTextureCoordinates(vertices[1].getTextureCoordinates(), vertices[2].getTextureCoordinates());
       EllipticalSegment.fixTextureCoordinates(vertices[2].getTextureCoordinates(), vertices[0].getTextureCoordinates());
 
-      final EllipticalSegment segment = new EllipticalSegment(vertices[0], vertices[1], vertices[2]);
+      final EllipticalSegment segment = new EllipticalSegment(vertices[0], vertices[1], vertices[2], depth);
       setTextureFunction.accept(segment);
 
       return segment;
@@ -229,7 +244,7 @@ public class EllipticalSegment implements SegmentObject {
       final List<EllipticalSegment> newSegments = new ArrayList<>();
 
       for (final Tuple3d[] t : newTriangles) {
-         newSegments.add(EllipticalSegment.createSegment(t[0], t[1], t[2], altitudeSupplier, setTextureFunction));
+         newSegments.add(EllipticalSegment.createSegment(t[0], t[1], t[2], segment.depth, altitudeSupplier, setTextureFunction));
       }
 
       return newSegments;

@@ -5,6 +5,7 @@ import java.awt.image.PixelGrabber;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 
 import javax.imageio.ImageIO;
 import com.jogamp.opengl.GL2;
@@ -104,6 +105,34 @@ public class Texture2d {
 
       pixelData.flip();
    }
+   
+   public BufferedImage getImage() {
+      final BufferedImage image = new BufferedImage(this.width, this.height, BufferedImage.TYPE_INT_ARGB);
+      final int bytes = format == GL2.GL_ALPHA ? 1 : format == GL2.GL_RGB ? 3 : 4;
+      int color;
+      
+      
+      for (int row = height - 1; row >= 0; row--) {
+         for (int col = 0; col < width; col++) {
+            color = 0;
+            
+            if(bytes >= 3) {
+               color += (pixelData.get() << 16);
+               color += (pixelData.get() << 8);
+               color += (pixelData.get() << 0);
+            }
+            if(bytes == 1 || bytes == 4) {
+               color += (pixelData.get() << 24);
+            }
+            
+            image.setRGB(col, row, color);
+         }
+      }
+      
+      pixelData.rewind();
+      
+      return image;
+   }
 
    public void enable(final GL2 gl, final int offset) {
       gl.glActiveTexture(GL2.GL_TEXTURE0 + offset);
@@ -134,6 +163,13 @@ public class Texture2d {
    public void disable(final GL2 gl) {
       if(texId != -1) {
          gl.glBindTexture(GL2.GL_TEXTURE_2D, 0);
+      }
+   }
+   
+   public void clear(final GL2 gl) {
+      if(texId != -1) {
+         gl.glDeleteTextures(1, new int[] { this.texId }, 0);
+         texId = -1;
       }
    }
    
