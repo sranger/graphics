@@ -39,7 +39,7 @@ public class IntersectionUtils {
     * single point.<br/>
     * <br/>
     * http://geomalgorithms.com/a05-_intersect-1.html
-    * 
+    *
     * @param p1
     * @param p2
     * @param p3
@@ -173,5 +173,77 @@ public class IntersectionUtils {
       final Tuple3d barycentric = triangle.getBarycentricCoordinate(point);
 
       return IntersectionUtils.isGreaterOrEqual(barycentric.x, 0) && IntersectionUtils.isGreaterOrEqual(barycentric.y, 0) && IntersectionUtils.isLessOrEqual(barycentric.x + barycentric.y, 1);
+   }
+
+   /**
+    * https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
+    *
+    * @param v1
+    * @param v2
+    * @param v3
+    * @param origin
+    * @param direction
+    * @return
+    */
+   public static Tuple3d rayTriangleIntersection(final Tuple3d v1, final Tuple3d v2, final Tuple3d v3, final Tuple3d origin, final Vector3d direction) {
+      //Find vectors for two edges sharing V1
+      final Vector3d e1 = new Vector3d();
+      e1.subtract(v2, v1);
+
+      final Vector3d e2 = new Vector3d();
+      e2.subtract(v3, v1);
+
+      //Begin calculating determinant - also used to calculate u parameter
+      final Vector3d P = new Vector3d();
+      P.cross(direction, e2);
+
+      //if determinant is near zero, ray lies in plane of triangle or ray is parallel to plane of triangle
+      final double det = e1.dot(P);
+
+      //NOT CULLING
+      if ((det > -MathUtils.EPSILON) && (det < MathUtils.EPSILON)) {
+         return null;
+      }
+
+      final double inv_det = 1.f / det;
+
+      //calculate distance from V1 to ray origin
+      final Vector3d T = new Vector3d();
+      T.subtract(origin, v1);
+
+      //Calculate u parameter and test bound
+      final double u = T.dot(P) * inv_det;
+
+      //The intersection lies outside of the triangle
+      if ((u < 0.f) || (u > 1.f)) {
+         return null;
+      }
+
+      //Prepare to test v parameter
+      final Vector3d Q = new Vector3d();
+      Q.cross(T, e1);
+
+      //Calculate V parameter and test bound
+      final double v = direction.dot(Q) * inv_det;
+
+      //The intersection lies outside of the triangle
+      if ((v < 0.f) || ((u + v) > 1.f)) {
+         return null;
+      }
+
+      final double t = e2.dot(Q) * inv_det;
+
+      if (t > MathUtils.EPSILON) { //ray intersection
+         final Vector3d scaledDirection = new Vector3d(direction);
+         scaledDirection.scale(t);
+
+         final Tuple3d hitLocation = new Tuple3d(origin);
+         hitLocation.add(scaledDirection);
+
+         return hitLocation;
+      }
+
+      // No hit, no win
+      return null;
    }
 }
