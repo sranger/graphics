@@ -131,6 +131,11 @@ public class SegmentedVertexBufferPool {
          final int poolKey = entry.getKey();
          final Map<Integer, List<SegmentObject>> map = entry.getValue();
          final List<SegmentedVertexBufferObject> pools = this.buffers.get(poolKey);
+         
+         if(pools == null) {
+            System.err.println("pool key not found: " + poolKey);
+            return;
+         }
 
          for (final Entry<Integer, List<SegmentObject>> mapEntry : map.entrySet()) {
             final int subPoolIndex = mapEntry.getKey();

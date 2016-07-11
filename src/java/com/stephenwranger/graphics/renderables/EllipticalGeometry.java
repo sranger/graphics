@@ -109,7 +109,7 @@ public class EllipticalGeometry extends Renderable {
          final Tuple3d v1 = new Tuple3d(this.mainVertices[this.mainFaces[i][1]]);
          final Tuple3d v2 = new Tuple3d(this.mainVertices[this.mainFaces[i][2]]);
 
-         final EllipticalSegment segment = EllipticalSegment.createSegment(v0, v1, v2, this.altitudeSupplier, this.setTextureFunction);
+         final EllipticalSegment segment = EllipticalSegment.createSegment(v0, v1, v2, 0, this.altitudeSupplier, this.setTextureFunction);
          final List<EllipticalSegment> children = segment.getChildSegments(this.altitudeSupplier, this.setTextureFunction);
 
          for (final EllipticalSegment child : children) {
@@ -194,6 +194,7 @@ public class EllipticalGeometry extends Renderable {
       for (final EllipticalSegment segment : previous) {
          if (!this.renderedSegments.contains(segment)) {
             this.vbo.clearSegmentObject(gl, segment);
+            segment.clearTextures(gl);
          }
       }
 
