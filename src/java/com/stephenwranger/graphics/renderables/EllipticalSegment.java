@@ -7,12 +7,16 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.glu.GLU;
+import com.stephenwranger.graphics.Scene;
 import com.stephenwranger.graphics.bounds.BoundingBox;
 import com.stephenwranger.graphics.bounds.BoundingVolume;
 import com.stephenwranger.graphics.math.PickingHit;
 import com.stephenwranger.graphics.math.PickingRay;
 import com.stephenwranger.graphics.math.Tuple2d;
 import com.stephenwranger.graphics.math.Tuple3d;
+import com.stephenwranger.graphics.math.Vector3d;
+import com.stephenwranger.graphics.math.intersection.Ellipsoid;
 import com.stephenwranger.graphics.math.intersection.IntersectionUtils;
 import com.stephenwranger.graphics.utils.BiConsumerSupplier;
 import com.stephenwranger.graphics.utils.MathUtils;
@@ -29,7 +33,8 @@ public class EllipticalSegment implements SegmentObject {
    private final BoundingVolume          bounds;
    private final int                     depth;
 
-   private Texture2d                     customTexture = null;
+   private Texture2d[]                   customTextures = null;
+   private Tuple2d[][]                   texCoords = null;
    private int                           poolIndex     = -1;
    private int                           bufferIndex   = -1;
 
@@ -93,9 +98,9 @@ public class EllipticalSegment implements SegmentObject {
       return this.bufferIndex;
    }
 
-   public List<EllipticalSegment> getChildSegments(final BiConsumerSupplier<Double, Double, Double> altitudeSupplier, final Consumer<EllipticalSegment> setTextureFunction) {
+   public List<EllipticalSegment> getChildSegments(final Ellipsoid ellipsoid, final BiConsumerSupplier<Double, Double, Double> altitudeSupplier, final Consumer<EllipticalSegment> setTextureFunction) {
       if (this.splitSegments.isEmpty()) {
-         final List<EllipticalSegment> children = EllipticalSegment.getChildSegments(this, altitudeSupplier, setTextureFunction);
+         final List<EllipticalSegment> children = EllipticalSegment.getChildSegments(ellipsoid, this, altitudeSupplier, setTextureFunction);
          this.splitSegments.addAll(children);
       }
 
@@ -115,7 +120,7 @@ public class EllipticalSegment implements SegmentObject {
 
    @Override
    public Texture2d getTexture() {
-      return this.customTexture;
+      return (this.customTextures == null) ? null : this.customTextures[0];
    }
 
    @Override
@@ -147,6 +152,34 @@ public class EllipticalSegment implements SegmentObject {
       this.v1.vertexIntoBuffer(origin, buffer);
       this.v2.vertexIntoBuffer(origin, buffer);
    }
+   
+   /**
+    * Used for testing multi-texture rendering.
+    * TODO: implement this using vbo and shader
+    * @param gl
+    * @param glu
+    * @param scene
+    */
+   public void render(final GL2 gl, final GLU glu, final Scene scene) {
+      if(this.customTextures != null && this.texCoords != null && this.customTextures.length == this.texCoords.length) {
+         final Tuple3d origin = scene.getOrigin();
+   
+         for(int i = 0; i < this.customTextures.length; i++) {
+            final Texture2d texture = this.customTextures[i];
+            final Tuple2d[] texCoord = this.texCoords[i];
+            texture.enable(gl);
+
+            gl.glBegin(GL2.GL_TRIANGLES);
+            gl.glTexCoord2f((float) texCoord[0].x, (float) texCoord[0].y);
+            gl.glVertex3f((float) (this.v0.getVertex().x - origin.x), (float) (this.v0.getVertex().y - origin.y), (float) (this.v0.getVertex().z - origin.z));
+            gl.glTexCoord2f((float) texCoord[1].x, (float) texCoord[1].y);
+            gl.glVertex3f((float) (this.v1.getVertex().x - origin.x), (float) (this.v1.getVertex().y - origin.y), (float) (this.v1.getVertex().z - origin.z));
+            gl.glTexCoord2f((float) texCoord[2].x, (float) texCoord[2].y);
+            gl.glVertex3f((float) (this.v2.getVertex().x - origin.x), (float) (this.v2.getVertex().y - origin.y), (float) (this.v2.getVertex().z - origin.z));
+            gl.glEnd();
+         }
+      }
+   }
 
    @Override
    public void setSegmentLocation(final int poolIndex, final int bufferIndex) {
@@ -154,21 +187,26 @@ public class EllipticalSegment implements SegmentObject {
       this.bufferIndex = bufferIndex;
    }
 
-   public void setTexture(final Texture2d texture, final Tuple2d[] texCoords) {
-      this.customTexture = texture;
+   public void setTexture(final Texture2d[] textures, final Tuple2d[][] texCoords) {
+      this.customTextures = textures;
+      this.texCoords = texCoords;
 
-      if ((texCoords != null) && (texCoords.length == 3)) {
-         this.v0.setTextureCoordinates(texCoords[0]);
-         this.v1.setTextureCoordinates(texCoords[1]);
-         this.v2.setTextureCoordinates(texCoords[2]);
+      if ((texCoords != null) && (texCoords.length > 0 && texCoords[0].length == 3)) {
+         this.v0.setTextureCoordinates(texCoords[0][0]);
+         this.v1.setTextureCoordinates(texCoords[0][1]);
+         this.v2.setTextureCoordinates(texCoords[0][2]);
       }
    }
    
    public void clearTextures(final GL2 gl) {
-      this.customTexture.clear(gl);
+      if(this.customTextures != null) {
+         for(final Texture2d texture : this.customTextures) {
+            texture.clear(gl);
+         }
+      }
    }
 
-   public static EllipticalSegment createSegment(final Tuple3d v0, final Tuple3d v1, final Tuple3d v2, final int depth, final BiConsumerSupplier<Double, Double, Double> altitudeSupplier, final Consumer<EllipticalSegment> setTextureFunction) {
+   public static EllipticalSegment createSegment(final Tuple3d v0, final Tuple3d v1, final Tuple3d v2, final int depth, final Ellipsoid ellipsoid, final BiConsumerSupplier<Double, Double, Double> altitudeSupplier, final Consumer<EllipticalSegment> setTextureFunction) {
       final Tuple3d[] corners = new Tuple3d[] { v0, v1, v2 };
       final Vertex[] vertices = new Vertex[3];
 
@@ -181,11 +219,22 @@ public class EllipticalSegment implements SegmentObject {
          final Tuple2d texCoord = new Tuple2d(0.5 + (Math.atan2(v.y, v.x) / (2.0 * Math.PI)), (0.5 + (Math.asin(v.z) / Math.PI)));
          final double length = Math.sqrt((texCoord.x * texCoord.x) + (texCoord.y * texCoord.y));
 
-         final double azimuth = ((texCoord.x / length) * MathUtils.TWO_PI) - Math.PI;
-         final double elevation = ((texCoord.y / length) * Math.PI) - (Math.PI / 2.0);
-         final double altitude = altitudeSupplier.getValue(azimuth, elevation);
+         final PickingRay ray = new PickingRay(new Tuple3d(0,0,0), new Vector3d(v));
+         final double[] hit = ellipsoid.getIntersection(ray);
+         double longitude, latitude;
+         
+         if(hit.length > 0) {
+            final Tuple3d lonLatAlt = ellipsoid.intersectionToLonLat(ray, hit[0]);
+            longitude = lonLatAlt.x;
+            latitude = lonLatAlt.y;
+         } else {
+            longitude = Math.toDegrees(((texCoord.x / length) * MathUtils.TWO_PI) - Math.PI);
+            latitude = Math.toDegrees((texCoord.y / length) * Math.PI) - (Math.PI / 2.0);
+         }
+         
+         final double altitude = altitudeSupplier.getValue(longitude, latitude);
 
-         TupleMath.scale(vertex, altitude); // TODO: is this the correct az/el?
+         TupleMath.scale(vertex, altitude); // TODO: is this the correct lon/lat?
 
          vertices[i] = new Vertex(v, vertex, normal, texCoord);
       }
@@ -228,7 +277,7 @@ public class EllipticalSegment implements SegmentObject {
       }
    }
 
-   private static List<EllipticalSegment> getChildSegments(final EllipticalSegment segment, final BiConsumerSupplier<Double, Double, Double> altitudeSupplier, final Consumer<EllipticalSegment> setTextureFunction) {
+   private static List<EllipticalSegment> getChildSegments(final Ellipsoid ellipsoid, final EllipticalSegment segment, final BiConsumerSupplier<Double, Double, Double> altitudeSupplier, final Consumer<EllipticalSegment> setTextureFunction) {
       // replace triangle by 4 triangles
       final Tuple3d a = EllipticalSegment.bisect(segment.v0, segment.v1);
       final Tuple3d b = EllipticalSegment.bisect(segment.v1, segment.v2);
@@ -244,7 +293,7 @@ public class EllipticalSegment implements SegmentObject {
       final List<EllipticalSegment> newSegments = new ArrayList<>();
 
       for (final Tuple3d[] t : newTriangles) {
-         newSegments.add(EllipticalSegment.createSegment(t[0], t[1], t[2], segment.depth, altitudeSupplier, setTextureFunction));
+         newSegments.add(EllipticalSegment.createSegment(t[0], t[1], t[2], segment.depth + 1, ellipsoid, altitudeSupplier, setTextureFunction));
       }
 
       return newSegments;

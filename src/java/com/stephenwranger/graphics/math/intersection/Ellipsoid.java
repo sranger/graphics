@@ -89,13 +89,13 @@ public class Ellipsoid {
             final double dRoot = Math.sqrt(discrm);
             lineParmsAtIntersect = new double[] { (-b + dRoot) / (2.0 * a), (-b - dRoot) / (2.0 * a) };
          } else if (discrm >= 0.0) { // 0 <= discrm <= nearZero, line is tangent to ellipsoid
-            lineParmsAtIntersect[0] = -b / (2.0 * a);
+            lineParmsAtIntersect = new double[] { -b / (2.0 * a) };
          } else if (IntersectionUtils.isLessOrEqual(Math.abs(b), 0) && (-1 == (MathUtils.getSign(a) * MathUtils.getSign(c)))) {
             lineParmsAtIntersect = new double[] { Math.sqrt(-c / a), -Math.sqrt(-c / a) };
          }
       } else if (IntersectionUtils.isGreaterThan(Math.abs(b), 0)) {
          // a = 0 ==> t = -c / b, and also not quadratic, therefore tangent to ellipsoid
-         lineParmsAtIntersect[0] = -c / b;
+         lineParmsAtIntersect = new double[] { -c / b };
       }
 
       return lineParmsAtIntersect;
@@ -148,7 +148,7 @@ public class Ellipsoid {
       final double sinB0 = t0 / s0; // sin(B0), B0 is estimate of Bowring aux variable
       final double cosB0 = w / s0; // cos(B0)
       final double sin3B0 = sinB0 * sinB0 * sinB0; // cube of sin(B0)
-      final double t1 = cartesianOffset.z + b * this.secondEccentricitySquared * sin3B0; // corrected estimate of vertical component
+      final double t1 = cartesianOffset.z + (Double.isNaN(this.secondEccentricitySquared) ? 0.0 : b * this.secondEccentricitySquared * sin3B0); // corrected estimate of vertical component
       final double sum = w - this.semiMajorAxis * this.firstEccentricitySquared * cosB0 * cosB0 * cosB0; // numerator of cos(phi1)
       final double s1 = Math.sqrt(t1 * t1 + sum * sum); // corrected estimate of horizontal component
       final double sinP1 = t1 / s1; // sin(phi1), phi1 is estimated latitude

@@ -229,6 +229,14 @@ public class Scene extends GLCanvas implements GLEventListener {
    public Plane[] getFrustumPlanes() {
       return this.frustumPlanes;
    }
+   
+   public double[] getFrustumPerspective() {
+      final Matrix4d mvMatrix = new Matrix4d(this.modelview);
+      final Matrix4d pMatrix = new Matrix4d(this.projection);
+      final Matrix4d mvpMatrix = new Matrix4d();
+      mvpMatrix.multiply(mvMatrix, pMatrix);
+      return CameraUtils.getFrustumPerspective(mvpMatrix);
+   }
 
    public synchronized Tuple3d getLookAt() {
       return new Tuple3d(this.lookAt);
@@ -375,6 +383,8 @@ public class Scene extends GLCanvas implements GLEventListener {
       if (this.near < (this.far / 3000.0)) {
          this.near = this.far / 3000.0;
       }
+      
+      System.out.println(this.near + ", " + this.far);
 
       final double[] proj = CameraUtils.gluPerspective(gl, this.fov, this.viewport[2] / (double) this.viewport[3], this.near, this.far);
       System.arraycopy(proj, 0, this.projection, 0, 16);

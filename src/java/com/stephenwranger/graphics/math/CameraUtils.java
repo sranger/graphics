@@ -27,58 +27,102 @@ public class CameraUtils {
    }
 
    /**
+    * http://stackoverflow.com/a/12926655/1451705
+    */
+   public static double[] getFrustumOrthographic(final Matrix4d m) {
+      final double near   =  (1+m.get(2, 3))/m.get(2, 2);
+      final double far    = -(1-m.get(2, 3))/m.get(2, 2);
+      final double bottom =  (1-m.get(1, 3))/m.get(1, 1);
+      final double top    = -(1+m.get(1, 3))/m.get(1, 1);
+      final double left   = -(1+m.get(0, 3))/m.get(0, 0);
+      final double right  =  (1-m.get(0, 3))/m.get(0, 0);
+
+      final double[] planes = new double[6];
+      planes[CameraUtils.LEFT_PLANE] = left;
+      planes[CameraUtils.RIGHT_PLANE] = right;
+      planes[CameraUtils.BOTTOM_PLANE] = bottom;
+      planes[CameraUtils.TOP_PLANE] = top;
+      planes[CameraUtils.NEAR_PLANE] = near;
+      planes[CameraUtils.FAR_PLANE] = far;
+      
+      return planes;
+   }
+
+   /**
+    * http://stackoverflow.com/a/12926655/1451705
+    */
+   public static double[] getFrustumPerspective(final Matrix4d m) {
+      final double near   = m.get(2, 3) / (m.get(2, 2) - 1);
+      final double far    = m.get(2, 3) / (m.get(2, 2) + 1);
+      final double bottom = near * (m.get(1, 2) - 1) / m.get(1, 1);
+      final double top    = near * (m.get(1, 2) + 1) / m.get(1, 1);
+      final double left   = near * (m.get(0, 2) - 1) / m.get(0, 0);
+      final double right  = near * (m.get(0, 2) + 1) / m.get(0, 0);
+
+      final double[] planes = new double[6];
+      planes[CameraUtils.LEFT_PLANE] = left;
+      planes[CameraUtils.RIGHT_PLANE] = right;
+      planes[CameraUtils.BOTTOM_PLANE] = bottom;
+      planes[CameraUtils.TOP_PLANE] = top;
+      planes[CameraUtils.NEAR_PLANE] = near;
+      planes[CameraUtils.FAR_PLANE] = far;
+      
+      return planes;
+   }
+
+   /**
     * Generates the six frustum planes using the projection matrix. The index constants can be accessed from this class
     * as static values.<br/>
     * <br/>
     * http://ruh.li/CameraViewFrustum.html<br/>
     * http://gamedevs.org/uploads/fast-extraction-viewing-frustum-planes-from-world-view-projection-matrix.pdf
     *
-    * @param projection
+    * @param matrix
     * @return
     */
-   public static Plane[] getFrustumPlanes(final Matrix4d projection) {
+   public static Plane[] getFrustumPlanes(final Matrix4d matrix) {
       final Plane[] planes = new Plane[6];
       // left
       final Vector3d leftNormal = new Vector3d();
-      leftNormal.x = projection.get(0, 3) + projection.get(0, 0);
-      leftNormal.y = projection.get(1, 3) + projection.get(1, 0);
-      leftNormal.z = projection.get(2, 3) + projection.get(2, 0);
-      final double leftD = projection.get(3, 3) + projection.get(3, 0);
+      leftNormal.x = matrix.get(0, 3) + matrix.get(0, 0);
+      leftNormal.y = matrix.get(1, 3) + matrix.get(1, 0);
+      leftNormal.z = matrix.get(2, 3) + matrix.get(2, 0);
+      final double leftD = matrix.get(3, 3) + matrix.get(3, 0);
 
       // right
       final Vector3d rightNormal = new Vector3d();
-      rightNormal.x = projection.get(0, 3) - projection.get(0, 0);
-      rightNormal.y = projection.get(1, 3) - projection.get(1, 0);
-      rightNormal.z = projection.get(2, 3) - projection.get(2, 0);
-      final double rightD = projection.get(3, 3) - projection.get(3, 0);
+      rightNormal.x = matrix.get(0, 3) - matrix.get(0, 0);
+      rightNormal.y = matrix.get(1, 3) - matrix.get(1, 0);
+      rightNormal.z = matrix.get(2, 3) - matrix.get(2, 0);
+      final double rightD = matrix.get(3, 3) - matrix.get(3, 0);
 
       // bottom
       final Vector3d bottomNormal = new Vector3d();
-      bottomNormal.x = projection.get(0, 3) + projection.get(0, 1);
-      bottomNormal.y = projection.get(1, 3) + projection.get(1, 1);
-      bottomNormal.z = projection.get(2, 3) + projection.get(2, 1);
-      final double bottomD = projection.get(3, 3) + projection.get(3, 1);
+      bottomNormal.x = matrix.get(0, 3) + matrix.get(0, 1);
+      bottomNormal.y = matrix.get(1, 3) + matrix.get(1, 1);
+      bottomNormal.z = matrix.get(2, 3) + matrix.get(2, 1);
+      final double bottomD = matrix.get(3, 3) + matrix.get(3, 1);
 
       // top
       final Vector3d topNormal = new Vector3d();
-      topNormal.x = projection.get(0, 3) - projection.get(0, 1);
-      topNormal.y = projection.get(1, 3) - projection.get(1, 1);
-      topNormal.z = projection.get(2, 3) - projection.get(2, 1);
-      final double topD = projection.get(3, 3) - projection.get(3, 1);
+      topNormal.x = matrix.get(0, 3) - matrix.get(0, 1);
+      topNormal.y = matrix.get(1, 3) - matrix.get(1, 1);
+      topNormal.z = matrix.get(2, 3) - matrix.get(2, 1);
+      final double topD = matrix.get(3, 3) - matrix.get(3, 1);
 
       // near
       final Vector3d nearNormal = new Vector3d();
-      nearNormal.x = projection.get(0, 2);
-      nearNormal.y = projection.get(1, 2);
-      nearNormal.z = projection.get(2, 2);
-      final double nearD = projection.get(3, 2);
+      nearNormal.x = matrix.get(0, 2);
+      nearNormal.y = matrix.get(1, 2);
+      nearNormal.z = matrix.get(2, 2);
+      final double nearD = matrix.get(3, 2);
 
       // far
       final Vector3d farNormal = new Vector3d();
-      farNormal.x = projection.get(0, 3) - projection.get(0, 2);
-      farNormal.y = projection.get(1, 3) - projection.get(1, 2);
-      farNormal.z = projection.get(2, 3) - projection.get(2, 2);
-      final double farD = projection.get(3, 3) - projection.get(3, 2);
+      farNormal.x = matrix.get(0, 3) - matrix.get(0, 2);
+      farNormal.y = matrix.get(1, 3) - matrix.get(1, 2);
+      farNormal.z = matrix.get(2, 3) - matrix.get(2, 2);
+      final double farD = matrix.get(3, 3) - matrix.get(3, 2);
 
       planes[CameraUtils.LEFT_PLANE] = new Plane(leftNormal, leftD);
       planes[CameraUtils.RIGHT_PLANE] = new Plane(rightNormal, rightD);
