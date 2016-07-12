@@ -274,6 +274,24 @@ public class MathUtils {
    }
    
    /**
+    * Returns the minimum value in the given array.
+    * 
+    * @param values the values
+    * @return the minimum value or Integer.MAX_VALUE if the collection was empty
+    */
+   public static int getMin(final int... values) {
+      int min = Integer.MAX_VALUE;
+      
+      if(values != null) {
+         for(final int value : values) {
+            min = (min < value) ? min : value;
+         }
+      }
+      
+      return min;
+   }
+   
+   /**
     * Returns the minimum value in the given {@link Collection}.
     * 
     * @param values the values
@@ -316,14 +334,32 @@ public class MathUtils {
     * @return the maximum value or -Double.MAX_VALUE if the array was empty
     */
    public static double getMax(final double... values) {
-      double min = -Double.MAX_VALUE;
+      double max = -Double.MAX_VALUE;
       
       if(values != null) {
          for(final double value : values) {
-            min = (min > value) ? min : value;
+            max = (max > value) ? max : value;
          }
       }
       
-      return min;
+      return max;
+   }
+   
+   /**
+    * Returns the maximum value in the given array.
+    * 
+    * @param values the values
+    * @return the maximum value or Integer.MIN_VALUE if the array was empty
+    */
+   public static int getMax(final int... values) {
+      int max = Integer.MIN_VALUE;
+      
+      if(values != null) {
+         for(final int value : values) {
+            max = (max > value) ? max : value;
+         }
+      }
+      
+      return max;
    }
 }

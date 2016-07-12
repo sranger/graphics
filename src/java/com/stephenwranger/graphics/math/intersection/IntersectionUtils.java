@@ -174,6 +174,25 @@ public class IntersectionUtils {
 
       return IntersectionUtils.isGreaterOrEqual(barycentric.x, 0) && IntersectionUtils.isGreaterOrEqual(barycentric.y, 0) && IntersectionUtils.isLessOrEqual(barycentric.x + barycentric.y, 1);
    }
+   
+   /**
+    * https://www.cs.princeton.edu/courses/archive/fall00/cs426/lectures/raycast/sld017.htm
+    * 
+    * @param plane
+    * @param origin
+    * @param direction
+    * @return
+    */
+   public static Tuple3d rayPlaneIntersection(final Plane plane, final Tuple3d origin, final Vector3d direction) {
+      final Vector3d p0 = new Vector3d(origin);
+      final Vector3d normal = plane.getNormal();
+      final Vector3d v = new Vector3d(direction);
+      final double d = plane.getDistance();
+      
+      final double t = -(p0.dot(normal) + d) / (v.dot(normal));
+      
+      return TupleMath.add(p0, v.scale(t));
+   }
 
    /**
     * https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm

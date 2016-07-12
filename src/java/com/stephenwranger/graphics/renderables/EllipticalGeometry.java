@@ -23,6 +23,7 @@ import com.stephenwranger.graphics.math.PickingRay;
 import com.stephenwranger.graphics.math.Quat4d;
 import com.stephenwranger.graphics.math.Tuple3d;
 import com.stephenwranger.graphics.math.Vector3d;
+import com.stephenwranger.graphics.math.intersection.Ellipsoid;
 import com.stephenwranger.graphics.math.intersection.Plane;
 import com.stephenwranger.graphics.utils.BiConsumerSupplier;
 import com.stephenwranger.graphics.utils.buffers.BufferRegion;
@@ -35,6 +36,7 @@ import com.stephenwranger.graphics.utils.textures.Texture2d;
 
 public class EllipticalGeometry extends Renderable {
    // TODO: use shader
+   private final Ellipsoid                                  ellipsoid;
    private final BiConsumerSupplier<Double, Double, Double> altitudeSupplier;
    private final Consumer<EllipticalSegment>                setTextureFunction;
    private final BoundingSphere                             bounds;
@@ -50,9 +52,10 @@ public class EllipticalGeometry extends Renderable {
    private double                                           loadFactor        = 0.75;
    private boolean                                          isLightingEnabled = true;
 
-   public EllipticalGeometry(final GL2 gl, final double boundedRadius, final int subdivisions, final BiConsumerSupplier<Double, Double, Double> altitudeSupplier, final Consumer<EllipticalSegment> setTextureFunction) {
+   public EllipticalGeometry(final GL2 gl, final Ellipsoid ellipsoid, final double boundedRadius, final int subdivisions, final BiConsumerSupplier<Double, Double, Double> altitudeSupplier, final Consumer<EllipticalSegment> setTextureFunction) {
       super(new Tuple3d(), new Quat4d());
 
+      this.ellipsoid = ellipsoid;
       this.altitudeSupplier = altitudeSupplier;
       this.setTextureFunction = setTextureFunction;
       this.bounds = new BoundingSphere(new Tuple3d(), boundedRadius);
@@ -109,11 +112,11 @@ public class EllipticalGeometry extends Renderable {
          final Tuple3d v1 = new Tuple3d(this.mainVertices[this.mainFaces[i][1]]);
          final Tuple3d v2 = new Tuple3d(this.mainVertices[this.mainFaces[i][2]]);
 
-         final EllipticalSegment segment = EllipticalSegment.createSegment(v0, v1, v2, 0, this.altitudeSupplier, this.setTextureFunction);
-         final List<EllipticalSegment> children = segment.getChildSegments(this.altitudeSupplier, this.setTextureFunction);
+         final EllipticalSegment segment = EllipticalSegment.createSegment(v0, v1, v2, 0, this.ellipsoid, this.altitudeSupplier, this.setTextureFunction);
+         final List<EllipticalSegment> children = segment.getChildSegments(this.ellipsoid, this.altitudeSupplier, this.setTextureFunction);
 
          for (final EllipticalSegment child : children) {
-            this.segments.addAll(child.getChildSegments(this.altitudeSupplier, this.setTextureFunction));
+            this.segments.addAll(child.getChildSegments(this.ellipsoid, this.altitudeSupplier, this.setTextureFunction));
          }
       }
 
@@ -187,9 +190,9 @@ public class EllipticalGeometry extends Renderable {
          this.renderedSegments.addAll(this.getSegmentsToRender(gl, scene, segment, false, 0));
       }
 
-      for (final EllipticalSegment segment : this.renderedSegments) {
-         this.loadVertices(gl, segment, originChanged);
-      }
+//      for (final EllipticalSegment segment : this.renderedSegments) {
+//         this.loadVertices(gl, segment, originChanged);
+//      }
 
       for (final EllipticalSegment segment : previous) {
          if (!this.renderedSegments.contains(segment)) {
@@ -199,7 +202,11 @@ public class EllipticalGeometry extends Renderable {
       }
 
       gl.glLineWidth(3f);
-      this.vbo.render(gl, this.renderedSegments);
+//      this.vbo.render(gl, this.renderedSegments);
+      
+      for(final EllipticalSegment segment : this.renderedSegments) {
+         segment.render(gl, glu, scene);
+      }
 
       gl.glFlush();
 
@@ -248,7 +255,7 @@ public class EllipticalGeometry extends Renderable {
          final double distance = scene.getCameraPosition().distance(boundsCenter);
 
          if ((radius >= (distance * this.loadFactor))) {
-            final List<EllipticalSegment> children = segment.getChildSegments(this.altitudeSupplier, this.setTextureFunction);
+            final List<EllipticalSegment> children = segment.getChildSegments(this.ellipsoid, this.altitudeSupplier, this.setTextureFunction);
 
             for (final EllipticalSegment child : children) {
                toRender.addAll(this.getSegmentsToRender(gl, scene, child, ignoreFrustum, depth + 1));

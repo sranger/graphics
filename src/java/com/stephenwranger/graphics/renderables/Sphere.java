@@ -13,6 +13,7 @@ import com.stephenwranger.graphics.math.CameraUtils;
 import com.stephenwranger.graphics.math.PickingHit;
 import com.stephenwranger.graphics.math.PickingRay;
 import com.stephenwranger.graphics.math.Tuple3d;
+import com.stephenwranger.graphics.math.intersection.Ellipsoid;
 import com.stephenwranger.graphics.utils.TupleMath;
 import com.stephenwranger.graphics.utils.textures.Texture2d;
 
@@ -24,7 +25,6 @@ import com.stephenwranger.graphics.utils.textures.Texture2d;
  *
  */
 public class Sphere extends RenderablePhysics {
-
    private Texture2d          texture             = null;
    public final double        radius;
    private final Color4f      color               = Color4f.white();
@@ -155,7 +155,9 @@ public class Sphere extends RenderablePhysics {
    }
 
    private void initializeVbo(final GL2 gl) {
-      this.geometry = new EllipticalGeometry(gl, this.radius, 1, (azimuth, elevation) -> {
+      final double     firstEccentricitySquared  = 1.0; // 2f − f^2 == 2.0 * 1.0 - (1.0 * 1.0) == 2.0 - 1.0 == 1.0
+      final double     secondEccentricitySquared = Double.NaN; //f(2 − f)/(1 − f)^2;
+      this.geometry = new EllipticalGeometry(gl, new Ellipsoid(new Tuple3d(), this.radius, 1.0, firstEccentricitySquared, secondEccentricitySquared), this.radius, 1, (azimuth, elevation) -> {
          return this.radius;
       }, (segment) -> {});
    }
