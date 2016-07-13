@@ -26,9 +26,9 @@ import com.stephenwranger.graphics.utils.buffers.Vertex;
 import com.stephenwranger.graphics.utils.textures.Texture2d;
 
 public class EllipticalSegment implements SegmentObject {
-   private final Vertex                  v0;
-   private final Vertex                  v1;
-   private final Vertex                  v2;
+   private final GeodesicVertex                  v0;
+   private final GeodesicVertex                  v1;
+   private final GeodesicVertex                  v2;
    private final List<EllipticalSegment> splitSegments = new ArrayList<>();
    private final BoundingVolume          bounds;
    private final int                     depth;
@@ -38,7 +38,7 @@ public class EllipticalSegment implements SegmentObject {
    private int                           poolIndex     = -1;
    private int                           bufferIndex   = -1;
 
-   public EllipticalSegment(final Vertex v0, final Vertex v1, final Vertex v2, final int depth) {
+   public EllipticalSegment(final GeodesicVertex v0, final GeodesicVertex v1, final GeodesicVertex v2, final int depth) {
       this.v0 = v0;
       this.v1 = v1;
       this.v2 = v2;
@@ -49,8 +49,8 @@ public class EllipticalSegment implements SegmentObject {
       this.bounds = new BoundingBox(min, max);
    }
    
-   public Vertex[] getVertices() {
-      return new Vertex[] { v0, v1, v2 };
+   public GeodesicVertex[] getVertices() {
+      return new GeodesicVertex[] { v0, v1, v2 };
    }
 
    @Override
@@ -208,7 +208,7 @@ public class EllipticalSegment implements SegmentObject {
 
    public static EllipticalSegment createSegment(final Tuple3d v0, final Tuple3d v1, final Tuple3d v2, final int depth, final Ellipsoid ellipsoid, final BiConsumerSupplier<Double, Double, Double> altitudeSupplier, final Consumer<EllipticalSegment> setTextureFunction) {
       final Tuple3d[] corners = new Tuple3d[] { v0, v1, v2 };
-      final Vertex[] vertices = new Vertex[3];
+      final GeodesicVertex[] vertices = new GeodesicVertex[3];
 
       for (int i = 0; i < corners.length; i++) {
          final Tuple3d v = corners[i];
@@ -236,7 +236,7 @@ public class EllipticalSegment implements SegmentObject {
 
          TupleMath.scale(vertex, altitude); // TODO: is this the correct lon/lat?
 
-         vertices[i] = new Vertex(v, vertex, normal, texCoord);
+         vertices[i] = new GeodesicVertex(v, vertex, normal, texCoord, null, new Tuple3d(longitude, latitude, altitude));
       }
 
       EllipticalSegment.fixTextureCoordinates(vertices[0].getTextureCoordinates(), vertices[1].getTextureCoordinates());

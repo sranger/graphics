@@ -33,6 +33,10 @@ public class Plane {
       return this.normal.x * point.x + this.normal.y * point.y + this.normal.z * point.z + this.d;
    }
    
+   public static final double distanceToPlane(final Vector3d planeNormal, final Tuple3d planePoint, final double x, final double y, final double z) {
+      return ((planeNormal.x * (x - planePoint.x)) + (planeNormal.y * (y - planePoint.y)) + (planeNormal.z * (z - planePoint.z)));
+   }
+   
    /**
     * Returns true if the point given is on the same side as the face normal.
     * 
