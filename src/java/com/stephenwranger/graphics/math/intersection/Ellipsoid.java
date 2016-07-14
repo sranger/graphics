@@ -45,6 +45,12 @@ public class Ellipsoid {
    }
    
    public Tuple3d intersectionToLonLat(final PickingRay ray, final double distance) {
+      final Tuple3d translatedPt = intersectionToXYZ(ray, distance);
+      
+      return toLonLatAlt(translatedPt);
+   }
+   
+   public Tuple3d intersectionToXYZ(final PickingRay ray, final double distance) {
       final Vector3d dir = new Vector3d(ray.getDirection());
       dir.scale(distance);
       final Vector3d translatedPt = new Vector3d();
@@ -56,7 +62,7 @@ public class Ellipsoid {
 
       translatedPt.subtract(intersectionPt, center);
       
-      return toLonLatAlt(translatedPt);
+      return translatedPt;
    }
 
    /**

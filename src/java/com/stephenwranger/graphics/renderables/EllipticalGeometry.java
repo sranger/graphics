@@ -18,14 +18,17 @@ import com.stephenwranger.graphics.bounds.BoundingVolume;
 import com.stephenwranger.graphics.bounds.BoundsUtils;
 import com.stephenwranger.graphics.bounds.BoundsUtils.FrustumResult;
 import com.stephenwranger.graphics.color.Color4f;
+import com.stephenwranger.graphics.math.CameraUtils;
 import com.stephenwranger.graphics.math.PickingHit;
 import com.stephenwranger.graphics.math.PickingRay;
 import com.stephenwranger.graphics.math.Quat4d;
+import com.stephenwranger.graphics.math.Tuple2d;
 import com.stephenwranger.graphics.math.Tuple3d;
-import com.stephenwranger.graphics.math.Vector3d;
 import com.stephenwranger.graphics.math.intersection.Ellipsoid;
 import com.stephenwranger.graphics.math.intersection.Plane;
 import com.stephenwranger.graphics.utils.BiConsumerSupplier;
+import com.stephenwranger.graphics.utils.MathUtils;
+import com.stephenwranger.graphics.utils.TupleMath;
 import com.stephenwranger.graphics.utils.buffers.BufferRegion;
 import com.stephenwranger.graphics.utils.buffers.DataType;
 import com.stephenwranger.graphics.utils.buffers.NormalRegion;
@@ -35,7 +38,9 @@ import com.stephenwranger.graphics.utils.buffers.VertexRegion;
 import com.stephenwranger.graphics.utils.textures.Texture2d;
 
 public class EllipticalGeometry extends Renderable {
-   // TODO: use shader
+   private static final double SCREEN_AREA_FACTOR = 0.5 * 500 * 500; // 500px square
+   private static final int MAX_DEPTH = 15;
+   
    private final Ellipsoid                                  ellipsoid;
    private final BiConsumerSupplier<Double, Double, Double> altitudeSupplier;
    private final Consumer<EllipticalSegment>                setTextureFunction;
@@ -113,10 +118,10 @@ public class EllipticalGeometry extends Renderable {
          final Tuple3d v2 = new Tuple3d(this.mainVertices[this.mainFaces[i][2]]);
 
          final EllipticalSegment segment = EllipticalSegment.createSegment(v0, v1, v2, 0, this.ellipsoid, this.altitudeSupplier, this.setTextureFunction);
-         final List<EllipticalSegment> children = segment.getChildSegments(this.ellipsoid, this.altitudeSupplier, this.setTextureFunction);
+         final List<EllipticalSegment> children = segment.getChildSegments(this.ellipsoid, this.altitudeSupplier, this.setTextureFunction, false);
 
          for (final EllipticalSegment child : children) {
-            this.segments.addAll(child.getChildSegments(this.ellipsoid, this.altitudeSupplier, this.setTextureFunction));
+            this.segments.addAll(child.getChildSegments(this.ellipsoid, this.altitudeSupplier, this.setTextureFunction, false));
          }
       }
 
@@ -155,7 +160,7 @@ public class EllipticalGeometry extends Renderable {
    @Override
    public void render(final GL2 gl, final GLU glu, final GLAutoDrawable glDrawable, final Scene scene) {
       gl.glPushMatrix();
-      gl.glPushAttrib(GL2.GL_LIGHTING_BIT);
+      gl.glPushAttrib(GL2.GL_LIGHTING_BIT | GL2.GL_LINE_BIT);
 
       if (this.isLightingEnabled) {
          gl.glEnable(GLLightingFunc.GL_LIGHTING);
@@ -249,16 +254,27 @@ public class EllipticalGeometry extends Renderable {
       }
 
       if (result != FrustumResult.OUT) {
-         final Tuple3d boundsCenter = bounds.getCenter();
-         final Vector3d rightVector = scene.getRightVector();
-         final double radius = bounds.getSpannedDistance(rightVector) * 2.0;
-         final double distance = scene.getCameraPosition().distance(boundsCenter);
-
-         if ((radius >= (distance * this.loadFactor))) {
-            final List<EllipticalSegment> children = segment.getChildSegments(this.ellipsoid, this.altitudeSupplier, this.setTextureFunction);
-
-            for (final EllipticalSegment child : children) {
-               toRender.addAll(this.getSegmentsToRender(gl, scene, child, ignoreFrustum, depth + 1));
+         if(depth < MAX_DEPTH) {
+            final GeodesicVertex[] vertices = segment.getVertices();
+            final Tuple2d v0ScreenSpace = CameraUtils.gluProject(scene, TupleMath.sub(vertices[0].getVertex(), origin)).xy();
+            final Tuple2d v1ScreenSpace = CameraUtils.gluProject(scene, TupleMath.sub(vertices[1].getVertex(), origin)).xy();
+            final Tuple2d v2ScreenSpace = CameraUtils.gluProject(scene, TupleMath.sub(vertices[2].getVertex(), origin)).xy();
+            final double base = MathUtils.getMax(v0ScreenSpace.x, v1ScreenSpace.x, v2ScreenSpace.x) - MathUtils.getMin(v0ScreenSpace.x, v1ScreenSpace.x, v2ScreenSpace.x);
+            final double height = MathUtils.getMax(v0ScreenSpace.y, v1ScreenSpace.y, v2ScreenSpace.y) - MathUtils.getMin(v0ScreenSpace.y, v1ScreenSpace.y, v2ScreenSpace.y);
+            final double area = 0.5 * base * height;
+            
+            if (area >= (SCREEN_AREA_FACTOR * this.loadFactor)) {
+               final List<EllipticalSegment> children = segment.getChildSegments(this.ellipsoid, this.altitudeSupplier, this.setTextureFunction, true);
+   
+               if(children == null || children.isEmpty()) {
+                  toRender.add(segment);
+               } else {
+                  for (final EllipticalSegment child : children) {
+                     toRender.addAll(this.getSegmentsToRender(gl, scene, child, ignoreFrustum, depth + 1));
+                  }
+               }
+            } else {
+               toRender.add(segment);
             }
          } else {
             toRender.add(segment);

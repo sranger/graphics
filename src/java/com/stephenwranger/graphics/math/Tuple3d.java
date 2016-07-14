@@ -74,6 +74,18 @@ public class Tuple3d {
 
       return this;
    }
+   
+   public Tuple2d xy() {
+      return new Tuple2d(this.x, this.y);
+   }
+   
+   public Tuple2d xz() {
+      return new Tuple2d(this.x, this.z);
+   }
+   
+   public Tuple2d yz() {
+      return new Tuple2d(this.y, this.z);
+   }
 
    public double distanceSquared(final Tuple3d other) {
       return (this.x - other.x) * (this.x - other.x) + (this.y - other.y) * (this.y - other.y) + (this.z - other.z) * (this.z - other.z);
