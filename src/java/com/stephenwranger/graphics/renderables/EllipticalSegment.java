@@ -199,6 +199,8 @@ public class EllipticalSegment implements SegmentObject {
             gl.glTexCoord2f((float) texCoord[2].x, (float) texCoord[2].y);
             gl.glVertex3f((float) (this.v2.getVertex().x - origin.x), (float) (this.v2.getVertex().y - origin.y), (float) (this.v2.getVertex().z - origin.z));
             gl.glEnd();
+            
+            texture.disable(gl);
          }
       }
    }
