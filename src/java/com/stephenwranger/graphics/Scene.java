@@ -356,8 +356,6 @@ public class Scene extends GLCanvas implements GLEventListener {
          }
       }
 
-      // System.out.println(this.near + ", " + this.far);
-
       if (this.near >= this.far) {
          if (this.sceneBounds != null) {
             final Tuple3d direction = TupleMath.sub(this.cameraPosition, this.sceneBounds.getCenter());
@@ -384,8 +382,6 @@ public class Scene extends GLCanvas implements GLEventListener {
          this.near = this.far / 3000.0;
       }
       
-      System.out.println(this.near + ", " + this.far);
-
       final double[] proj = CameraUtils.gluPerspective(gl, this.fov, this.viewport[2] / (double) this.viewport[3], this.near, this.far);
       System.arraycopy(proj, 0, this.projection, 0, 16);
    }

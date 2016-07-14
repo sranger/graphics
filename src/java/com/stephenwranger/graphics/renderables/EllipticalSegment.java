@@ -97,11 +97,33 @@ public class EllipticalSegment implements SegmentObject {
    public int getBufferIndex() {
       return this.bufferIndex;
    }
+   
+   private boolean hasChildren = false;
 
-   public List<EllipticalSegment> getChildSegments(final Ellipsoid ellipsoid, final BiConsumerSupplier<Double, Double, Double> altitudeSupplier, final Consumer<EllipticalSegment> setTextureFunction) {
-      if (this.splitSegments.isEmpty()) {
-         final List<EllipticalSegment> children = EllipticalSegment.getChildSegments(ellipsoid, this, altitudeSupplier, setTextureFunction);
-         this.splitSegments.addAll(children);
+   public List<EllipticalSegment> getChildSegments(final Ellipsoid ellipsoid, final BiConsumerSupplier<Double, Double, Double> altitudeSupplier, final Consumer<EllipticalSegment> setTextureFunction, final boolean threaded) {
+      synchronized(this.splitSegments) {         
+         if(threaded) {
+            if(!hasChildren) {
+               hasChildren = true;
+               new Thread() {
+                  @Override
+                  public void run() {
+                     try {
+                        Thread.sleep(10);
+                     } catch(final InterruptedException e) {
+                        e.printStackTrace();
+                     }
+                     
+                     final List<EllipticalSegment> children = EllipticalSegment.getChildSegments(ellipsoid, EllipticalSegment.this, altitudeSupplier, setTextureFunction);
+                     splitSegments.addAll(children);
+                  }
+               }.start();
+            }
+         } else {
+            final List<EllipticalSegment> children = EllipticalSegment.getChildSegments(ellipsoid, EllipticalSegment.this, altitudeSupplier, setTextureFunction);
+            splitSegments.addAll(children);
+            this.hasChildren = true;
+         }
       }
 
       return Collections.unmodifiableList(this.splitSegments);
