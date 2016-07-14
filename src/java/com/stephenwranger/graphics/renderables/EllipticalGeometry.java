@@ -29,12 +29,6 @@ import com.stephenwranger.graphics.math.intersection.Plane;
 import com.stephenwranger.graphics.utils.BiConsumerSupplier;
 import com.stephenwranger.graphics.utils.MathUtils;
 import com.stephenwranger.graphics.utils.TupleMath;
-import com.stephenwranger.graphics.utils.buffers.BufferRegion;
-import com.stephenwranger.graphics.utils.buffers.DataType;
-import com.stephenwranger.graphics.utils.buffers.NormalRegion;
-import com.stephenwranger.graphics.utils.buffers.SegmentedVertexBufferPool;
-import com.stephenwranger.graphics.utils.buffers.TextureRegion;
-import com.stephenwranger.graphics.utils.buffers.VertexRegion;
 import com.stephenwranger.graphics.utils.textures.Texture2d;
 
 public class EllipticalGeometry extends Renderable {
@@ -51,7 +45,7 @@ public class EllipticalGeometry extends Renderable {
    private final Set<EllipticalSegment>                     renderedSegments  = new HashSet<>();
    private final Tuple3d                                    origin            = new Tuple3d(0, 0, 0);
    private final Color4f                                    color             = Color4f.white();
-   private final SegmentedVertexBufferPool                  vbo;
+//   private final SegmentedVertexBufferPool                  vbo;
 
    private Texture2d                                        texture           = null;
    private double                                           loadFactor        = 0.75;
@@ -125,8 +119,8 @@ public class EllipticalGeometry extends Renderable {
          }
       }
 
-      final BufferRegion[] bufferRegions = new BufferRegion[] { new VertexRegion(3, DataType.FLOAT), new NormalRegion(DataType.FLOAT), new TextureRegion(2, DataType.FLOAT) };
-      this.vbo = new SegmentedVertexBufferPool(3, 1000, GL.GL_TRIANGLES, GL.GL_DYNAMIC_DRAW, bufferRegions);
+//      final BufferRegion[] bufferRegions = new BufferRegion[] { new VertexRegion(3, DataType.FLOAT), new NormalRegion(DataType.FLOAT), new TextureRegion(2, DataType.FLOAT) };
+//      this.vbo = new SegmentedVertexBufferPool(3, 1000, GL.GL_TRIANGLES, GL.GL_DYNAMIC_DRAW, bufferRegions);
    }
 
    @Override
@@ -180,11 +174,11 @@ public class EllipticalGeometry extends Renderable {
       final Tuple3d origin = scene.getOrigin();
 
       // TODO split/add/remove via LOD
-      boolean originChanged = false;
+//      boolean originChanged = false;
 
       if (this.origin.distance(origin) > 1) {
          this.origin.set(origin);
-         originChanged = true;
+//         originChanged = true;
       }
 
       final List<EllipticalSegment> previous = new ArrayList<>();
@@ -201,7 +195,7 @@ public class EllipticalGeometry extends Renderable {
 
       for (final EllipticalSegment segment : previous) {
          if (!this.renderedSegments.contains(segment)) {
-            this.vbo.clearSegmentObject(gl, segment);
+//            this.vbo.clearSegmentObject(gl, segment);
             segment.clearTextures(gl);
          }
       }
@@ -285,9 +279,9 @@ public class EllipticalGeometry extends Renderable {
 
    }
 
-   private void loadVertices(final GL2 gl, final EllipticalSegment segment, final boolean originChanged) {
-      if (originChanged || (segment.getSegmentPoolIndex() == -1) || (segment.getBufferIndex() == -1)) {
-         this.vbo.setSegmentObject(gl, this.origin, segment);
-      }
-   }
+//   private void loadVertices(final GL2 gl, final EllipticalSegment segment, final boolean originChanged) {
+//      if (originChanged || (segment.getSegmentPoolIndex() == -1) || (segment.getBufferIndex() == -1)) {
+//         this.vbo.setSegmentObject(gl, this.origin, segment);
+//      }
+//   }
 }

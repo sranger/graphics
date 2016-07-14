@@ -5,11 +5,10 @@ import java.awt.image.PixelGrabber;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 
 import javax.imageio.ImageIO;
-import com.jogamp.opengl.GL2;
 
+import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.GLBuffers;
 
 public class Texture2d {
