@@ -32,27 +32,28 @@ import com.stephenwranger.graphics.utils.TupleMath;
 import com.stephenwranger.graphics.utils.textures.Texture2d;
 
 public class EllipticalGeometry extends Renderable {
-   private static final double SCREEN_EDGE_FACTOR = 500;
-   private static final double SCREEN_AREA_FACTOR = 0.5 * SCREEN_EDGE_FACTOR * SCREEN_EDGE_FACTOR;
-   private static final int MAX_DEPTH = 15;
-   
+   private static final double                              SCREEN_EDGE_FACTOR = 500;
+   private static final double                              SCREEN_AREA_FACTOR = 0.5 * EllipticalGeometry.SCREEN_EDGE_FACTOR * EllipticalGeometry.SCREEN_EDGE_FACTOR;
+   private static final int                                 MAX_DEPTH          = Integer.MAX_VALUE;
+
    private final Ellipsoid                                  ellipsoid;
    private final BiConsumerSupplier<Double, Double, Double> altitudeSupplier;
    private final Consumer<EllipticalSegment>                setTextureFunction;
    private final BoundingSphere                             bounds;
-   private final Tuple3d[]                                  mainVertices      = new Tuple3d[12];
-   private final int[][]                                    mainFaces         = new int[20][3];
-   private final List<EllipticalSegment>                    segments          = new LinkedList<>();
-   private final Set<EllipticalSegment>                     renderedSegments  = new HashSet<>();
-   private final Tuple3d                                    origin            = new Tuple3d(0, 0, 0);
-   private final Color4f                                    color             = Color4f.white();
-//   private final SegmentedVertexBufferPool                  vbo;
+   private final Tuple3d[]                                  mainVertices       = new Tuple3d[12];
+   private final int[][]                                    mainFaces          = new int[20][3];
+   private final List<EllipticalSegment>                    segments           = new LinkedList<>();
+   private final Set<EllipticalSegment>                     renderedSegments   = new HashSet<>();
+   private final Tuple3d                                    origin             = new Tuple3d(0, 0, 0);
+   private final Color4f                                    color              = Color4f.white();
+   //   private final SegmentedVertexBufferPool                  vbo;
 
-   private Texture2d                                        texture           = null;
-   private double                                           loadFactor        = 0.75;
-   private boolean                                          isLightingEnabled = true;
+   private Texture2d                                        texture            = null;
+   private double                                           loadFactor         = 0.75;
+   private boolean                                          isLightingEnabled  = true;
 
-   public EllipticalGeometry(final GL2 gl, final Ellipsoid ellipsoid, final double boundedRadius, final int subdivisions, final BiConsumerSupplier<Double, Double, Double> altitudeSupplier, final Consumer<EllipticalSegment> setTextureFunction) {
+   public EllipticalGeometry(final GL2 gl, final Ellipsoid ellipsoid, final double boundedRadius, final int subdivisions, final BiConsumerSupplier<Double, Double, Double> altitudeSupplier,
+         final Consumer<EllipticalSegment> setTextureFunction) {
       super(new Tuple3d(), new Quat4d());
 
       this.ellipsoid = ellipsoid;
@@ -120,8 +121,8 @@ public class EllipticalGeometry extends Renderable {
          }
       }
 
-//      final BufferRegion[] bufferRegions = new BufferRegion[] { new VertexRegion(3, DataType.FLOAT), new NormalRegion(DataType.FLOAT), new TextureRegion(2, DataType.FLOAT) };
-//      this.vbo = new SegmentedVertexBufferPool(3, 1000, GL.GL_TRIANGLES, GL.GL_DYNAMIC_DRAW, bufferRegions);
+      //      final BufferRegion[] bufferRegions = new BufferRegion[] { new VertexRegion(3, DataType.FLOAT), new NormalRegion(DataType.FLOAT), new TextureRegion(2, DataType.FLOAT) };
+      //      this.vbo = new SegmentedVertexBufferPool(3, 1000, GL.GL_TRIANGLES, GL.GL_DYNAMIC_DRAW, bufferRegions);
    }
 
    @Override
@@ -175,11 +176,11 @@ public class EllipticalGeometry extends Renderable {
       final Tuple3d origin = scene.getOrigin();
 
       // TODO split/add/remove via LOD
-//      boolean originChanged = false;
+      //      boolean originChanged = false;
 
       if (this.origin.distance(origin) > 1) {
          this.origin.set(origin);
-//         originChanged = true;
+         //         originChanged = true;
       }
 
       final List<EllipticalSegment> previous = new ArrayList<>();
@@ -190,21 +191,21 @@ public class EllipticalGeometry extends Renderable {
          this.renderedSegments.addAll(this.getSegmentsToRender(gl, scene, segment, false, 0));
       }
 
-//      for (final EllipticalSegment segment : this.renderedSegments) {
-//         this.loadVertices(gl, segment, originChanged);
-//      }
+      //      for (final EllipticalSegment segment : this.renderedSegments) {
+      //         this.loadVertices(gl, segment, originChanged);
+      //      }
 
       for (final EllipticalSegment segment : previous) {
          if (!this.renderedSegments.contains(segment)) {
-//            this.vbo.clearSegmentObject(gl, segment);
+            //            this.vbo.clearSegmentObject(gl, segment);
             segment.clearTextures(gl);
          }
       }
 
       gl.glLineWidth(3f);
-//      this.vbo.render(gl, this.renderedSegments);
-      
-      for(final EllipticalSegment segment : this.renderedSegments) {
+      //      this.vbo.render(gl, this.renderedSegments);
+
+      for (final EllipticalSegment segment : this.renderedSegments) {
          segment.render(gl, glu, scene);
       }
 
@@ -249,7 +250,7 @@ public class EllipticalGeometry extends Renderable {
       }
 
       if (result != FrustumResult.OUT) {
-         if(depth < MAX_DEPTH) {
+         if (depth < EllipticalGeometry.MAX_DEPTH) {
             final GeodesicVertex[] vertices = segment.getVertices();
             final Tuple2d v0ScreenSpace = CameraUtils.gluProject(scene, TupleMath.sub(vertices[0].getVertex(), origin)).xy();
             final Tuple2d v1ScreenSpace = CameraUtils.gluProject(scene, TupleMath.sub(vertices[1].getVertex(), origin)).xy();
@@ -257,11 +258,11 @@ public class EllipticalGeometry extends Renderable {
             final double base = MathUtils.getMax(v0ScreenSpace.x, v1ScreenSpace.x, v2ScreenSpace.x) - MathUtils.getMin(v0ScreenSpace.x, v1ScreenSpace.x, v2ScreenSpace.x);
             final double height = MathUtils.getMax(v0ScreenSpace.y, v1ScreenSpace.y, v2ScreenSpace.y) - MathUtils.getMin(v0ScreenSpace.y, v1ScreenSpace.y, v2ScreenSpace.y);
             final double area = 0.5 * base * height;
-            
-            if (area >= (SCREEN_AREA_FACTOR * this.loadFactor) || base >= SCREEN_EDGE_FACTOR * this.loadFactor || height >= SCREEN_EDGE_FACTOR * this.loadFactor) {
+
+            if ((area >= (EllipticalGeometry.SCREEN_AREA_FACTOR * this.loadFactor)) || (base >= (EllipticalGeometry.SCREEN_EDGE_FACTOR * this.loadFactor)) || (height >= (EllipticalGeometry.SCREEN_EDGE_FACTOR * this.loadFactor))) {
                final List<EllipticalSegment> children = segment.getChildSegments(this.ellipsoid, this.altitudeSupplier, this.setTextureFunction, true);
-   
-               if(children == null || children.isEmpty() || !hasTextures(children)) {
+
+               if ((children == null) || children.isEmpty() || !EllipticalGeometry.hasTextures(children)) {
                   toRender.add(segment);
                } else {
                   for (final EllipticalSegment child : children) {
@@ -279,20 +280,20 @@ public class EllipticalGeometry extends Renderable {
       return toRender;
 
    }
-   
+
    private static boolean hasTextures(final List<EllipticalSegment> segments) {
-      for(final EllipticalSegment segment : segments) {
-         if(segment.getTextureCount() == 0) {
+      for (final EllipticalSegment segment : segments) {
+         if (segment.getTextureCount() == 0) {
             return false;
          }
       }
-      
+
       return true;
    }
 
-//   private void loadVertices(final GL2 gl, final EllipticalSegment segment, final boolean originChanged) {
-//      if (originChanged || (segment.getSegmentPoolIndex() == -1) || (segment.getBufferIndex() == -1)) {
-//         this.vbo.setSegmentObject(gl, this.origin, segment);
-//      }
-//   }
+   //   private void loadVertices(final GL2 gl, final EllipticalSegment segment, final boolean originChanged) {
+   //      if (originChanged || (segment.getSegmentPoolIndex() == -1) || (segment.getBufferIndex() == -1)) {
+   //         this.vbo.setSegmentObject(gl, this.origin, segment);
+   //      }
+   //   }
 }
