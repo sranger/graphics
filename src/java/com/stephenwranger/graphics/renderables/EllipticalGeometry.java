@@ -32,7 +32,8 @@ import com.stephenwranger.graphics.utils.TupleMath;
 import com.stephenwranger.graphics.utils.textures.Texture2d;
 
 public class EllipticalGeometry extends Renderable {
-   private static final double SCREEN_AREA_FACTOR = 0.5 * 500 * 500; // 500px square
+   private static final double SCREEN_EDGE_FACTOR = 500;
+   private static final double SCREEN_AREA_FACTOR = 0.5 * SCREEN_EDGE_FACTOR * SCREEN_EDGE_FACTOR;
    private static final int MAX_DEPTH = 15;
    
    private final Ellipsoid                                  ellipsoid;
@@ -257,7 +258,7 @@ public class EllipticalGeometry extends Renderable {
             final double height = MathUtils.getMax(v0ScreenSpace.y, v1ScreenSpace.y, v2ScreenSpace.y) - MathUtils.getMin(v0ScreenSpace.y, v1ScreenSpace.y, v2ScreenSpace.y);
             final double area = 0.5 * base * height;
             
-            if (area >= (SCREEN_AREA_FACTOR * this.loadFactor)) {
+            if (area >= (SCREEN_AREA_FACTOR * this.loadFactor) || base >= SCREEN_EDGE_FACTOR * this.loadFactor || height >= SCREEN_EDGE_FACTOR * this.loadFactor) {
                final List<EllipticalSegment> children = segment.getChildSegments(this.ellipsoid, this.altitudeSupplier, this.setTextureFunction, true);
    
                if(children == null || children.isEmpty() || !hasTextures(children)) {
