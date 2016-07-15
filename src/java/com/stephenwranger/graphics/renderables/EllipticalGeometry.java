@@ -260,7 +260,7 @@ public class EllipticalGeometry extends Renderable {
             if (area >= (SCREEN_AREA_FACTOR * this.loadFactor)) {
                final List<EllipticalSegment> children = segment.getChildSegments(this.ellipsoid, this.altitudeSupplier, this.setTextureFunction, true);
    
-               if(children == null || children.isEmpty()) {
+               if(children == null || children.isEmpty() || !hasTextures(children)) {
                   toRender.add(segment);
                } else {
                   for (final EllipticalSegment child : children) {
@@ -277,6 +277,16 @@ public class EllipticalGeometry extends Renderable {
 
       return toRender;
 
+   }
+   
+   private static boolean hasTextures(final List<EllipticalSegment> segments) {
+      for(final EllipticalSegment segment : segments) {
+         if(segment.getTextureCount() == 0) {
+            return false;
+         }
+      }
+      
+      return true;
    }
 
 //   private void loadVertices(final GL2 gl, final EllipticalSegment segment, final boolean originChanged) {
