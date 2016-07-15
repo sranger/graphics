@@ -52,41 +52,9 @@ public class EllipticalSegment implements SegmentObject {
    public GeodesicVertex[] getVertices() {
       return new GeodesicVertex[] { v0, v1, v2 };
    }
-
-   @Override
-   public boolean equals(final Object obj) {
-      if (this == obj) {
-         return true;
-      }
-      if (obj == null) {
-         return false;
-      }
-      if (this.getClass() != obj.getClass()) {
-         return false;
-      }
-      EllipticalSegment other = (EllipticalSegment) obj;
-      if (this.v0 == null) {
-         if (other.v0 != null) {
-            return false;
-         }
-      } else if (!this.v0.equals(other.v0)) {
-         return false;
-      }
-      if (this.v1 == null) {
-         if (other.v1 != null) {
-            return false;
-         }
-      } else if (!this.v1.equals(other.v1)) {
-         return false;
-      }
-      if (this.v2 == null) {
-         if (other.v2 != null) {
-            return false;
-         }
-      } else if (!this.v2.equals(other.v2)) {
-         return false;
-      }
-      return true;
+   
+   public int getTextureCount() {
+      return (this.customTextures == null) ? 0 : this.customTextures.length;
    }
 
    public BoundingVolume getBoundingVolume() {
@@ -101,9 +69,9 @@ public class EllipticalSegment implements SegmentObject {
    private boolean hasChildren = false;
 
    public List<EllipticalSegment> getChildSegments(final Ellipsoid ellipsoid, final BiConsumerSupplier<Double, Double, Double> altitudeSupplier, final Consumer<EllipticalSegment> setTextureFunction, final boolean threaded) {
-      synchronized(this.splitSegments) {         
-         if(threaded) {
-            if(!hasChildren) {
+      synchronized(this.splitSegments) {
+         if(!this.hasChildren) {
+            if(threaded) {
                hasChildren = true;
                new Thread() {
                   @Override
@@ -118,11 +86,11 @@ public class EllipticalSegment implements SegmentObject {
                      splitSegments.addAll(children);
                   }
                }.start();
+            } else {
+               this.hasChildren = true;
+               final List<EllipticalSegment> children = EllipticalSegment.getChildSegments(ellipsoid, EllipticalSegment.this, altitudeSupplier, setTextureFunction);
+               splitSegments.addAll(children);
             }
-         } else {
-            final List<EllipticalSegment> children = EllipticalSegment.getChildSegments(ellipsoid, EllipticalSegment.this, altitudeSupplier, setTextureFunction);
-            splitSegments.addAll(children);
-            this.hasChildren = true;
          }
       }
 
@@ -148,16 +116,6 @@ public class EllipticalSegment implements SegmentObject {
    @Override
    public int getVertexCount() {
       return 3;
-   }
-
-   @Override
-   public int hashCode() {
-      final int prime = 31;
-      int result = 1;
-      result = (prime * result) + ((this.v0 == null) ? 0 : this.v0.hashCode());
-      result = (prime * result) + ((this.v1 == null) ? 0 : this.v1.hashCode());
-      result = (prime * result) + ((this.v2 == null) ? 0 : this.v2.hashCode());
-      return result;
    }
 
    public boolean isSplit() {
@@ -190,7 +148,7 @@ public class EllipticalSegment implements SegmentObject {
             final Texture2d texture = this.customTextures[i];
             final Tuple2d[] texCoord = this.texCoords[i];
             texture.enable(gl);
-
+            
             gl.glBegin(GL2.GL_TRIANGLES);
             gl.glTexCoord2f((float) texCoord[0].x, (float) texCoord[0].y);
             gl.glVertex3f((float) (this.v0.getVertex().x - origin.x), (float) (this.v0.getVertex().y - origin.y), (float) (this.v0.getVertex().z - origin.z));
@@ -213,7 +171,12 @@ public class EllipticalSegment implements SegmentObject {
 
    public void setTexture(final Texture2d[] textures, final Tuple2d[][] texCoords) {
       this.customTextures = textures;
-      this.texCoords = texCoords;
+      
+      if(texCoords == null) {
+         this.texCoords = new Tuple2d[][] { { this.v0.getTextureCoordinates(), this.v1.getTextureCoordinates(), this.v2.getTextureCoordinates() } };
+      } else {
+         this.texCoords = texCoords;
+      }
 
       if ((texCoords != null) && (texCoords.length > 0 && texCoords[0].length == 3)) {
          this.v0.setTextureCoordinates(texCoords[0][0]);

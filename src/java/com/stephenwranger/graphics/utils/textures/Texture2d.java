@@ -1,5 +1,8 @@
 package com.stephenwranger.graphics.utils.textures;
 
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.PixelGrabber;
 import java.io.IOException;
@@ -12,11 +15,13 @@ import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.util.GLBuffers;
 
 public class Texture2d {
+   private static final BufferedImage DEFAULT_IMAGE = Texture2d.getDefaultImage();
    private int texId = -1;
    private final int width, height;
    private final ByteBuffer pixelData;
    private final int format;
    private final int internal;
+   private final boolean isImageValid;
    
    public Texture2d(final InputStream rgbStream, final InputStream alphaStream) throws IOException {
       final BufferedImage rgb = ImageIO.read(rgbStream);
@@ -67,10 +72,17 @@ public class Texture2d {
       }
 
       pixelData.flip();
+      this.isImageValid = true;
    }
 
    public Texture2d(final InputStream inputStream, final int format) throws IOException {
-      final BufferedImage image = ImageIO.read(inputStream);
+      BufferedImage image = ImageIO.read(inputStream);
+      this.isImageValid = image != null;
+      
+      if(image == null) {
+         image = DEFAULT_IMAGE;
+      }
+      
       this.width = image.getWidth();
       this.height = image.getHeight();
       this.format = format;
@@ -106,29 +118,33 @@ public class Texture2d {
    }
    
    public BufferedImage getImage() {
-      final BufferedImage image = new BufferedImage(this.width, this.height, BufferedImage.TYPE_INT_ARGB);
-      final int bytes = format == GL2.GL_ALPHA ? 1 : format == GL2.GL_RGB ? 3 : 4;
-      int color;
+      BufferedImage image = null;
       
-      
-      for (int row = height - 1; row >= 0; row--) {
-         for (int col = 0; col < width; col++) {
-            color = 0;
-            
-            if(bytes >= 3) {
-               color += (pixelData.get() << 16);
-               color += (pixelData.get() << 8);
-               color += (pixelData.get() << 0);
+      if(this.isImageValid) {
+         image = new BufferedImage(this.width, this.height, BufferedImage.TYPE_INT_ARGB);
+         final int bytes = format == GL2.GL_ALPHA ? 1 : format == GL2.GL_RGB ? 3 : 4;
+         int color;
+         
+         
+         for (int row = height - 1; row >= 0; row--) {
+            for (int col = 0; col < width; col++) {
+               color = 0;
+               
+               if(bytes >= 3) {
+                  color += (pixelData.get() << 16);
+                  color += (pixelData.get() << 8);
+                  color += (pixelData.get() << 0);
+               }
+               if(bytes == 1 || bytes == 4) {
+                  color += (pixelData.get() << 24);
+               }
+               
+               image.setRGB(col, row, color);
             }
-            if(bytes == 1 || bytes == 4) {
-               color += (pixelData.get() << 24);
-            }
-            
-            image.setRGB(col, row, color);
          }
+         
+         pixelData.rewind();
       }
-      
-      pixelData.rewind();
       
       return image;
    }
@@ -190,5 +206,19 @@ public class Texture2d {
       } catch (IOException e) {
          return null;
       }
+   }
+   
+   private static BufferedImage getDefaultImage() {
+      final BufferedImage image = new BufferedImage(128,128,BufferedImage.TYPE_INT_ARGB);
+      final Graphics2D g = (Graphics2D) image.getGraphics();
+      
+      g.setBackground(Color.WHITE);
+      g.clearRect(1, 1, 127, 127);
+      g.setColor(Color.RED);
+      g.setStroke(new BasicStroke(4f));
+      g.drawLine(1, 1, 127, 127);
+      g.dispose();
+      
+      return image;
    }
 }
