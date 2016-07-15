@@ -378,12 +378,14 @@ public class Scene extends GLCanvas implements GLEventListener {
          this.far = this.near * 3000.0;
       }
 
-      if (this.near < (this.far / 3000.0)) {
-         this.near = this.far / 3000.0;
-      }
+//      if (this.near < (this.far / 3000.0)) {
+//         this.near = this.far / 3000.0;
+//      }
       
       final double[] proj = CameraUtils.gluPerspective(gl, this.fov, this.viewport[2] / (double) this.viewport[3], this.near, this.far);
       System.arraycopy(proj, 0, this.projection, 0, 16);
+      
+//      System.out.println("near/far: " + String.format("%.2f", near) + " / " + String.format("%.2f", far));
    }
 
    public synchronized void setAnimationSpeed(final double doubleValue) {
