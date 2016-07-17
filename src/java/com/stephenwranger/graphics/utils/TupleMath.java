@@ -91,6 +91,21 @@ public class TupleMath {
       return (v0.x * v1.x) + (v0.y * v1.y) + (v0.z * v1.z);
    }
 
+   public static Tuple2d getMax(final Tuple2d... tuples) {
+      Tuple2d max = null;
+
+      if ((tuples != null) && (tuples.length > 0)) {
+         max = new Tuple2d(-Double.MAX_VALUE, -Double.MAX_VALUE);
+
+         for (final Tuple2d tuple : tuples) {
+            max.x = Math.max(max.x, tuple.x);
+            max.y = Math.max(max.y, tuple.y);
+         }
+      }
+
+      return max;
+   }
+
    public static Tuple3d getMax(final Tuple3d... tuples) {
       Tuple3d max = null;
 
@@ -105,6 +120,21 @@ public class TupleMath {
       }
 
       return max;
+   }
+
+   public static Tuple2d getMin(final Tuple2d... tuples) {
+      Tuple2d min = null;
+
+      if ((tuples != null) && (tuples.length > 0)) {
+         min = new Tuple2d(Double.MAX_VALUE, Double.MAX_VALUE);
+
+         for (final Tuple2d tuple : tuples) {
+            min.x = Math.min(min.x, tuple.x);
+            min.y = Math.min(min.y, tuple.y);
+         }
+      }
+
+      return min;
    }
 
    public static Tuple3d getMin(final Tuple3d... tuples) {
