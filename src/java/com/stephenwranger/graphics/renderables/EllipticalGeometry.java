@@ -24,17 +24,53 @@ import com.stephenwranger.graphics.math.PickingRay;
 import com.stephenwranger.graphics.math.Quat4d;
 import com.stephenwranger.graphics.math.Tuple2d;
 import com.stephenwranger.graphics.math.Tuple3d;
+import com.stephenwranger.graphics.math.Vector3d;
 import com.stephenwranger.graphics.math.intersection.Ellipsoid;
 import com.stephenwranger.graphics.math.intersection.Plane;
 import com.stephenwranger.graphics.utils.BiConsumerSupplier;
-import com.stephenwranger.graphics.utils.MathUtils;
 import com.stephenwranger.graphics.utils.TupleMath;
 import com.stephenwranger.graphics.utils.textures.Texture2d;
 
 public class EllipticalGeometry extends Renderable {
+   public static final int                                  CENTER             = 0;
+   public static final int                                  NORTHWEST          = 1;
+   public static final int                                  NORTH              = 2;
+   public static final int                                  NORTHEAST          = 3;
+   public static final int                                  EAST               = 4;
+   public static final int                                  SOUTHEAST          = 5;
+   public static final int                                  SOUTH              = 6;
+   public static final int                                  SOUTHWEST          = 7;
+   public static final int                                  WEST               = 8;
+
    private static final double                              SCREEN_EDGE_FACTOR = 500;
    private static final double                              SCREEN_AREA_FACTOR = 0.5 * EllipticalGeometry.SCREEN_EDGE_FACTOR * EllipticalGeometry.SCREEN_EDGE_FACTOR;
    private static final int                                 MAX_DEPTH          = Integer.MAX_VALUE;
+   private static final double                              MAX_OFFSET         = 30.0;
+
+   //@formatter:off
+   private static final double[] LONGITUDE_OFFSETS = new double[] {
+         EllipticalGeometry.MAX_OFFSET / 2.0,   // center
+         0.0,                                   // NW
+         EllipticalGeometry.MAX_OFFSET / 2.0,   // N
+         EllipticalGeometry.MAX_OFFSET,         // NE
+         EllipticalGeometry.MAX_OFFSET,         // E
+         EllipticalGeometry.MAX_OFFSET,         // SE
+         EllipticalGeometry.MAX_OFFSET / 2.0,   // S
+         0.0,                                   // SW
+         0.0                                    // W
+   };
+   private static final double[] LATITUDE_OFFSETS = new double[] {
+         EllipticalGeometry.MAX_OFFSET / 2.0,   // center
+         0.0,                                   // NW
+         0.0,                                   // N
+         0.0,                                   // NE
+         EllipticalGeometry.MAX_OFFSET / 2.0,   // E
+         EllipticalGeometry.MAX_OFFSET,         // SE
+         EllipticalGeometry.MAX_OFFSET,         // S
+         EllipticalGeometry.MAX_OFFSET,         // SW
+         EllipticalGeometry.MAX_OFFSET / 2.0    // W
+   };
+   //@formatter:on
 
    private final Ellipsoid                                  ellipsoid;
    private final BiConsumerSupplier<Double, Double, Double> altitudeSupplier;
@@ -61,68 +97,29 @@ public class EllipticalGeometry extends Renderable {
       this.setTextureFunction = setTextureFunction;
       this.bounds = new BoundingSphere(new Tuple3d(), boundedRadius);
 
-      // icosahedron vertices
-      final double t = (1.0 + Math.sqrt(5.0)) / 2.0;
+      for (double lon = -180; lon < 180; lon += EllipticalGeometry.MAX_OFFSET) {
+         for (double lat = -90; lat < 90; lat += EllipticalGeometry.MAX_OFFSET) {
+            final GeodesicVertex[] vertices = new GeodesicVertex[EllipticalGeometry.LONGITUDE_OFFSETS.length];
 
-      // original geometry
-      this.mainVertices[0] = new Tuple3d(-1, t, 0);
-      this.mainVertices[1] = new Tuple3d(1, t, 0);
-      this.mainVertices[2] = new Tuple3d(-1, -t, 0);
-      this.mainVertices[3] = new Tuple3d(1, -t, 0);
+            for (int i = 0; i < EllipticalGeometry.LONGITUDE_OFFSETS.length; i++) {
+               final double lonWithOffset = lon + EllipticalGeometry.LONGITUDE_OFFSETS[i];
+               final double latWithOffset = lat + EllipticalGeometry.LATITUDE_OFFSETS[i];
+               final double alt = altitudeSupplier.getValue(lonWithOffset, latWithOffset);
 
-      this.mainVertices[4] = new Tuple3d(0, -1, t);
-      this.mainVertices[5] = new Tuple3d(0, 1, t);
-      this.mainVertices[6] = new Tuple3d(0, -1, -t);
-      this.mainVertices[7] = new Tuple3d(0, 1, -t);
+               final Tuple3d lonLatAlt = new Tuple3d(lonWithOffset, latWithOffset, alt);
+               final Tuple3d xyz = this.ellipsoid.toXYZ(lonLatAlt);
+               final Vector3d normal = new Vector3d(xyz);
+               normal.normalize();
+               final Tuple3d base = new Tuple3d(normal);
+               final Tuple2d texCoords = new Tuple2d((lonWithOffset + 180) / 360.0, (latWithOffset + 90) / 180.0);
+               vertices[i] = new GeodesicVertex(base, xyz, normal, texCoords, Color4f.white(), lonLatAlt);
+            }
 
-      this.mainVertices[8] = new Tuple3d(t, 0, -1);
-      this.mainVertices[9] = new Tuple3d(t, 0, 1);
-      this.mainVertices[10] = new Tuple3d(-t, 0, -1);
-      this.mainVertices[11] = new Tuple3d(-t, 0, 1);
-
-      // faces near v0
-      this.mainFaces[0] = new int[] { 0, 11, 5 };
-      this.mainFaces[1] = new int[] { 0, 5, 1 };
-      this.mainFaces[2] = new int[] { 0, 1, 7 };
-      this.mainFaces[3] = new int[] { 0, 7, 10 };
-      this.mainFaces[4] = new int[] { 0, 10, 11 };
-
-      // faces next to v0
-      this.mainFaces[5] = new int[] { 1, 5, 9 };
-      this.mainFaces[6] = new int[] { 5, 11, 4 };
-      this.mainFaces[7] = new int[] { 11, 10, 2 };
-      this.mainFaces[8] = new int[] { 10, 7, 6 };
-      this.mainFaces[9] = new int[] { 7, 1, 8 };
-
-      // faces near v3
-      this.mainFaces[10] = new int[] { 3, 9, 4 };
-      this.mainFaces[11] = new int[] { 3, 4, 2 };
-      this.mainFaces[12] = new int[] { 3, 2, 6 };
-      this.mainFaces[13] = new int[] { 3, 6, 8 };
-      this.mainFaces[14] = new int[] { 3, 8, 9 };
-
-      // faces next to v3
-      this.mainFaces[15] = new int[] { 4, 9, 5 };
-      this.mainFaces[16] = new int[] { 2, 4, 11 };
-      this.mainFaces[17] = new int[] { 6, 2, 10 };
-      this.mainFaces[18] = new int[] { 8, 6, 7 };
-      this.mainFaces[19] = new int[] { 9, 8, 1 };
-
-      for (int i = 0; i < this.mainFaces.length; i++) {
-         final Tuple3d v0 = new Tuple3d(this.mainVertices[this.mainFaces[i][0]]);
-         final Tuple3d v1 = new Tuple3d(this.mainVertices[this.mainFaces[i][1]]);
-         final Tuple3d v2 = new Tuple3d(this.mainVertices[this.mainFaces[i][2]]);
-
-         final EllipticalSegment segment = EllipticalSegment.createSegment(v0, v1, v2, 0, this.ellipsoid, this.altitudeSupplier, this.setTextureFunction);
-         final List<EllipticalSegment> children = segment.getChildSegments(this.ellipsoid, this.altitudeSupplier, this.setTextureFunction, false);
-
-         for (final EllipticalSegment child : children) {
-            this.segments.addAll(child.getChildSegments(this.ellipsoid, this.altitudeSupplier, this.setTextureFunction, false));
+            final EllipticalSegment segment = new EllipticalSegment(vertices, 0);
+            setTextureFunction.accept(segment);
+            this.segments.add(segment);
          }
       }
-
-      //      final BufferRegion[] bufferRegions = new BufferRegion[] { new VertexRegion(3, DataType.FLOAT), new NormalRegion(DataType.FLOAT), new TextureRegion(2, DataType.FLOAT) };
-      //      this.vbo = new SegmentedVertexBufferPool(3, 1000, GL.GL_TRIANGLES, GL.GL_DYNAMIC_DRAW, bufferRegions);
    }
 
    @Override
@@ -252,11 +249,16 @@ public class EllipticalGeometry extends Renderable {
       if (result != FrustumResult.OUT) {
          if (depth < EllipticalGeometry.MAX_DEPTH) {
             final GeodesicVertex[] vertices = segment.getVertices();
-            final Tuple2d v0ScreenSpace = CameraUtils.gluProject(scene, TupleMath.sub(vertices[0].getVertex(), origin)).xy();
-            final Tuple2d v1ScreenSpace = CameraUtils.gluProject(scene, TupleMath.sub(vertices[1].getVertex(), origin)).xy();
-            final Tuple2d v2ScreenSpace = CameraUtils.gluProject(scene, TupleMath.sub(vertices[2].getVertex(), origin)).xy();
-            final double base = MathUtils.getMax(v0ScreenSpace.x, v1ScreenSpace.x, v2ScreenSpace.x) - MathUtils.getMin(v0ScreenSpace.x, v1ScreenSpace.x, v2ScreenSpace.x);
-            final double height = MathUtils.getMax(v0ScreenSpace.y, v1ScreenSpace.y, v2ScreenSpace.y) - MathUtils.getMin(v0ScreenSpace.y, v1ScreenSpace.y, v2ScreenSpace.y);
+            final Tuple2d[] screenSpace = new Tuple2d[vertices.length];
+
+            for (int i = 0; i < vertices.length; i++) {
+               screenSpace[i] = CameraUtils.gluProject(scene, TupleMath.sub(vertices[i].getVertex(), origin)).xy();
+            }
+
+            final Tuple2d max = TupleMath.getMax(screenSpace);
+            final Tuple2d min = TupleMath.getMin(screenSpace);
+            final double base = max.x - min.x;
+            final double height = max.y - min.y;
             final double area = 0.5 * base * height;
 
             if ((area >= (EllipticalGeometry.SCREEN_AREA_FACTOR * this.loadFactor)) || (base >= (EllipticalGeometry.SCREEN_EDGE_FACTOR * this.loadFactor)) || (height >= (EllipticalGeometry.SCREEN_EDGE_FACTOR * this.loadFactor))) {
