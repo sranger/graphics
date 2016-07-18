@@ -43,7 +43,7 @@ public class EllipticalGeometry extends Renderable {
    public static final int                                  WEST               = 8;
 
    private static final double                              SCREEN_EDGE_FACTOR = 500;
-   private static final double                              SCREEN_AREA_FACTOR = 0.5 * EllipticalGeometry.SCREEN_EDGE_FACTOR * EllipticalGeometry.SCREEN_EDGE_FACTOR;
+   private static final double                              SCREEN_AREA_FACTOR = EllipticalGeometry.SCREEN_EDGE_FACTOR * EllipticalGeometry.SCREEN_EDGE_FACTOR;
    private static final int                                 MAX_DEPTH          = Integer.MAX_VALUE;
    private static final double                              MAX_OFFSET         = 30.0;
 
@@ -259,9 +259,12 @@ public class EllipticalGeometry extends Renderable {
             final Tuple2d min = TupleMath.getMin(screenSpace);
             final double base = max.x - min.x;
             final double height = max.y - min.y;
-            final double area = 0.5 * base * height;
+            final double area = base * height;
+            
+            final boolean isArea = area >= (EllipticalGeometry.SCREEN_AREA_FACTOR * this.loadFactor);
+            final boolean isEdges = (base >= SCREEN_EDGE_FACTOR && height >= SCREEN_EDGE_FACTOR / 2.0) || (height >= SCREEN_EDGE_FACTOR && base >= SCREEN_EDGE_FACTOR / 2.0);
 
-            if ((area >= (EllipticalGeometry.SCREEN_AREA_FACTOR * this.loadFactor)) || (base >= (EllipticalGeometry.SCREEN_EDGE_FACTOR * this.loadFactor)) || (height >= (EllipticalGeometry.SCREEN_EDGE_FACTOR * this.loadFactor))) {
+            if (isArea || isEdges) {
                final List<EllipticalSegment> children = segment.getChildSegments(this.ellipsoid, this.altitudeSupplier, this.setTextureFunction, true);
 
                if ((children == null) || children.isEmpty() || !EllipticalGeometry.hasTextures(children)) {
