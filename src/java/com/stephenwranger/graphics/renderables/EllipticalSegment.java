@@ -30,6 +30,8 @@ public class EllipticalSegment implements SegmentObject {
    private static int[][]                faces          = new int[][] { { 0, 1, 2 }, { 0, 2, 3 }, { 0, 3, 4 }, { 0, 4, 5 }, { 0, 5, 6 }, { 0, 6, 7 }, { 0, 7, 8 }, { 0, 8, 1 } };
 
    private final GeodesicVertex[]        vertices;
+   private final Tuple3d[]               cartesianVertices;
+   private final Tuple3d[]               geodesicVertices;
    private final List<EllipticalSegment> splitSegments  = new ArrayList<>();
    private final BoundingVolume          bounds;
    private final int                     depth;
@@ -45,14 +47,16 @@ public class EllipticalSegment implements SegmentObject {
       this.vertices = vertices;
       this.depth = depth;
 
-      final Tuple3d[] xyz = new Tuple3d[vertices.length];
+      this.cartesianVertices = new Tuple3d[vertices.length];
+      this.geodesicVertices = new Tuple3d[vertices.length];
 
       for (int i = 0; i < vertices.length; i++) {
-         xyz[i] = this.vertices[i].getVertex();
+         this.cartesianVertices[i] = this.vertices[i].getVertex();
+         this.geodesicVertices[i] = this.vertices[i].getGeodesicVertex();
       }
 
-      final Tuple3d min = TupleMath.getMin(xyz);
-      final Tuple3d max = TupleMath.getMax(xyz);
+      final Tuple3d min = TupleMath.getMin(this.cartesianVertices);
+      final Tuple3d max = TupleMath.getMax(this.cartesianVertices);
       this.bounds = new BoundingBox(min, max);
    }
 
@@ -152,6 +156,14 @@ public class EllipticalSegment implements SegmentObject {
 
    public GeodesicVertex[] getVertices() {
       return this.vertices.clone();
+   }
+
+   public Tuple3d[] getCartesianVertices() {
+      return this.cartesianVertices.clone();
+   }
+
+   public Tuple3d[] getGeodesicVertices() {
+      return this.geodesicVertices.clone();
    }
 
    public boolean isSplit() {
