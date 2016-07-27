@@ -1,7 +1,6 @@
 package com.stephenwranger.graphics.bounds;
 
 import com.stephenwranger.graphics.math.Tuple3d;
-import com.stephenwranger.graphics.math.intersection.IntersectionUtils;
 import com.stephenwranger.graphics.math.intersection.Triangle3d;
 import com.stephenwranger.graphics.utils.TupleMath;
 
@@ -16,6 +15,7 @@ public class TrianglePrismVolume extends BoundingBox {
    private final Triangle3d top;
    private final Triangle3d bottom;
    private final Triangle3d[] faces = new Triangle3d[8];
+   private final double depth;
 
    /**
     * Creates a new {@link TrianglePrismVolume} with the given vertices in top as one triangular face and the vertices
@@ -43,23 +43,7 @@ public class TrianglePrismVolume extends BoundingBox {
       this.faces[6] = this.top;
       this.faces[7] = this.bottom;
       
-//      final Tuple3d center = TupleMath.average(TupleMath.average(top), TupleMath.average(bottom));
-//      final boolean contains = this.contains(center);
-//      
-//      if(!contains) {
-//         System.out.println(center.x + "," + center.y + "," + center.z + ",0");
-//         int ctr = 1;
-//         
-//         for(final Triangle3d face : this.faces) {
-//            final Tuple3d[] corners = face.getCorners();
-//            
-//            for(final Tuple3d corner : corners) {
-//               System.out.println(corner.x + "," + corner.y + "," + corner.z + "," + ctr);
-//            }
-//            
-//            ctr++;
-//         }
-//      }
+      this.depth = top[0].distance(bottom[0]);
    }
    
    public Triangle3d[] getFaces() {
@@ -122,14 +106,14 @@ public class TrianglePrismVolume extends BoundingBox {
    }
    
    /**
-    * Returns a double array containing barycentric coordinates and depth from top face.
+    * Returns a double array containing barycentric coordinates and normalized depth from top face.
     * 
     * @param xyz
     * @return u,v,w,depth coordinates
     */
    public double[] getBarycentricCoordinate(final Tuple3d xyz) {
       final Tuple3d uvw = this.top.getBarycentricCoordinate(xyz);
-      final double depth = this.top.distanceToPoint(xyz);
+      final double depth = this.top.distanceToPoint(xyz) / this.depth;
       
       return new double[] { uvw.x, uvw.y, uvw.z, depth };
    }

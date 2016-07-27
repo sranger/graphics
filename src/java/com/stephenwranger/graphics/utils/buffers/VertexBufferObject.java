@@ -5,6 +5,7 @@ import java.nio.ByteOrder;
 import java.security.InvalidParameterException;
 
 import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.GLException;
 
 public class VertexBufferObject {
    public final int vertexCount;
@@ -97,7 +98,13 @@ public class VertexBufferObject {
       gl.glBindBuffer(GL2.GL_ARRAY_BUFFER, vboId);
       
       // Load The Data
-      gl.glBufferData(GL2.GL_ARRAY_BUFFER, vertexCount * bytesPerVertex, null, this.usage);
+      try {
+         gl.glBufferData(GL2.GL_ARRAY_BUFFER, vertexCount * bytesPerVertex, null, this.usage);
+      } catch(final GLException e) {
+         System.err.println("vertex count: " + vertexCount);
+         System.err.println("bytes per vertex: " + bytesPerVertex);
+         e.printStackTrace();
+      }
       
       // unmap current buffer after initialization
       gl.glUnmapBuffer(GL2.GL_ARRAY_BUFFER);

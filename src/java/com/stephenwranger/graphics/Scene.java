@@ -87,6 +87,7 @@ public class Scene extends GLCanvas implements GLEventListener {
    }
 
    public synchronized void addRenderable(final Renderable renderable) {
+      renderable.setScene(this);
       this.renderables.add(renderable);
    }
 
@@ -313,6 +314,7 @@ public class Scene extends GLCanvas implements GLEventListener {
 
    public synchronized void removeRenderable(final Renderable renderable) {
       this.renderables.remove(renderable);
+      renderable.setScene(null);
    }
 
    public synchronized void removeRenderableOrthographic(final RenderableOrthographic renderableOrthographic) {
