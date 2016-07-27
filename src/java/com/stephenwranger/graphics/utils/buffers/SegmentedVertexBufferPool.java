@@ -53,6 +53,9 @@ public class SegmentedVertexBufferPool {
       this.usage = usage;
       this.bufferRegions = bufferRegions.clone();
 
+      System.out.println("\nmax segment size:    " + this.maxSegmentSize);
+      System.out.println("segments per buffer: " + this.segmentsPerBuffer);
+
       // so we can divide at start of loop; if we don't, we can't get the last pool to be less than 100
       int segmentSize = this.maxSegmentSize * 2;
 

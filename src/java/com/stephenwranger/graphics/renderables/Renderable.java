@@ -16,6 +16,7 @@ import com.stephenwranger.graphics.utils.TupleMath;
 public abstract class Renderable {
    protected final Tuple3d position;
    protected Quat4d rotation;
+   protected Scene scene = null;
 
    public Renderable(final Tuple3d position, final Quat4d rotation) {
       this.position = new Tuple3d(position);
@@ -48,6 +49,28 @@ public abstract class Renderable {
 
    public PickingHit getIntersection(final PickingRay ray) {
       return PickingRay.NO_HIT;
+   }
+   
+   public void setScene(final Scene scene) {
+      if(scene != null && this.scene != null) {
+         throw new RuntimeException("This Renderable cannot be added to multiple Scenes concurrently.");
+      }
+      
+      this.scene = scene;
+   }
+   
+   public Scene getScene() {
+      return this.scene;
+   }
+   
+   public boolean inScene() {
+      return this.scene != null;
+   }
+   
+   public void remove() {
+      if(this.inScene()) {
+         this.scene.removeRenderable(this);
+      }
    }
    
    public double[] getNearFar(final Scene scene) {
