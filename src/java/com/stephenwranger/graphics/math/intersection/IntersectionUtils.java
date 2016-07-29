@@ -90,7 +90,7 @@ public class IntersectionUtils {
    }
 
    public static boolean isClampedInclusive(final double value, final double min, final double max) {
-      return (IntersectionUtils.isGreaterThan(value, min) || IntersectionUtils.isEqual(value, min)) && (IntersectionUtils.isLessThan(value, max) || IntersectionUtils.isEqual(value, max));
+      return (IntersectionUtils.isGreaterOrEqual(value, min) && IntersectionUtils.isLessOrEqual(value, max));
    }
 
    public static boolean isEqual(final double value1, final double value2) {
