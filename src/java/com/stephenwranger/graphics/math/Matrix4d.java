@@ -57,6 +57,16 @@ public class Matrix4d {
    public double[] get() {
       return this.get(null);
    }
+   
+   public float[] getFloats() {
+      final float[] floats = new float[16];
+      
+      for(int i = 0; i < 16; i++) {
+         floats[i] = (float) this.m[i];
+      }
+      
+      return floats;
+   }
 
    public double[] get(final double[] array) {
       final double[] outArray = ((array == null) || (array.length != 16)) ? new double[16] : array;

@@ -1,6 +1,8 @@
 package com.stephenwranger.graphics.bounds;
 
 import com.stephenwranger.graphics.math.Tuple3d;
+import com.stephenwranger.graphics.math.intersection.IntersectionUtils;
+import com.stephenwranger.graphics.math.intersection.Plane;
 import com.stephenwranger.graphics.math.intersection.Triangle3d;
 import com.stephenwranger.graphics.utils.TupleMath;
 
@@ -43,7 +45,7 @@ public class TrianglePrismVolume extends BoundingBox {
       this.faces[6] = this.top;
       this.faces[7] = this.bottom;
       
-      this.depth = top[0].distance(bottom[0]);
+      this.depth = Plane.distanceToPlane(this.top.getNormal(), this.top.getCorners()[0], bottom[0].x, bottom[0].y, bottom[0].z);
    }
    
    public Triangle3d[] getFaces() {
@@ -103,6 +105,13 @@ public class TrianglePrismVolume extends BoundingBox {
       }
       
       return ctr == this.faces.length;
+      
+//      final double[] uvwDepth = this.getBarycentricCoordinate(point);
+//      
+//      final double uvw = uvwDepth[0] + uvwDepth[1] + uvwDepth[2];
+//      final double depth = uvwDepth[3];
+//      
+//      return IntersectionUtils.isLessOrEqual(uvw, 1.0) && IntersectionUtils.isClampedInclusive(depth, 0.0, 1.0);
    }
    
    /**

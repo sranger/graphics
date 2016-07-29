@@ -23,7 +23,11 @@ public class ShaderProgram {
    
    public ShaderProgram(final String name, final Map<String, Integer> requestedAttributeLocations, final ShaderKernel... kernels) {
       this.name = name;
-      this.attributeLocations.putAll(requestedAttributeLocations);
+      
+      if(requestedAttributeLocations != null) {
+         this.attributeLocations.putAll(requestedAttributeLocations);
+      }
+      
       this.kernels = new ShaderKernel[kernels.length];
       
       System.arraycopy(kernels, 0, this.kernels, 0, kernels.length);
@@ -195,6 +199,24 @@ public class ShaderProgram {
       }
       
       this.id = -1;
+   }
+   
+   public IntUniform getIntUniform(final String name) {
+      final ShaderUniform uniform = this.uniforms.get(name);
+      
+      return (uniform instanceof IntUniform) ? (IntUniform) uniform : null;
+   }
+   
+   public FloatUniform getFloatUniform(final String name) {
+      final ShaderUniform uniform = this.uniforms.get(name);
+      
+      return (uniform instanceof FloatUniform) ? (FloatUniform) uniform : null;
+   }
+   
+   public FloatMatrixUniform getFloatMatrixUniform(final String name) {
+      final ShaderUniform uniform = this.uniforms.get(name);
+      
+      return (uniform instanceof FloatMatrixUniform) ? (FloatMatrixUniform) uniform : null;
    }
 
    /**
