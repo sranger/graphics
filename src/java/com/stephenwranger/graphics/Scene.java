@@ -21,6 +21,7 @@ import com.stephenwranger.graphics.math.Matrix4d;
 import com.stephenwranger.graphics.math.Tuple3d;
 import com.stephenwranger.graphics.math.Vector3d;
 import com.stephenwranger.graphics.math.intersection.Plane;
+import com.stephenwranger.graphics.renderables.PostProcessor;
 import com.stephenwranger.graphics.renderables.PreRenderable;
 import com.stephenwranger.graphics.renderables.Renderable;
 import com.stephenwranger.graphics.renderables.RenderableOrthographic;
@@ -40,6 +41,7 @@ public class Scene extends GLCanvas implements GLEventListener {
    private final Set<PreRenderable>          preRenderables          = new HashSet<>();
    private final Set<Renderable>             renderables             = new HashSet<>();
    private final Set<RenderableOrthographic> renderablesOrthographic = new HashSet<>();
+   private final Set<PostProcessor>          postProcessors          = new HashSet<>();
    private final FPSAnimator                 animator;
    private final GLU                         glu                     = new GLU();
    private long                              current, delta;
@@ -93,6 +95,10 @@ public class Scene extends GLCanvas implements GLEventListener {
 
    public synchronized void addRenderableOrthographic(final RenderableOrthographic renderableOrthographic) {
       this.renderablesOrthographic.add(renderableOrthographic);
+   }
+   
+   public synchronized void addPostProcessor(final PostProcessor postProcessor) {
+      this.postProcessors.add(postProcessor);
    }
 
    @Override
@@ -207,6 +213,11 @@ public class Scene extends GLCanvas implements GLEventListener {
       // this is for screen-space renderables
       for (final RenderableOrthographic renderableOrthographic : this.renderablesOrthographic) {
          renderableOrthographic.render(gl, this.glu, glDrawable, this);
+      }
+      
+      // this is for post processor functions
+      for(final PostProcessor postProcessor : this.postProcessors) {
+         postProcessor.process(gl, this.glu, this);
       }
    }
 
