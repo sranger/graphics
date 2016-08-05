@@ -19,6 +19,11 @@ public class Plane {
       
    }
    
+   public Plane(final Tuple3d point, final Vector3d normal) {
+      this.normal = new Vector3d(normal);
+      this.d = -(this.normal.x * point.x + this.normal.y * point.y + this.normal.z * point.z);
+   }
+   
    public Vector3d getNormal() {
       return new Vector3d(this.normal);
    }
