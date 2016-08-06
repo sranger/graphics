@@ -1,5 +1,7 @@
 package com.stephenwranger.graphics.bounds;
 
+import java.util.List;
+
 import com.stephenwranger.graphics.math.Tuple3d;
 import com.stephenwranger.graphics.math.intersection.Plane;
 import com.stephenwranger.graphics.renderables.RenderablePhysics;
@@ -16,17 +18,17 @@ public class BoundsUtils {
 
    //   /**
    //    * Checks whether the given {@link BoundingVolume} is inside, outside, or intersects with the given frustum planes.<br/><br/>
-   //    * 
+   //    *
    //    * C++ Optimized algorithm from:
    //    * http://www.gamedev.net/page/resources/_/technical/general-programming/useless-snippet-2-aabbfrustum-test-r3342
-   //    * 
+   //    *
    //    * @param frustumPlanes
    //    * @param bv
    //    * @return
    //    */
    //   public static FrustumResult testFrustum(final Plane[] frustumPlanes, final BoundingVolume bv) {
    //      final Vector3d[] absNormals = new Vector3d[6];
-   //      
+   //
    //      for(int i = 0; i < 6; i++) {
    //         absNormals[i] = frustumPlanes[i].getNormal();
    //         absNormals[i].x = Math.abs(absNormals[i].x);
@@ -38,28 +40,28 @@ public class BoundsUtils {
    //      final Tuple3d aabbSize = bv.getDimensions();
    //
    //      FrustumResult result = FrustumResult.IN; // Assume that the aabb will be inside the frustum
-   //      
+   //
    //      for(int iPlane = 0;iPlane < 6;++iPlane) {
    //         final Vector3d frustumPlaneNormal = frustumPlanes[iPlane].getNormal();
    //         final double distance = frustumPlanes[iPlane].getDistance();
    //
-   //         final double d = aabbCenter.x * frustumPlaneNormal.x + 
-   //              aabbCenter.y * frustumPlaneNormal.y + 
+   //         final double d = aabbCenter.x * frustumPlaneNormal.x +
+   //              aabbCenter.y * frustumPlaneNormal.y +
    //              aabbCenter.z * frustumPlaneNormal.z;
    //
-   //         final double r = aabbSize.x * absNormals[iPlane].x + 
-   //              aabbSize.y * absNormals[iPlane].y + 
+   //         final double r = aabbSize.x * absNormals[iPlane].x +
+   //              aabbSize.y * absNormals[iPlane].y +
    //              aabbSize.z * absNormals[iPlane].z;
    //
    //         final double d_p_r = d + r + distance;
-   //         
+   //
    //         if(IntersectionUtils.isLessThan(d_p_r, 0.0)) {
    //            result = FrustumResult.OUT;
    //            break;
    //         }
    //
    //         final double d_m_r = d - r + distance;
-   //         
+   //
    //         if(IntersectionUtils.isLessThan(d_m_r, 0.0)) {
    //            result = FrustumResult.INTERSECT;
    //         }
@@ -67,6 +69,35 @@ public class BoundsUtils {
    //
    //      return result;
    //   }
+
+   /**
+    * Returns a {@link BoundingBox} that surrounds all the vertices in the given collection or null if the given
+    * collection is empty.
+    *
+    * @param points
+    *           the points to encapsulate
+    * @return the surrounding BoundingBox or null
+    */
+   public static BoundingVolume getBoundingBox(final List<Tuple3d> points) {
+      if (points.isEmpty()) {
+         return null;
+      }
+
+      final Tuple3d min = new Tuple3d(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
+      final Tuple3d max = new Tuple3d(-Double.MAX_VALUE, -Double.MAX_VALUE, -Double.MAX_VALUE);
+
+      for (final Tuple3d point : points) {
+         min.x = Math.min(min.x, point.x);
+         min.y = Math.min(min.y, point.y);
+         min.z = Math.min(min.z, point.z);
+
+         max.x = Math.max(max.x, point.x);
+         max.y = Math.max(max.y, point.y);
+         max.z = Math.max(max.z, point.z);
+      }
+
+      return new BoundingBox(min, max);
+   }
 
    public static boolean intersect(final RenderablePhysics obj0, final RenderablePhysics obj1) {
       return BoundsUtils.intersectVolumes(obj0.getBoundingVolume(), obj1.getBoundingVolume());
