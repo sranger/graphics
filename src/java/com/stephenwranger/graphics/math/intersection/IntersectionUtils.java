@@ -1,6 +1,7 @@
 package com.stephenwranger.graphics.math.intersection;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import com.stephenwranger.graphics.math.Tuple2d;
@@ -150,11 +151,44 @@ public class IntersectionUtils {
    public static boolean lineSegmentsIntersect(final LineSegment s1, final LineSegment s2, final Tuple2d result) {
       final Tuple2d output = s1.intersect(s2);
 
-      if (output != null) {
+      if ((output != null) && (result != null)) {
          result.set(output);
       }
 
       return output != null;
+   }
+
+   public static void main(final String[] args) {
+      for (int p1x = -10; p1x <= 10; p1x++) {
+         for (int p1y = -10; p1y <= 10; p1y++) {
+            for (int p2x = -10; p2x <= 10; p2x++) {
+               for (int p2y = -10; p2y <= 10; p2y++) {
+                  for (int q1x = -10; q1x <= 10; q1x++) {
+                     for (int q1y = -10; q1y <= 10; q1y++) {
+                        for (int q2x = -10; q2x <= 10; q2x++) {
+                           for (int q2y = -10; q2y <= 10; q2y++) {
+                              final Tuple2d p1 = new Tuple2d(p1x, p1y);
+                              final Tuple2d p2 = new Tuple2d(p2x, p2y);
+                              final Tuple2d q1 = new Tuple2d(q1x, q1y);
+                              final Tuple2d q2 = new Tuple2d(q2x, q2y);
+
+                              final boolean utilsValue = IntersectionUtils.lineSegmentsIntersect(new LineSegment(p1, q1), new LineSegment(p2, q2), null);
+                              final boolean segmentValue = LineSegment.doIntersect(p1, q1, p2, q2);
+
+                              if (utilsValue != segmentValue) {
+                                 System.out.println(utilsValue + " != " + segmentValue);
+                                 System.out.println("\t" + p1 + ", " + q1);
+                                 System.out.println("\t" + p2 + ", " + q2);
+                                 System.out.println();
+                              }
+                           }
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      }
    }
 
    public static boolean overlap(final double firstMinY, final double firstMaxY, final double secondMinY, final double secondMaxY) {
@@ -169,15 +203,31 @@ public class IntersectionUtils {
       return false;
    }
 
+   public static boolean pointInPolygon(final Tuple2d point, final Collection<LineSegment> polygon) {
+      final Tuple2d pointOutside = new Tuple2d(Integer.MIN_VALUE / 4, Integer.MIN_VALUE / 4);
+      final LineSegment testSegment = new LineSegment(pointOutside, point);
+      final Tuple2d temp = new Tuple2d();
+      int ctr = 0;
+
+      for (final LineSegment segment : polygon) {
+         if (IntersectionUtils.lineSegmentsIntersect(segment, testSegment, temp)) {
+            //         if (testSegment.doIntersect(segment)) {
+            ctr++;
+         }
+      }
+
+      return (ctr % 2) == 1;
+   }
+
    public static boolean pointInTriangle(final Tuple2d point, final Triangle2d triangle) {
       final Tuple3d barycentric = triangle.getBarycentricCoordinate(point);
 
       return IntersectionUtils.isGreaterOrEqual(barycentric.x, 0) && IntersectionUtils.isGreaterOrEqual(barycentric.y, 0) && IntersectionUtils.isLessOrEqual(barycentric.x + barycentric.y, 1);
    }
-   
+
    /**
     * https://www.cs.princeton.edu/courses/archive/fall00/cs426/lectures/raycast/sld017.htm
-    * 
+    *
     * @param plane
     * @param origin
     * @param direction
@@ -188,9 +238,9 @@ public class IntersectionUtils {
       final Vector3d normal = plane.getNormal();
       final Vector3d v = new Vector3d(direction);
       final double d = plane.getDistance();
-      
+
       final double t = -(p0.dot(normal) + d) / (v.dot(normal));
-      
+
       return TupleMath.add(p0, v.scale(t));
    }
 

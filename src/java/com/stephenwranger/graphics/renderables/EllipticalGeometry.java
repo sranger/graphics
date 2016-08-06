@@ -120,6 +120,13 @@ public class EllipticalGeometry extends Renderable {
             this.segments.add(segment);
          }
       }
+
+      if (subdivisions > 0) {
+         // pre-segment so initial rendering isn't chunky
+         for (final EllipticalSegment segment : this.segments) {
+            this.split(segment, 0, subdivisions);
+         }
+      }
    }
 
    @Override
@@ -260,9 +267,10 @@ public class EllipticalGeometry extends Renderable {
             final double base = max.x - min.x;
             final double height = max.y - min.y;
             final double area = base * height;
-            
+
             final boolean isArea = area >= (EllipticalGeometry.SCREEN_AREA_FACTOR * this.loadFactor);
-            final boolean isEdges = (base >= SCREEN_EDGE_FACTOR && height >= SCREEN_EDGE_FACTOR / 2.0) || (height >= SCREEN_EDGE_FACTOR && base >= SCREEN_EDGE_FACTOR / 2.0);
+            final boolean isEdges = ((base >= EllipticalGeometry.SCREEN_EDGE_FACTOR) && (height >= (EllipticalGeometry.SCREEN_EDGE_FACTOR / 2.0)))
+                  || ((height >= EllipticalGeometry.SCREEN_EDGE_FACTOR) && (base >= (EllipticalGeometry.SCREEN_EDGE_FACTOR / 2.0)));
 
             if (isArea || isEdges) {
                final List<EllipticalSegment> children = segment.getChildSegments(this.ellipsoid, this.altitudeSupplier, this.setTextureFunction, true);
@@ -284,6 +292,16 @@ public class EllipticalGeometry extends Renderable {
 
       return toRender;
 
+   }
+
+   private void split(final EllipticalSegment segment, final int depth, final int maxDepth) {
+      final List<EllipticalSegment> children = segment.getChildSegments(this.ellipsoid, this.altitudeSupplier, this.setTextureFunction, false);
+
+      if (depth < maxDepth) {
+         for (final EllipticalSegment child : children) {
+            this.split(child, depth + 1, maxDepth);
+         }
+      }
    }
 
    private static boolean hasTextures(final List<EllipticalSegment> segments) {
