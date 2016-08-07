@@ -55,6 +55,23 @@ public class LineSegment implements PointIntersectable, Renderable2d {
       return false;
    }
 
+   public double distance(final Tuple2d point) {
+      if (IntersectionUtils.isZero(this.min.distanceSquared(this.max))) {
+         return point.distance(this.min);
+      }
+
+      final double u = (((point.x - this.min.x) * (this.max.x - this.min.x)) + ((point.y - this.min.y) * (this.max.y - this.min.y))) / (this.max.distanceSquared(this.min));
+
+      if (IntersectionUtils.isClampedInclusive(u, 0, 1)) {
+         final double x = this.min.x + (u * (this.max.x - this.min.x));
+         final double y = this.min.y + (u * (this.max.y - this.min.y));
+
+         return point.distance(new Tuple2d(x, y));
+      }
+
+      return Double.MAX_VALUE;
+   }
+
    public boolean doIntersect(final LineSegment other) {
       return LineSegment.doIntersect(this.min, this.max, other.min, other.max);
    }

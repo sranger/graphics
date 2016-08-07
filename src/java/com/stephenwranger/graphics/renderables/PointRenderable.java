@@ -23,12 +23,13 @@ import com.stephenwranger.graphics.utils.buffers.VertexBufferObject;
 import com.stephenwranger.graphics.utils.buffers.VertexRegion;
 
 public class PointRenderable extends Renderable {
-   private final List<Tuple3d> points       = new ArrayList<>();
-   private BoundingVolume      bounds       = null;
-   private boolean             needsRefresh = false;
-   private VertexBufferObject  vbo          = null;
-   private float               pointSize    = 1f;
-   private Color4f             pointColor   = Color4f.white();
+   private final List<Tuple3d> points        = new ArrayList<>();
+   private BoundingVolume      bounds        = null;
+   private boolean             needsRefresh  = false;
+   private VertexBufferObject  vbo           = null;
+   private float               pointSize     = 1f;
+   private Color4f             pointColor    = Color4f.white();
+   private final Tuple3d       currentOrigin = new Tuple3d();
 
    public PointRenderable() {
       // will handle only global positioned points
@@ -50,7 +51,14 @@ public class PointRenderable extends Renderable {
 
    @Override
    public synchronized void render(final GL2 gl, final GLU glu, final GLAutoDrawable glDrawable, final Scene scene) {
+      if (this.currentOrigin.distance(scene.getOrigin()) > 0) {
+         this.needsRefresh = true;
+         this.currentOrigin.set(scene.getOrigin());
+      }
+
       if (this.needsRefresh) {
+         this.needsRefresh = false;
+
          if (this.points.isEmpty()) {
             this.vbo = null;
          } else {
@@ -59,7 +67,9 @@ public class PointRenderable extends Renderable {
             final FloatBuffer buffer = this.vbo.mapBuffer(gl).asFloatBuffer();
 
             for (final Tuple3d point : this.points) {
-               point.putInto(buffer);
+               buffer.put((float) (point.x - this.currentOrigin.x));
+               buffer.put((float) (point.y - this.currentOrigin.y));
+               buffer.put((float) (point.z - this.currentOrigin.z));
                this.pointColor.putInto(buffer);
             }
 
@@ -68,17 +78,14 @@ public class PointRenderable extends Renderable {
       }
 
       if (this.vbo != null) {
-         final Tuple3d origin = scene.getOrigin();
-
          gl.glPushMatrix();
-         gl.glTranslatef((float) -origin.x, (float) -origin.y, (float) -origin.z);
-
          gl.glPushAttrib(GL2.GL_LIGHTING_BIT | GL2.GL_POINT_BIT);
          gl.glDisable(GLLightingFunc.GL_LIGHTING);
          gl.glPointSize(this.pointSize);
 
          this.vbo.render(gl);
 
+         gl.glPopAttrib();
          gl.glPopMatrix();
       }
    }

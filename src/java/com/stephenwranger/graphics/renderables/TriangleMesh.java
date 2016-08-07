@@ -4,7 +4,7 @@ import java.nio.FloatBuffer;
 
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2;
-import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.GL2GL3;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.fixedfunc.GLLightingFunc;
 import com.jogamp.opengl.glu.GLU;
@@ -28,10 +28,12 @@ public class TriangleMesh extends Renderable {
    private final Triangle3d[]   triangles;
    private final BoundingVolume bounds;
    private final Color4f        color;
+   private final Tuple3d        currentOrigin = new Tuple3d();
 
    private boolean              isWireframe   = false;
    private boolean              isDrawNormals = false;
    private int                  polygonFace   = GL2.GL_FRONT;
+   private boolean              needsRefresh  = false;
 
    public TriangleMesh(final Triangle3d[] triangles, final Color4f color) {
       super(new Tuple3d(), new Quat4d());
@@ -72,15 +74,27 @@ public class TriangleMesh extends Renderable {
 
    @Override
    public void render(final GL2 gl, final GLU glu, final GLAutoDrawable glDrawable, final Scene scene) {
-      if (this.vbo == null) {
-         this.vbo = new VertexBufferObject(this.triangles.length * 3, true, GL.GL_TRIANGLES, GL.GL_STATIC_DRAW, new VertexRegion(3, DataType.FLOAT), new NormalRegion(DataType.FLOAT), new ColorRegion(4, DataType.FLOAT));
+      if (this.currentOrigin.distance(scene.getOrigin()) > 0) {
+         this.needsRefresh = true;
+         this.currentOrigin.set(scene.getOrigin());
+      }
+
+      if ((this.vbo == null) || this.needsRefresh) {
+         this.needsRefresh = false;
+
+         if (this.vbo == null) {
+            this.vbo = new VertexBufferObject(this.triangles.length * 3, true, GL.GL_TRIANGLES, GL.GL_STATIC_DRAW, new VertexRegion(3, DataType.FLOAT), new NormalRegion(DataType.FLOAT), new ColorRegion(4, DataType.FLOAT));
+         }
+
          final FloatBuffer buffer = this.vbo.mapBuffer(gl).asFloatBuffer();
 
          for (final Triangle3d triangle : this.triangles) {
             final Vector3d normal = triangle.getNormal();
 
             for (final Tuple3d corner : triangle.getCorners()) {
-               buffer.put((float) corner.x).put((float) corner.y).put((float) corner.z);
+               buffer.put((float) (corner.x - this.currentOrigin.x));
+               buffer.put((float) (corner.y - this.currentOrigin.y));
+               buffer.put((float) (corner.z - this.currentOrigin.z));
                buffer.put((float) normal.x).put((float) normal.y).put((float) normal.z);
                buffer.put(this.color.r).put(this.color.g).put(this.color.b).put(this.color.a);
             }
@@ -91,11 +105,8 @@ public class TriangleMesh extends Renderable {
 
       gl.glPushMatrix();
       gl.glPushAttrib(GL2.GL_POLYGON_BIT | GL2.GL_LIGHTING_BIT);
-      gl.glPolygonMode(this.polygonFace, (this.isWireframe) ? GL2.GL_LINE : GL2.GL_FILL);
+      gl.glPolygonMode(this.polygonFace, (this.isWireframe) ? GL2GL3.GL_LINE : GL2GL3.GL_FILL);
       gl.glDisable(GLLightingFunc.GL_LIGHTING);
-
-      final Tuple3d origin = scene.getOrigin();
-      gl.glTranslatef((float) -origin.x, (float) -origin.y, (float) -origin.z);
 
       this.vbo.render(gl);
 

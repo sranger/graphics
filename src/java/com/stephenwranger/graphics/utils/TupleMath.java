@@ -7,6 +7,7 @@ import com.stephenwranger.graphics.math.Quat4d;
 import com.stephenwranger.graphics.math.Tuple2d;
 import com.stephenwranger.graphics.math.Tuple3d;
 import com.stephenwranger.graphics.math.Tuple4d;
+import com.stephenwranger.graphics.math.intersection.IntersectionUtils;
 
 public class TupleMath {
    private static final Map<Double, Double[]> COS_SIN_MAP    = new HashMap<>();
@@ -199,6 +200,14 @@ public class TupleMath {
       c += (v0.z * v1.z);
 
       return c;
+   }
+
+   public static boolean inRange(final Tuple2d p, final Tuple2d min, final Tuple2d max) {
+      return IntersectionUtils.isClampedInclusive(p.x, min.x, max.x) && IntersectionUtils.isClampedInclusive(p.y, min.y, max.y);
+   }
+
+   public static boolean inRange(final Tuple3d p, final Tuple3d min, final Tuple3d max) {
+      return IntersectionUtils.isClampedInclusive(p.x, min.x, max.x) && IntersectionUtils.isClampedInclusive(p.y, min.y, max.y) && IntersectionUtils.isClampedInclusive(p.z, min.z, max.z);
    }
 
    public static double length(final Tuple2d t) {
