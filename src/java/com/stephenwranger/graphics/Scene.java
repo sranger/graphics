@@ -84,6 +84,10 @@ public class Scene extends GLCanvas implements GLEventListener {
       this.listeners.add(listener);
    }
 
+   public synchronized void addPostProcessor(final PostProcessor postProcessor) {
+      this.postProcessors.add(postProcessor);
+   }
+
    public synchronized void addPreRenderable(final PreRenderable renderable) {
       this.preRenderables.add(renderable);
    }
@@ -95,10 +99,6 @@ public class Scene extends GLCanvas implements GLEventListener {
 
    public synchronized void addRenderableOrthographic(final RenderableOrthographic renderableOrthographic) {
       this.renderablesOrthographic.add(renderableOrthographic);
-   }
-   
-   public synchronized void addPostProcessor(final PostProcessor postProcessor) {
-      this.postProcessors.add(postProcessor);
    }
 
    @Override
@@ -137,61 +137,61 @@ public class Scene extends GLCanvas implements GLEventListener {
       this.setMatrices(gl, glDrawable);
 
       // // now that all elements are in the proper location, move camera to match
-      // if (this.screenLookAt != null) {
-      // this.followTarget = null;
-      // final Tuple3d worldTarget = CameraUtils.getWorldCoordinates(this, this.screenLookAt);
-      // final Vector3d direction = new Vector3d(TupleMath.sub(worldTarget, this.cameraPosition));
-      // direction.normalize();
+      //      if (this.screenLookAt != null) {
+      //         this.followTarget = null;
+      //         final Tuple3d worldTarget = CameraUtils.gluUnProject(this, this.screenLookAt);
+      //         final Vector3d direction = new Vector3d(TupleMath.sub(worldTarget, this.cameraPosition));
+      //         direction.normalize();
       //
-      // // TODO: update camPos and lookAt with intersection
-      // final PickingRay ray = new PickingRay(this.cameraPosition, direction);
-      // final List<PickingHit> hits = new ArrayList<PickingHit>();
-      // PickingHit hit;
+      //         // TODO: update camPos and lookAt with intersection
+      //         final PickingRay ray = new PickingRay(this.cameraPosition, direction);
+      //         final List<PickingHit> hits = new ArrayList<>();
+      //         PickingHit hit;
       //
-      // for (final Animation animation : this.animations) {
-      // hit = animation.getIntersection(ray);
+      //         for (final Animation animation : this.animations) {
+      //            hit = animation.getIntersection(ray);
       //
-      // if (hit != PickingRay.NO_HIT) {
-      // hits.add(hit);
-      // }
-      // }
+      //            if (hit != PickingRay.NO_HIT) {
+      //               hits.add(hit);
+      //            }
+      //         }
       //
-      // for (final Renderable renderable : this.renderables) {
-      // hit = renderable.getIntersection(ray);
+      //         for (final Renderable renderable : this.renderables) {
+      //            hit = renderable.getIntersection(ray);
       //
-      // if (hit != PickingRay.NO_HIT) {
-      // hits.add(hit);
-      // }
-      // }
+      //            if (hit != PickingRay.NO_HIT) {
+      //               hits.add(hit);
+      //            }
+      //         }
       //
-      // ray.sort(hits);
+      //         ray.sort(hits);
       //
-      // final PickingHit closestHit = hits.isEmpty() ? null : hits.get(0);
+      //         final PickingHit closestHit = hits.isEmpty() ? null : hits.get(0);
       //
-      // if (closestHit != null) {
-      // final Tuple3d dir = TupleMath.sub(this.cameraPosition, this.lookAt);
-      // this.lookAt.set(closestHit.getHitLocation());
-      // this.cameraPosition.set(TupleMath.add(dir, this.lookAt));
+      //         if (closestHit != null) {
+      //            final Tuple3d dir = TupleMath.sub(this.cameraPosition, this.lookAt);
+      //            this.lookAt.set(closestHit.getHitLocation());
+      //            this.cameraPosition.set(TupleMath.add(dir, this.lookAt));
       //
-      // final Matrix4d mv = CameraUtils.gluLookAt(cameraPosition, lookAt, up);
-      // mv.get(this.modelview);
+      //            final double[] mv = CameraUtils.gluLookAt(gl, this.cameraPosition, this.lookAt, this.up);
+      //            System.arraycopy(mv, 0, this.modelview, 0, mv.length);
       //
-      // if (this.enableFollowTarget) {
-      // this.followTarget = closestHit.getHitObject();
-      // }
-      // }
+      //            if (this.enableFollowTarget) {
+      //               this.followTarget = closestHit.getHitObject();
+      //            }
+      //         }
       //
-      // this.screenLookAt = null;
-      // }
-      //
-      // if (this.followTarget != null) {
-      // final Tuple3d dir = TupleMath.sub(this.cameraPosition, this.lookAt);
-      // this.lookAt.set(this.followTarget.getPosition());
-      // this.cameraPosition.set(TupleMath.add(dir, this.lookAt));
-      //
-      // final Matrix4d mv = CameraUtils.gluLookAt(cameraPosition, lookAt, up);
-      // mv.get(this.modelview);
-      // }
+      //         this.screenLookAt = null;
+      //      }
+
+      if (this.followTarget != null) {
+         final Tuple3d dir = TupleMath.sub(this.cameraPosition, this.lookAt);
+         this.lookAt.set(this.followTarget.getPosition());
+         this.cameraPosition.set(TupleMath.add(dir, this.lookAt));
+
+         final double[] mv = CameraUtils.gluLookAt(gl, this.cameraPosition, this.lookAt, this.up);
+         System.arraycopy(mv, 0, this.modelview, 0, mv.length);
+      }
 
       // System.out.println("near/far: " + ((int)(this.near * 100.0) / 100.0) + ", " + ((int)(this.far * 100.0) /
       // 100.0));
@@ -214,9 +214,9 @@ public class Scene extends GLCanvas implements GLEventListener {
       for (final RenderableOrthographic renderableOrthographic : this.renderablesOrthographic) {
          renderableOrthographic.render(gl, this.glu, glDrawable, this);
       }
-      
+
       // this is for post processor functions
-      for(final PostProcessor postProcessor : this.postProcessors) {
+      for (final PostProcessor postProcessor : this.postProcessors) {
          postProcessor.process(gl, this.glu, this);
       }
    }
@@ -238,16 +238,16 @@ public class Scene extends GLCanvas implements GLEventListener {
       return this.fov;
    }
 
-   public Plane[] getFrustumPlanes() {
-      return this.frustumPlanes;
-   }
-   
    public double[] getFrustumPerspective() {
       final Matrix4d mvMatrix = new Matrix4d(this.modelview);
       final Matrix4d pMatrix = new Matrix4d(this.projection);
       final Matrix4d mvpMatrix = new Matrix4d();
       mvpMatrix.multiply(mvMatrix, pMatrix);
       return CameraUtils.getFrustumPerspective(mvpMatrix);
+   }
+
+   public Plane[] getFrustumPlanes() {
+      return this.frustumPlanes;
    }
 
    public synchronized Tuple3d getLookAt() {
@@ -391,14 +391,14 @@ public class Scene extends GLCanvas implements GLEventListener {
          this.far = this.near * 3000.0;
       }
 
-//      if (this.near < (this.far / 3000.0)) {
-//         this.near = this.far / 3000.0;
-//      }
-      
+      //      if (this.near < (this.far / 3000.0)) {
+      //         this.near = this.far / 3000.0;
+      //      }
+
       final double[] proj = CameraUtils.gluPerspective(gl, this.fov, this.viewport[2] / (double) this.viewport[3], this.near, this.far);
       System.arraycopy(proj, 0, this.projection, 0, 16);
-      
-//      System.out.println("near/far: " + String.format("%.2f", near) + " / " + String.format("%.2f", far));
+
+      //      System.out.println("near/far: " + String.format("%.2f", near) + " / " + String.format("%.2f", far));
    }
 
    public synchronized void setAnimationSpeed(final double doubleValue) {
