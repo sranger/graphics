@@ -16,6 +16,7 @@ import com.jogamp.opengl.fixedfunc.GLLightingFunc;
 import com.jogamp.opengl.glu.GLU;
 import com.jogamp.opengl.util.FPSAnimator;
 import com.stephenwranger.graphics.bounds.BoundingVolume;
+import com.stephenwranger.graphics.color.Color4f;
 import com.stephenwranger.graphics.math.CameraUtils;
 import com.stephenwranger.graphics.math.Matrix4d;
 import com.stephenwranger.graphics.math.Tuple3d;
@@ -61,6 +62,13 @@ public class Scene extends GLCanvas implements GLEventListener {
    private Plane[]                           frustumPlanes           = null;
    private final Tuple3d                     origin                  = new Tuple3d(0, 0, 0);
    private boolean                           originEnabled           = false;
+
+   private final Color4f specular = new Color4f(1,1,1,1);
+   private final Color4f ambient = new Color4f(0,0,0,1);
+   private final Color4f diffuse = new Color4f(1,1,1,1);
+   private float constantAttenuation = 1f;
+   private float linearAttenuation = 0f;
+   private float quadraticAttenuation = 0f;
 
    public Scene(final Dimension preferredSize) {
       this(preferredSize, 60);
@@ -109,7 +117,6 @@ public class Scene extends GLCanvas implements GLEventListener {
       gl.glHint(GL2ES1.GL_PERSPECTIVE_CORRECTION_HINT, GL.GL_NICEST);
       gl.glEnable(GL.GL_BLEND);
       gl.glEnable(GL.GL_CULL_FACE);
-      gl.glEnable(GLLightingFunc.GL_LIGHTING);
       gl.glEnable(GL.GL_DEPTH_TEST);
 
       final long temp = this.current;
@@ -135,6 +142,21 @@ public class Scene extends GLCanvas implements GLEventListener {
       }
 
       this.setMatrices(gl, glDrawable);
+      
+      final Vector3d toLight = new Vector3d();
+      toLight.subtract(this.cameraPosition, this.origin);
+
+      gl.glEnable(GL2.GL_LIGHTING);
+      gl.glEnable(GL2.GL_LIGHT0);
+      gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_POSITION, new float[] { (float) toLight.x, (float) toLight.y, (float) toLight.z, 0 }, 0);
+
+      gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_SPECULAR, specular.toArray(), 0);
+      gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_AMBIENT, ambient.toArray(), 0);
+      gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_DIFFUSE, diffuse.toArray(), 0);
+
+      gl.glLightf(GL2.GL_LIGHT0, GL2.GL_CONSTANT_ATTENUATION, constantAttenuation);
+      gl.glLightf(GL2.GL_LIGHT0, GL2.GL_LINEAR_ATTENUATION, linearAttenuation);
+      gl.glLightf(GL2.GL_LIGHT0, GL2.GL_QUADRATIC_ATTENUATION, quadraticAttenuation);
 
       // // now that all elements are in the proper location, move camera to match
       //      if (this.screenLookAt != null) {

@@ -24,6 +24,10 @@ public class Color4f {
       this(rgba[0], rgba[1], rgba[2], rgba[3]);
    }
 
+   public float[] toArray() {
+      return new float[] { r,g,b,a };
+   }
+   
    @Override
    public boolean equals(final Object obj) {
       if (this == obj) {
