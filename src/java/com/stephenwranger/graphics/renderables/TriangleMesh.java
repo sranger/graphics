@@ -111,7 +111,9 @@ public class TriangleMesh extends Renderable {
       gl.glPushMatrix();
       gl.glPushAttrib(GL2.GL_POLYGON_BIT | GL2.GL_LIGHTING_BIT);
       gl.glPolygonMode(this.polygonFace, (this.isWireframe) ? GL2GL3.GL_LINE : GL2GL3.GL_FILL);
-      gl.glDisable(GLLightingFunc.GL_LIGHTING);
+//      gl.glDisable(GLLightingFunc.GL_LIGHTING);
+      gl.glEnable(GL2.GL_COLOR_MATERIAL);
+      gl.glColorMaterial(GL2.GL_FRONT_AND_BACK, GL2.GL_DIFFUSE);
 
       if (!this.isCullFace) {
          gl.glDisable(GL.GL_CULL_FACE);
@@ -120,6 +122,7 @@ public class TriangleMesh extends Renderable {
       this.vbo.render(gl);
 
       if (this.isDrawNormals) {
+         gl.glDisable(GL2.GL_LIGHTING);
          gl.glLineWidth(4f);
          gl.glBegin(GL.GL_LINES);
 
