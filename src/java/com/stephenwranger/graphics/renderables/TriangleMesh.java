@@ -33,6 +33,7 @@ public class TriangleMesh extends Renderable {
    private boolean              isWireframe   = false;
    private boolean              isDrawNormals = false;
    private int                  polygonFace   = GL2.GL_FRONT;
+   private boolean              isCullFace    = true;
    private boolean              needsRefresh  = false;
 
    public TriangleMesh(final Triangle3d[] triangles, final Color4f color) {
@@ -62,6 +63,10 @@ public class TriangleMesh extends Renderable {
    @Override
    public BoundingVolume getBoundingVolume() {
       return this.bounds;
+   }
+
+   public boolean isCullFace() {
+      return this.isCullFace;
    }
 
    public boolean isDrawNormals() {
@@ -108,6 +113,10 @@ public class TriangleMesh extends Renderable {
       gl.glPolygonMode(this.polygonFace, (this.isWireframe) ? GL2GL3.GL_LINE : GL2GL3.GL_FILL);
       gl.glDisable(GLLightingFunc.GL_LIGHTING);
 
+      if (!this.isCullFace) {
+         gl.glDisable(GL.GL_CULL_FACE);
+      }
+
       this.vbo.render(gl);
 
       if (this.isDrawNormals) {
@@ -135,6 +144,10 @@ public class TriangleMesh extends Renderable {
 
       gl.glPopAttrib();
       gl.glPopMatrix();
+   }
+
+   public void setCullFace(final boolean isCullFace) {
+      this.isCullFace = isCullFace;
    }
 
    public void setDrawNormals(final boolean isDrawNormals) {
