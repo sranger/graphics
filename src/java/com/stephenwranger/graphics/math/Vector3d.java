@@ -6,6 +6,10 @@ public class Vector3d extends Tuple3d implements Vector {
    public Vector3d() {
       this(0, 0, 0);
    }
+   
+   public Vector3d(final double[] values) {
+      super(values[0], values[1], values[2]);
+   }
 
    public Vector3d(final double x, final double y, final double z) {
       super(x, y, z);

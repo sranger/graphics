@@ -178,4 +178,23 @@ public class Tuple3d {
 
       return min;
    }
+
+   public static Tuple3d getAverage(final Collection<Tuple3d> tuples) {
+      Tuple3d total = null;
+
+      if ((tuples != null) && (tuples.size() > 0)) {
+         final int count = tuples.size();
+         total = new Tuple3d();
+         
+         for (final Tuple3d tuple : tuples) {
+            total.add(tuple);
+         }
+
+         total.x /= count;
+         total.y /= count;
+         total.z /= count;
+      }
+
+      return total;
+   }
 }
