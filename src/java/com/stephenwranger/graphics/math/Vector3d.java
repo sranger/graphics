@@ -28,6 +28,25 @@ public class Vector3d extends Tuple3d implements Vector {
    public double angleDegrees(final Vector3d other) {
       return Math.toDegrees(this.angleRadians(other));
    }
+   
+   /**
+    * Returns a Vector pointing towards the destination Tuple3d from the origin Tuple3d (destination - origin) and, optionally, normalizes it.
+    * 
+    * @param origin the origin point
+    * @param destination the destination point
+    * @param normalize flag indicating whether the returned vector should be normalized
+    * @return the resulting vector
+    */
+   public static Vector3d getVector(final Tuple3d origin, final Tuple3d destination, final boolean normalize) {
+      final Vector3d vector = new Vector3d();
+      vector.subtract(destination, origin);
+      
+      if(normalize) {
+         vector.normalize();
+      }
+      
+      return vector;
+   }
 
    /**
     * Returns angle between two vectors in radians.
