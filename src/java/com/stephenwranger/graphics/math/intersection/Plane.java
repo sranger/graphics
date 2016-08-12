@@ -1,27 +1,54 @@
 package com.stephenwranger.graphics.math.intersection;
 
+import com.stephenwranger.graphics.math.Tuple2d;
 import com.stephenwranger.graphics.math.Tuple3d;
 import com.stephenwranger.graphics.math.Vector3d;
+import com.stephenwranger.graphics.utils.TupleMath;
 
 public class Plane {
 
    protected final Vector3d normal;
    protected final double d;
+   
+   private final Tuple3d projectionOrigin;
+   private final Vector3d projectionX;
+   private final Vector3d projectionY;
 
    public Plane(final Tuple3d c1, final Tuple3d c2, final Tuple3d c3) {
-      this.normal = IntersectionUtils.calculateSurfaceNormal(c1, c2, c3);
-      this.d = -(this.normal.x * c1.x + this.normal.y * c1.y + this.normal.z * c1.z);
+      this(c1, IntersectionUtils.calculateSurfaceNormal(c1, c2, c3));
    }
    
-   public Plane(final Vector3d normal, final double distance) {
+   public Plane(final Vector3d normal, final double d) {
       this.normal = new Vector3d(normal);
-      this.d = distance;
+      this.normal.normalize();
+      this.d = d;
       
+      this.projectionOrigin = this.getClosestPoint(new Tuple3d());
+      final Vector3d xAxis = new Vector3d(1,0,0);
+      
+      // if the normal is the x-axis, choose a different axis
+      if(IntersectionUtils.isEqual(1.0, this.normal.dot(xAxis))) {
+         this.projectionX = new Vector3d(0,1,0);
+      } else {
+         // if not, project the x-axis onto the normal to get our projection x-axis
+         this.projectionX = new Vector3d(this.getClosestPoint(xAxis));
+         this.projectionX.normalize();
+      }
+
+      // cross the normal and our projection x-axis to get a new y-axis
+      this.projectionY = new Vector3d();
+      this.projectionY.cross(this.normal, this.projectionX);
+      this.projectionY.normalize();
    }
    
    public Plane(final Tuple3d point, final Vector3d normal) {
-      this.normal = new Vector3d(normal);
-      this.d = -(this.normal.x * point.x + this.normal.y * point.y + this.normal.z * point.z);
+      this(normal, computeD(point, normal));
+   }
+   
+   private static double computeD(final Tuple3d point, final Vector3d normal) {
+      normal.normalize();
+      
+      return -(normal.x * point.x + normal.y * point.y + normal.z * point.z);
    }
    
    public Vector3d getNormal() {
@@ -32,10 +59,75 @@ public class Plane {
       return this.d;
    }
    
+   /**
+    * Returns the signed distance of the given point to this plane; a negative value 
+    * indicates the point is behind the plane (opposite direction of plane normal).
+    * 
+    * @param point
+    * @return
+    */
    public double distanceToPoint(final Tuple3d point) {
-      // D = abs(aX + bY + cZ + d) / sqrt(a^2 + b^2 + c^2)
-      // D = abs(aX + bY + cZ + d) / 1.0  # sqrt part is length of normal which we normalized to length = 1
+//      // D = abs(aX + bY + cZ + d) / sqrt(a^2 + b^2 + c^2)
+//      // D = abs(aX + bY + cZ + d) / 1.0  # sqrt part is length of normal which we normalized to length = 1
       return this.normal.x * point.x + this.normal.y * point.y + this.normal.z * point.z + this.d;
+   }
+   
+   /**
+    * Returns the closest 3D point on this plane from the given point.<br/><br/>
+    * 
+    * http://stackoverflow.com/a/23472188/1451705
+    * 
+    * @param point
+    * @return
+    */
+   public Tuple3d getClosestPoint(final Tuple3d point) {
+      // A' = A - (A . n) * n
+      final Vector3d aprime = new Vector3d(point);
+      final double adotn = TupleMath.dot(point, normal);
+      final Vector3d scaledNormal = new Vector3d(normal);
+      scaledNormal.scale(adotn);
+      aprime.subtract(scaledNormal);
+      
+      return aprime;
+   }
+   
+   public Vector3d getProjectedVector(final Vector3d normal, final Tuple3d point) {
+      final Tuple3d closestPoint = this.getClosestPoint(point);
+      return Vector3d.getVector(this.projectionOrigin, closestPoint, true);
+   }
+   
+   /**
+    * Returns the 2D projected onto this plane.<br/><br/>
+    * 
+    * http://stackoverflow.com/a/23472188/1451705
+    * 
+    * @param point
+    * @return
+    */
+   public Tuple2d getProjectedPoint(final Tuple3d point) {
+      return new Tuple2d(TupleMath.dot(point, this.projectionX), TupleMath.dot(point, this.projectionY));
+   }
+   
+   public static void main(final String[] args) {
+      // X-Z plane
+      final Plane plane = new Plane(new Tuple3d(0,0,0), new Vector3d(1,0,0));
+      System.out.println("a:                                           " + plane.normal.x);
+      System.out.println("b:                                           " + plane.normal.y);
+      System.out.println("c:                                           " + plane.normal.z);
+      System.out.println("d:                                           " + plane.d);
+
+      System.out.println("n . projectionX =                            " + plane.normal.dot(plane.projectionX));
+      System.out.println("n . projectionY =                            " + plane.normal.dot(plane.projectionY));
+      System.out.println("projectionX . projectionY =                  " + plane.projectionX.dot(plane.projectionY));
+
+      System.out.println("Y-Z to 0,2,0 (expected = 0.0): " + plane.distanceToPoint(new Tuple3d(0,2,0)));
+      System.out.println("Y-Z to 2,0,0 (expected = 2.0): " + plane.distanceToPoint(new Tuple3d(2,0,0)));
+      System.out.println("2,1,0 projected onto Y-Z (expected = 0,1,0): " + plane.getClosestPoint(new Tuple3d(2,1,0)));
+      System.out.println("1,1,1 projected onto Y-Z (expected = 0,1,1): " + plane.getClosestPoint(new Tuple3d(1,1,1)));
+      System.out.println("0,12,1 projected onto Y-Z (expected = 0,12,1): " + plane.getClosestPoint(new Tuple3d(0,12,1)));
+      System.out.println("0,12,1 projected onto Y-Z (expected = 12,1): " + plane.getProjectedPoint(new Tuple3d(0,12,1)));
+      System.out.println("0,12,0 projected onto Y-Z (expected = 0.99,0.11): " + plane.getProjectedVector(plane.normal, new Tuple3d(0,9,1)));
+      System.out.println("");
    }
    
    public static final double distanceToPlane(final Vector3d planeNormal, final Tuple3d planePoint, final double x, final double y, final double z) {
