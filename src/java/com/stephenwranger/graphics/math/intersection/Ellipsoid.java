@@ -7,7 +7,7 @@ import com.stephenwranger.graphics.utils.MathUtils;
 
 public class Ellipsoid {
    public static final double COS_67P5 = 0.38268343236508977; // cosine of 67.5 degrees
-   public static final double AD_C     = 1.0026000;                               // Toms region 1 constant
+   public static final double AD_C     = 1.0026000;                                         // Toms region 1 constant
    public static final double MIN_LAT  = -MathUtils.HALF_PI;
    public static final double MAX_LAT  = MathUtils.HALF_PI;
    public static final double MIN_LON  = -Math.PI;
@@ -85,6 +85,14 @@ public class Ellipsoid {
       }
 
       return lineParmsAtIntersect;
+   }
+
+   public Tuple3d intersection(final PickingRay ray, final double distance, final boolean isGeodetic) {
+      if (isGeodetic) {
+         return this.intersectionToLonLat(ray, distance);
+      } else {
+         return this.intersectionToXYZ(ray, distance);
+      }
    }
 
    public Tuple3d intersectionToLonLat(final PickingRay ray, final double distance) {
