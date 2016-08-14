@@ -249,7 +249,7 @@ public class EllipticalGeometry extends Renderable {
          result = FrustumResult.IN;
       } else {
          final Plane[] frustumPlanes = scene.getFrustumPlanes();
-         result = BoundsUtils.testFrustum(frustumPlanes, bounds.offset(origin));
+         result = BoundsUtils.testFrustum(frustumPlanes, new BoundingSphere(bounds.getCenter(), bounds.getSpannedDistance(null)).offset(origin));
          ignoreFrustum = (result == FrustumResult.IN);
       }
 

@@ -77,6 +77,10 @@ public class EllipticalSegment implements SegmentObject {
       return this.bufferIndex;
    }
 
+   public Tuple3d[] getCartesianVertices() {
+      return this.cartesianVertices.clone();
+   }
+
    public List<EllipticalSegment> getChildSegments(final Ellipsoid ellipsoid, final BiConsumerSupplier<Double, Double, Double> altitudeSupplier, final Consumer<EllipticalSegment> setTextureFunction, final boolean threaded) {
       synchronized (this.splitSegments) {
          if (!this.hasChildren) {
@@ -85,11 +89,11 @@ public class EllipticalSegment implements SegmentObject {
                new Thread() {
                   @Override
                   public void run() {
-                     try {
-                        Thread.sleep(10);
-                     } catch (final InterruptedException e) {
-                        e.printStackTrace();
-                     }
+                     //                     try {
+                     //                        Thread.sleep(10);
+                     //                     } catch (final InterruptedException e) {
+                     //                        e.printStackTrace();
+                     //                     }
 
                      final List<EllipticalSegment> children = EllipticalSegment.getChildSegments(ellipsoid, EllipticalSegment.this, altitudeSupplier, setTextureFunction);
                      EllipticalSegment.this.splitSegments.addAll(children);
@@ -110,6 +114,10 @@ public class EllipticalSegment implements SegmentObject {
       return this.depth;
    }
 
+   public Tuple3d[] getGeodesicVertices() {
+      return this.geodesicVertices.clone();
+   }
+
    public PickingHit getIntersection(final Renderable parent, final PickingRay ray) {
       final Tuple3d origin = ray.getOrigin();
       final Vector3d direction = ray.getDirection();
@@ -122,7 +130,7 @@ public class EllipticalSegment implements SegmentObject {
          final Tuple3d v2 = this.vertices[face[2]].getVertex();
          final Tuple3d tempHit = IntersectionUtils.rayTriangleIntersection(v0, v1, v2, origin, direction);
 
-         if ((hit == null) && (tempHit != null)) {
+         if ((tempHit != null)) {
             final double tempDistance = origin.distance(tempHit);
 
             if (tempDistance < distance) {
@@ -156,14 +164,6 @@ public class EllipticalSegment implements SegmentObject {
 
    public GeodesicVertex[] getVertices() {
       return this.vertices.clone();
-   }
-
-   public Tuple3d[] getCartesianVertices() {
-      return this.cartesianVertices.clone();
-   }
-
-   public Tuple3d[] getGeodesicVertices() {
-      return this.geodesicVertices.clone();
    }
 
    public boolean isSplit() {
@@ -374,10 +374,12 @@ public class EllipticalSegment implements SegmentObject {
       final EllipticalSegment segmentSE = EllipticalSegment.createSegment(ellipsoid, C, E, SE, S, segment.depth + 1, altitudeSupplier);
       final EllipticalSegment segmentSW = EllipticalSegment.createSegment(ellipsoid, W, C, S, SW, segment.depth + 1, altitudeSupplier);
 
-      setTextureFunction.accept(segmentNW);
-      setTextureFunction.accept(segmentNE);
-      setTextureFunction.accept(segmentSE);
-      setTextureFunction.accept(segmentSW);
+      new Thread(() -> {
+         setTextureFunction.accept(segmentNW);
+         setTextureFunction.accept(segmentNE);
+         setTextureFunction.accept(segmentSE);
+         setTextureFunction.accept(segmentSW);
+      }).start();
 
       newSegments.add(segmentNW);
       newSegments.add(segmentNE);
