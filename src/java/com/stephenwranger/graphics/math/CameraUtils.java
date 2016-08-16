@@ -1,5 +1,7 @@
 package com.stephenwranger.graphics.math;
 
+import java.util.Arrays;
+
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.glu.GLU;
@@ -367,6 +369,7 @@ public class CameraUtils {
       if (CameraUtils.GLU_CONTEXT.gluProject(worldXyz.x, worldXyz.y, worldXyz.z, modelview, 0, projection, 0, viewport, 0, winPos, 0)) {
          return new Tuple3d(winPos);
       } else {
+         new RuntimeException("invalid gluProject\n\tworld = " + worldXyz + "\n\tmv = " + Arrays.toString(modelview) + "\n\tproj = " + Arrays.toString(projection) + "\n\tviewport: " + Arrays.toString(viewport)).printStackTrace();
          return null;
       }
 
@@ -503,6 +506,8 @@ public class CameraUtils {
       if (CameraUtils.GLU_CONTEXT.gluUnProject(screenXyz.x, screenXyz.y, scaledDistance, modelview, 0, projection, 0, viewport, 0, worldPos, 0)) {
          return new Tuple3d(worldPos);
       } else {
+         new RuntimeException("invalid gluUnProject\n\tscreen = " + screenXyz + "\n\tmv = " + Arrays.toString(modelview) + "\n\tproj = " + Arrays.toString(projection) + "\n\tviewport: " + Arrays.toString(viewport)).printStackTrace();
+         
          // System.err.println("cannot unproject: " + screenXyz);
          // System.err.println("mv: " + Arrays.toString(modelview));
          // System.err.println("p: " + Arrays.toString(projection));

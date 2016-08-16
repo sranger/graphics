@@ -32,16 +32,17 @@ public class EllipticalSegment implements SegmentObject {
    private final GeodesicVertex[]        vertices;
    private final Tuple3d[]               cartesianVertices;
    private final Tuple3d[]               geodesicVertices;
-   private final List<EllipticalSegment> splitSegments  = new ArrayList<>();
+   private final List<EllipticalSegment> splitSegments   = new ArrayList<>();
    private final BoundingVolume          bounds;
    private final int                     depth;
 
-   private Texture2d[]                   customTextures = null;
-   private Tuple2d[][]                   texCoords      = null;
-   private int                           poolIndex      = -1;
-   private int                           bufferIndex    = -1;
+   private Texture2d                     baseTexture     = null;
+   private Texture2d[]                   customTextures  = null;
+   private Tuple2d[][]                   customTexCoords = null;
+   private int                           poolIndex       = -1;
+   private int                           bufferIndex     = -1;
 
-   private boolean                       hasChildren    = false;
+   private boolean                       hasChildren     = false;
 
    public EllipticalSegment(final GeodesicVertex[] vertices, final int depth) {
       this.vertices = vertices;
@@ -84,30 +85,27 @@ public class EllipticalSegment implements SegmentObject {
    public List<EllipticalSegment> getChildSegments(final Ellipsoid ellipsoid, final BiConsumerSupplier<Double, Double, Double> altitudeSupplier, final Consumer<EllipticalSegment> setTextureFunction, final boolean threaded) {
       synchronized (this.splitSegments) {
          if (!this.hasChildren) {
+            this.hasChildren = true;
+            
             if (threaded) {
-               this.hasChildren = true;
                new Thread() {
                   @Override
                   public void run() {
-                     //                     try {
-                     //                        Thread.sleep(10);
-                     //                     } catch (final InterruptedException e) {
-                     //                        e.printStackTrace();
-                     //                     }
-
-                     final List<EllipticalSegment> children = EllipticalSegment.getChildSegments(ellipsoid, EllipticalSegment.this, altitudeSupplier, setTextureFunction);
-                     EllipticalSegment.this.splitSegments.addAll(children);
+                     getChildSegmentsImpl(ellipsoid, altitudeSupplier, setTextureFunction);
                   }
                }.start();
             } else {
-               this.hasChildren = true;
-               final List<EllipticalSegment> children = EllipticalSegment.getChildSegments(ellipsoid, EllipticalSegment.this, altitudeSupplier, setTextureFunction);
-               this.splitSegments.addAll(children);
+               getChildSegmentsImpl(ellipsoid, altitudeSupplier, setTextureFunction);
             }
          }
       }
 
       return Collections.unmodifiableList(this.splitSegments);
+   }
+   
+   private void getChildSegmentsImpl(final Ellipsoid ellipsoid, final BiConsumerSupplier<Double, Double, Double> altitudeSupplier, final Consumer<EllipticalSegment> setTextureFunction) {
+      final List<EllipticalSegment> children = EllipticalSegment.getChildSegments(ellipsoid, EllipticalSegment.this, altitudeSupplier, setTextureFunction);
+      this.splitSegments.addAll(children);
    }
 
    public int getDepth() {
@@ -154,7 +152,7 @@ public class EllipticalSegment implements SegmentObject {
    }
 
    public int getTextureCount() {
-      return (this.customTextures == null) ? 0 : this.customTextures.length;
+      return (this.customTextures == null) ? ((this.baseTexture == null) ? 0 : 1) : this.customTextures.length;
    }
 
    @Override
@@ -194,8 +192,8 @@ public class EllipticalSegment implements SegmentObject {
       final Tuple3d origin = scene.getOrigin();
 
       for (int i = 0; i < Math.max(1, ((this.customTextures == null) ? 1 : this.customTextures.length)); i++) {
-         final Texture2d texture = ((this.customTextures == null) || (this.customTextures.length < i)) ? null : this.customTextures[i];
-         final Tuple2d[] texCoord = ((this.texCoords == null) || (this.texCoords.length < i)) ? null : this.texCoords[i];
+         final Texture2d texture = ((this.customTextures == null) || (this.customTextures.length < i)) ? this.baseTexture : this.customTextures[i];
+         final Tuple2d[] texCoord = ((this.customTexCoords == null) || (this.customTexCoords.length < i)) ? null : this.customTexCoords[i];
 
          if (texture == null) {
             gl.glEnable(GLLightingFunc.GL_COLOR_MATERIAL);
@@ -229,9 +227,9 @@ public class EllipticalSegment implements SegmentObject {
 
          gl.glEnd();
 
-         if (texture != null) {
-            texture.disable(gl);
-         }
+//         if (texture != null) {
+//            texture.disable(gl);
+//         }
       }
    }
 
@@ -240,10 +238,14 @@ public class EllipticalSegment implements SegmentObject {
       this.poolIndex = poolIndex;
       this.bufferIndex = bufferIndex;
    }
+   
+   public void setBaseTexture(final Texture2d baseTexture) {
+      this.baseTexture = baseTexture;
+   }
 
    public void setTexture(final Texture2d[] textures, final Tuple2d[][] texCoords) {
       this.customTextures = textures;
-      this.texCoords = texCoords;
+      this.customTexCoords = texCoords;
    }
 
    //   public static EllipticalSegment createSegment(final Tuple3d v0, final Tuple3d v1, final Tuple3d v2, final int depth, final Ellipsoid ellipsoid, final BiConsumerSupplier<Double, Double, Double> altitudeSupplier,

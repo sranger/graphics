@@ -259,7 +259,13 @@ public class EllipticalGeometry extends Renderable {
             final Tuple2d[] screenSpace = new Tuple2d[vertices.length];
 
             for (int i = 0; i < vertices.length; i++) {
-               screenSpace[i] = CameraUtils.gluProject(scene, TupleMath.sub(vertices[i].getVertex(), origin)).xy();
+               final Tuple3d screen = CameraUtils.gluProject(scene, TupleMath.sub(vertices[i].getVertex(), origin));
+               
+               if(screen == null) {
+                  return toRender;
+               }
+               
+               screenSpace[i] = screen.xy();
             }
 
             final Tuple2d max = TupleMath.getMax(screenSpace);
