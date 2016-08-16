@@ -148,23 +148,28 @@ public class Texture2d {
       
       return image;
    }
-
-   public void enable(final GL2 gl, final int offset) {
-      gl.glActiveTexture(GL2.GL_TEXTURE0 + offset);
-      gl.glEnable(GL2.GL_TEXTURE_2D);
    
-      if (texId == -1) {
-         final int[] ids = new int[1];
-         gl.glGenTextures(1, ids, 0);
-         texId = ids[0];
+   public static int CURRENT_BOUND_INDEX = -2;
 
+   public void enable(final GL2 gl, final int offset) {      
+      if(CURRENT_BOUND_INDEX != this.texId) {
+         gl.glActiveTexture(GL2.GL_TEXTURE0 + offset);
+         gl.glEnable(GL2.GL_TEXTURE_2D);
+         
+         if (texId == -1) {
+            final int[] ids = new int[1];
+            gl.glGenTextures(1, ids, 0);
+            texId = ids[0];
+
+            gl.glBindTexture(GL2.GL_TEXTURE_2D, texId);
+            gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MAG_FILTER, GL2.GL_LINEAR);
+            gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MIN_FILTER, GL2.GL_LINEAR);
+            gl.glTexImage2D(GL2.GL_TEXTURE_2D, 0, internal, width, height, 0, format, GL2.GL_UNSIGNED_BYTE, pixelData);
+         }
+   
+         CURRENT_BOUND_INDEX = this.texId;
          gl.glBindTexture(GL2.GL_TEXTURE_2D, texId);
-         gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MAG_FILTER, GL2.GL_LINEAR);
-         gl.glTexParameteri(GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MIN_FILTER, GL2.GL_LINEAR);
-         gl.glTexImage2D(GL2.GL_TEXTURE_2D, 0, internal, width, height, 0, format, GL2.GL_UNSIGNED_BYTE, pixelData);
       }
-
-      gl.glBindTexture(GL2.GL_TEXTURE_2D, texId);
    }
    
    public void enable(final GL2 gl) {
@@ -176,7 +181,8 @@ public class Texture2d {
    }
    
    public void disable(final GL2 gl) {
-      if(texId != -1) {
+      if(texId != -1 && CURRENT_BOUND_INDEX == this.texId) {
+         CURRENT_BOUND_INDEX = -2;
          gl.glBindTexture(GL2.GL_TEXTURE_2D, 0);
       }
    }

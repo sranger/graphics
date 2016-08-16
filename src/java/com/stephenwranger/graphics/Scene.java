@@ -33,8 +33,8 @@ import com.stephenwranger.graphics.utils.TupleMath;
 public class Scene extends GLCanvas implements GLEventListener {
    private static final long                 serialVersionUID        = -5725872347284851012L;
 
-   private final double[]                    projection              = new double[16];
-   private final double[]                    modelview               = new double[16];
+   private final double[]                    projection              = new double[] {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
+   private final double[]                    modelview               = new double[] {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
    private final int[]                       viewport                = new int[4];
 
    private final Set<AnimationListener>      listeners               = new HashSet<>();
@@ -364,63 +364,65 @@ public class Scene extends GLCanvas implements GLEventListener {
       final GL2 gl = glDrawable.getGL().getGL2();
       gl.glViewport(this.viewport[0], this.viewport[1], this.viewport[2], this.viewport[3]);
       gl.glGetIntegerv(GL.GL_VIEWPORT, this.viewport, 0);
-
-      if (height <= 0) {
-         height = 1;
-      }
-
-      this.near = Double.MAX_VALUE;
-      this.far = -Double.MAX_VALUE;
-      double[] nearFar;
-
-      for (final Animation animation : this.animations) {
-         nearFar = animation.getNearFar(this);
-
-         if (nearFar != null) {
-            this.near = Math.min(this.near, nearFar[0]);
-            this.far = Math.max(this.far, nearFar[1]);
+      
+      if(this.modelview != null && this.projection != null) {
+         if (height <= 0) {
+            height = 1;
          }
-      }
-
-      for (final Renderable renderable : this.renderables) {
-         nearFar = renderable.getNearFar(this);
-
-         if ((nearFar != null) && Double.isFinite(nearFar[0]) && Double.isFinite(nearFar[1])) {
-            this.near = Math.min(this.near, nearFar[0]);
-            this.far = Math.max(this.far, nearFar[1]);
+   
+         this.near = Double.MAX_VALUE;
+         this.far = -Double.MAX_VALUE;
+         double[] nearFar;
+   
+         for (final Animation animation : this.animations) {
+            nearFar = animation.getNearFar(this);
+   
+            if (nearFar != null) {
+               this.near = Math.min(this.near, nearFar[0]);
+               this.far = Math.max(this.far, nearFar[1]);
+            }
          }
-      }
-
-      if (this.near >= this.far) {
-         if (this.sceneBounds != null) {
-            final Tuple3d direction = TupleMath.sub(this.cameraPosition, this.sceneBounds.getCenter());
-            final double directionDistance = TupleMath.length(direction);
-            TupleMath.normalize(direction);
-            final double distance = this.sceneBounds.getSpannedDistance(null);
-            this.far = distance + ((directionDistance - (distance / 2.0)) * 5.0);
-            this.near = this.far / 3000.0;
-         } else {
-            this.far = TupleMath.length(TupleMath.sub(this.cameraPosition, this.lookAt)) * 5.0;
-            this.near = this.far / 3000.0;
+   
+         for (final Renderable renderable : this.renderables) {
+            nearFar = renderable.getNearFar(this);
+   
+            if ((nearFar != null) && Double.isFinite(nearFar[0]) && Double.isFinite(nearFar[1])) {
+               this.near = Math.min(this.near, nearFar[0]);
+               this.far = Math.max(this.far, nearFar[1]);
+            }
          }
+   
+         if (this.near >= this.far) {
+            if (this.sceneBounds != null) {
+               final Tuple3d direction = TupleMath.sub(this.cameraPosition, this.sceneBounds.getCenter());
+               final double directionDistance = TupleMath.length(direction);
+               TupleMath.normalize(direction);
+               final double distance = this.sceneBounds.getSpannedDistance(null);
+               this.far = distance + ((directionDistance - (distance / 2.0)) * 5.0);
+               this.near = this.far / 3000.0;
+            } else {
+               this.far = TupleMath.length(TupleMath.sub(this.cameraPosition, this.lookAt)) * 5.0;
+               this.near = this.far / 3000.0;
+            }
+         }
+   
+         if (this.near < 0.01) {
+            this.near = 0.01;
+         }
+   
+         if (this.far < (this.near * 3000.0)) {
+            this.far = this.near * 3000.0;
+         }
+   
+         //      if (this.near < (this.far / 3000.0)) {
+         //         this.near = this.far / 3000.0;
+         //      }
+   
+         final double[] proj = CameraUtils.gluPerspective(gl, this.fov, this.viewport[2] / (double) this.viewport[3], this.near, this.far);
+         System.arraycopy(proj, 0, this.projection, 0, 16);
+   
+         //      System.out.println("near/far: " + String.format("%.2f", near) + " / " + String.format("%.2f", far));
       }
-
-      if (this.near < 0.01) {
-         this.near = 0.01;
-      }
-
-      if (this.far < (this.near * 3000.0)) {
-         this.far = this.near * 3000.0;
-      }
-
-      //      if (this.near < (this.far / 3000.0)) {
-      //         this.near = this.far / 3000.0;
-      //      }
-
-      final double[] proj = CameraUtils.gluPerspective(gl, this.fov, this.viewport[2] / (double) this.viewport[3], this.near, this.far);
-      System.arraycopy(proj, 0, this.projection, 0, 16);
-
-      //      System.out.println("near/far: " + String.format("%.2f", near) + " / " + String.format("%.2f", far));
    }
 
    public synchronized void setAnimationSpeed(final double doubleValue) {
