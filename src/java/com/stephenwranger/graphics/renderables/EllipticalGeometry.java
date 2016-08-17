@@ -194,6 +194,7 @@ public class EllipticalGeometry extends Renderable {
       for (final EllipticalSegment segment : this.segments) {
          this.renderedSegments.addAll(this.getSegmentsToRender(gl, scene, segment, false, 0));
       }
+//      System.out.println("segment count: " + this.renderedSegments.size());
 
       //      for (final EllipticalSegment segment : this.renderedSegments) {
       //         this.loadVertices(gl, segment, originChanged);
@@ -238,7 +239,7 @@ public class EllipticalGeometry extends Renderable {
    public void setTexture(final Texture2d texture) {
       this.texture = texture;
    }
-
+   
    private List<EllipticalSegment> getSegmentsToRender(final GL2 gl, final Scene scene, final EllipticalSegment segment, boolean ignoreFrustum, final int depth) {
       final List<EllipticalSegment> toRender = new ArrayList<>();
       final BoundingVolume bounds = segment.getBoundingVolume();
@@ -249,8 +250,8 @@ public class EllipticalGeometry extends Renderable {
          result = FrustumResult.IN;
       } else {
          final Plane[] frustumPlanes = scene.getFrustumPlanes();
-         result = BoundsUtils.testFrustum(frustumPlanes, new BoundingSphere(bounds.getCenter(), bounds.getSpannedDistance(null)).offset(origin));
-         ignoreFrustum = (result == FrustumResult.IN);
+         result = BoundsUtils.testFrustum(frustumPlanes, bounds.offset(origin));
+//         ignoreFrustum = (result == FrustumResult.IN);
       }
 
       if (result != FrustumResult.OUT) {
@@ -279,11 +280,14 @@ public class EllipticalGeometry extends Renderable {
                   || ((height >= EllipticalGeometry.SCREEN_EDGE_FACTOR) && (base >= (EllipticalGeometry.SCREEN_EDGE_FACTOR / 2.0)));
 
             if (isArea || isEdges) {
+               final boolean hasChildren = segment.isSplit();
                final List<EllipticalSegment> children = segment.getChildSegments(this.ellipsoid, this.altitudeSupplier, this.setTextureFunction, true);
 
                if ((children == null) || children.isEmpty() || !EllipticalGeometry.hasTextures(children)) {
                   toRender.add(segment);
-               } else {
+               } else if(hasChildren) {
+                  // only go deeper if the current segment had already split
+                  // this is so it doesn't attempt to go super deep in a single frame
                   for (final EllipticalSegment child : children) {
                      toRender.addAll(this.getSegmentsToRender(gl, scene, child, ignoreFrustum, depth + 1));
                   }
