@@ -13,14 +13,18 @@ import com.stephenwranger.graphics.renderables.Circle;
 public class Triangle2d implements PointIntersectable, LineIntersectable {
    private final Tuple2d[] corners = new Tuple2d[3];
 
-   public Triangle2d(final Tuple2d c1, final Tuple2d c2, final Tuple2d c3) {
-      this.corners[0] = new Tuple2d(c1);
-      this.corners[1] = new Tuple2d(c2);
-      this.corners[2] = new Tuple2d(c3);
+   public Triangle2d(final Tuple2d c1, final Tuple2d c2, final Tuple2d c3, final boolean copyInput) {
+      this.corners[0] = (copyInput) ? new Tuple2d(c1) : c1;
+      this.corners[1] = (copyInput) ? new Tuple2d(c2) : c2;
+      this.corners[2] = (copyInput) ? new Tuple2d(c3) : c3;
    }
 
-   public Tuple2d[] getCorners() {
-      return new Tuple2d[] { new Tuple2d(this.corners[0]), new Tuple2d(this.corners[1]), new Tuple2d(this.corners[2]) };
+   public Tuple2d[] getCorners(final boolean copy) {
+      if(copy) {
+         return new Tuple2d[] { new Tuple2d(this.corners[0]), new Tuple2d(this.corners[1]), new Tuple2d(this.corners[2]) };
+      } else {
+         return new Tuple2d[] { this.corners[0], this.corners[1], this.corners[2] };
+      }
    }
 
    public LineSegment[] getLineSegments() {
@@ -124,7 +128,7 @@ public class Triangle2d implements PointIntersectable, LineIntersectable {
    }
 
    public Tuple3d getBarycentricCoordinate(final Tuple2d point) {
-      final Tuple2d[] corners = this.getCorners();
+      final Tuple2d[] corners = this.getCorners(false);
       final Tuple2d a = corners[0];
       final Tuple2d b = corners[1];
       final Tuple2d c = corners[2];

@@ -208,7 +208,7 @@ public class PlyModelLoader {
       final Set<Tuple2d> verticesSet = new HashSet<Tuple2d>();
 
       for (final Triangle2d triangle : triangles) {
-         verticesSet.addAll(Arrays.asList(triangle.getCorners()));
+         verticesSet.addAll(Arrays.asList(triangle.getCorners(false)));
       }
 
       PlyModelLoader.writePlyModel2d(outputFile, verticesSet, triangles);
@@ -221,7 +221,7 @@ public class PlyModelLoader {
 
       if (triangles != null && !triangles.isEmpty()) {
          for (final Triangle2d triangle : triangles) {
-            corners = triangle.getCorners();
+            corners = triangle.getCorners(false);
             faces.add(new int[] { vertices.indexOf(corners[0]), vertices.indexOf(corners[1]), vertices.indexOf(corners[2]) });
          }
       }
