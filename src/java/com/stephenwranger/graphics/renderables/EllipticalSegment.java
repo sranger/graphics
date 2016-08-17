@@ -43,6 +43,8 @@ public class EllipticalSegment implements SegmentObject {
    private int                           bufferIndex     = -1;
 
    private boolean                       hasChildren     = false;
+   
+   private Texture2d enabledTexture = null;
 
    public EllipticalSegment(final GeodesicVertex[] vertices, final int depth) {
       this.vertices = vertices;
@@ -179,6 +181,12 @@ public class EllipticalSegment implements SegmentObject {
          v2.vertexIntoBuffer(origin, buffer);
       }
    }
+   
+   public void disableTexture(final GL2 gl) {
+      if(this.enabledTexture != null) {
+         this.enabledTexture.disable(gl);
+      }
+   }
 
    /**
     * Used for testing multi-texture rendering.
@@ -201,6 +209,7 @@ public class EllipticalSegment implements SegmentObject {
          } else {
             gl.glDisable(GLLightingFunc.GL_COLOR_MATERIAL);
             texture.enable(gl);
+            this.enabledTexture = texture;
          }
 
          gl.glBegin(GL.GL_TRIANGLE_FAN);
