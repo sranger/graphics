@@ -37,10 +37,12 @@ public class FrustumRenderable extends Renderable {
          this.updateLines(gl, scene);
       }
 
-      gl.glPushAttrib(GL2.GL_LIGHTING_BIT);
+      gl.glPushAttrib(GL2.GL_LIGHTING_BIT | GL2.GL_COLOR_BUFFER_BIT | GL2.GL_LINE_BIT);
       gl.glDisable(GLLightingFunc.GL_LIGHTING);
+      gl.glLineWidth(10f);
+      
       gl.glBegin(GL.GL_LINES);
-      gl.glLineWidth(3f);
+      gl.glColor4f(1f, 1f, 1f, 1f);
 
       // these do not need to offset by the scene's origin as they were created using the mvp matrix directly
       for (final Tuple3d[] line : this.lines) {
@@ -114,94 +116,4 @@ public class FrustumRenderable extends Renderable {
          System.err.println("\tfbl: " + fbl);
       }
    }
-
-   //   /**
-   //    * Computes corners of frustum from the given Scene and sets the currently rendering lines.<br/>
-   //    * <br/. http://gamedev.stackexchange.com/a/55248
-   //    *
-   //    * @param gl
-   //    * @param scene
-   //    */
-   //   private void updateLines(final GL2 gl, final Scene scene) {
-   //      final Tuple3d cameraPosition = scene.getCameraPosition();
-   //      final Vector3d viewVector = scene.getViewVector();
-   //      final Vector3d upVector = scene.getUpVector();
-   //      final Vector3d rightVector = scene.getRightVector();
-   //      final double ar = scene.getSurfaceWidth() / scene.getSurfaceHeight();
-   //      final double near = scene.getNear();
-   //      final double far = scene.getFar();
-   //
-   //      final double hNear = 2.0 * Math.tan(scene.getFOV() / 2.0) * near;
-   //      final double wNear = hNear * ar;
-   //      final double hFar = 2.0 * Math.tan(scene.getFOV() / 2.0) * far;
-   //      final double wFar = hFar * ar;
-   //
-   //      final Tuple3d cNear = new Tuple3d(viewVector);
-   //      TupleMath.scale(cNear, near);
-   //      cNear.add(cameraPosition);
-   //
-   //      final Tuple3d cFar = new Tuple3d(viewVector);
-   //      TupleMath.scale(cFar, far);
-   //      cFar.add(cameraPosition);
-   //
-   //      final Tuple3d ntl = FrustumRenderable.computeCorner(upVector, rightVector, cNear, wNear, hNear, true, false);
-   //      final Tuple3d ntr = FrustumRenderable.computeCorner(upVector, rightVector, cNear, wNear, hNear, true, true);
-   //      final Tuple3d nbr = FrustumRenderable.computeCorner(upVector, rightVector, cNear, wNear, hNear, false, true);
-   //      final Tuple3d nbl = FrustumRenderable.computeCorner(upVector, rightVector, cNear, wNear, hNear, false, false);
-   //
-   //      final Tuple3d ftl = FrustumRenderable.computeCorner(upVector, rightVector, cFar, wFar, hFar, true, false);
-   //      final Tuple3d ftr = FrustumRenderable.computeCorner(upVector, rightVector, cFar, wFar, hFar, true, true);
-   //      final Tuple3d fbr = FrustumRenderable.computeCorner(upVector, rightVector, cFar, wFar, hFar, false, true);
-   //      final Tuple3d fbl = FrustumRenderable.computeCorner(upVector, rightVector, cFar, wFar, hFar, false, false);
-   //
-   //      final Vector3d depthOffset = new Vector3d(viewVector);
-   //      depthOffset.scale((far - near) * 0.1);
-   //
-   //      ntl.add(depthOffset);
-   //      ntr.add(depthOffset);
-   //      nbr.add(depthOffset);
-   //      nbl.add(depthOffset);
-   //
-   //      ftl.subtract(depthOffset);
-   //      ftr.subtract(depthOffset);
-   //      fbr.subtract(depthOffset);
-   //      fbl.subtract(depthOffset);
-   //
-   //      this.lines[0] = new Line(ntl, ntr);
-   //      this.lines[1] = new Line(ntr, nbr);
-   //      this.lines[2] = new Line(nbr, nbl);
-   //      this.lines[3] = new Line(nbl, ntl);
-   //
-   //      this.lines[4] = new Line(ftl, ftr);
-   //      this.lines[5] = new Line(ftr, fbr);
-   //      this.lines[6] = new Line(fbr, fbl);
-   //      this.lines[7] = new Line(fbl, ftl);
-   //
-   //      this.lines[8] = new Line(ntl, ftl);
-   //      this.lines[9] = new Line(ntr, ftr);
-   //      this.lines[10] = new Line(nbr, fbr);
-   //      this.lines[11] = new Line(nbl, fbl);
-   //   }
-   //
-   //   private static Tuple3d computeCorner(final Vector3d up, final Vector3d right, final Tuple3d center, final double width, final double height, final boolean isWidthPositive, final boolean isHeightPositive) {
-   //      final Tuple3d point = new Tuple3d(center);
-   //      final Vector3d upScaled = new Vector3d(up);
-   //      upScaled.scale(height);
-   //      final Vector3d rightScaled = new Vector3d(right);
-   //      rightScaled.scale(height);
-   //
-   //      if (isHeightPositive) {
-   //         point.add(upScaled);
-   //      } else {
-   //         point.subtract(upScaled);
-   //      }
-   //
-   //      if (isWidthPositive) {
-   //         point.add(rightScaled);
-   //      } else {
-   //         point.subtract(rightScaled);
-   //      }
-   //
-   //      return point;
-   //   }
 }

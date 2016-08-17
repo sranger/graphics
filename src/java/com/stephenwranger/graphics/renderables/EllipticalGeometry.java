@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.fixedfunc.GLLightingFunc;
@@ -29,7 +28,6 @@ import com.stephenwranger.graphics.math.intersection.Ellipsoid;
 import com.stephenwranger.graphics.math.intersection.Plane;
 import com.stephenwranger.graphics.utils.BiConsumerSupplier;
 import com.stephenwranger.graphics.utils.TupleMath;
-import com.stephenwranger.graphics.utils.textures.Texture2d;
 
 public class EllipticalGeometry extends Renderable {
    public static final int                                  CENTER             = 0;
@@ -84,7 +82,6 @@ public class EllipticalGeometry extends Renderable {
    private final Color4f                                    color              = Color4f.white();
    //   private final SegmentedVertexBufferPool                  vbo;
 
-   private Texture2d                                        texture            = null;
    private double                                           loadFactor         = 0.75;
    private boolean                                          isLightingEnabled  = true;
 
@@ -165,16 +162,10 @@ public class EllipticalGeometry extends Renderable {
       if (this.isLightingEnabled) {
          gl.glEnable(GLLightingFunc.GL_LIGHTING);
          gl.glEnable(GLLightingFunc.GL_LIGHT0);
+         gl.glEnable(GLLightingFunc.GL_COLOR_MATERIAL);
       } else {
          gl.glDisable(GLLightingFunc.GL_LIGHTING);
-      }
-
-      if (this.texture == null) {
-         gl.glEnable(GLLightingFunc.GL_COLOR_MATERIAL);
-         gl.glColorMaterial(GL.GL_FRONT, GLLightingFunc.GL_AMBIENT_AND_DIFFUSE);
-      } else {
          gl.glDisable(GLLightingFunc.GL_COLOR_MATERIAL);
-         this.texture.enable(gl);
       }
 
       final Tuple3d origin = scene.getOrigin();
@@ -210,15 +201,18 @@ public class EllipticalGeometry extends Renderable {
       gl.glLineWidth(3f);
       //      this.vbo.render(gl, this.renderedSegments);
 
+      EllipticalSegment currentSegment = null;
+      
       for (final EllipticalSegment segment : this.renderedSegments) {
+         currentSegment = segment;
          segment.render(gl, glu, scene);
+      }
+      
+      if(currentSegment != null) {
+         currentSegment.disableTexture(gl);
       }
 
       gl.glFlush();
-
-      if (this.texture != null) {
-         this.texture.disable(gl);
-      }
 
       gl.glPopAttrib();
       gl.glPopMatrix();
@@ -234,10 +228,6 @@ public class EllipticalGeometry extends Renderable {
 
    public void setLoadFactor(final double loadFactor) {
       this.loadFactor = loadFactor;
-   }
-
-   public void setTexture(final Texture2d texture) {
-      this.texture = texture;
    }
    
    private List<EllipticalSegment> getSegmentsToRender(final GL2 gl, final Scene scene, final EllipticalSegment segment, boolean ignoreFrustum, final int depth) {
