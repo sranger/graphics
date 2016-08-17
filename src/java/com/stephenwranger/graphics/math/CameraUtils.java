@@ -3,7 +3,6 @@ package com.stephenwranger.graphics.math;
 import java.util.Arrays;
 
 import com.jogamp.opengl.GL2;
-import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.glu.GLU;
 import com.stephenwranger.graphics.Scene;
 import com.stephenwranger.graphics.math.intersection.Plane;
@@ -79,175 +78,215 @@ public class CameraUtils {
     * http://ruh.li/CameraViewFrustum.html<br/>
     * http://gamedevs.org/uploads/fast-extraction-viewing-frustum-planes-from-world-view-projection-matrix.pdf
     *
-    * @param matrix
+    * @param modelview
+    * @param projection
     * @return
     */
-   public static Plane[] getFrustumPlanes(final Matrix4d matrix) {
-      final Plane[] planes = new Plane[6];
-      // left
-      final Vector3d leftNormal = new Vector3d();
-      leftNormal.x = matrix.get(0, 3) + matrix.get(0, 0);
-      leftNormal.y = matrix.get(1, 3) + matrix.get(1, 0);
-      leftNormal.z = matrix.get(2, 3) + matrix.get(2, 0);
-      final double leftD = matrix.get(3, 3) + matrix.get(3, 0);
+   public static Plane[] getFrustumPlanes(final Tuple3d origin, final Matrix4d mvpMatrix) {
+      final double[] clip = mvpMatrix.get();
+      double t;
 
-      // right
+      /*
+       * Translate the planes by the localeOrigin. The new distance of the plane from the origin is the dot product of
+       * the plane normal and the translation vector (ax + by + cz + d = aTx + bTy + cTz). Subtract this value from the
+       * d component of the plane equation to get the new plane equation in the form ax + by + cz + d = 0.
+       * 
+       * planeD -= planeNormal.x * origin.x + planeNormal.y * origin.y + planeNormal.z * origin.z;
+       */
+
+      /* Extract the numbers for the RIGHT plane */
       final Vector3d rightNormal = new Vector3d();
-      rightNormal.x = matrix.get(0, 3) - matrix.get(0, 0);
-      rightNormal.y = matrix.get(1, 3) - matrix.get(1, 0);
-      rightNormal.z = matrix.get(2, 3) - matrix.get(2, 0);
-      final double rightD = matrix.get(3, 3) - matrix.get(3, 0);
+      rightNormal.x = clip[3] - clip[0];
+      rightNormal.y = clip[7] - clip[4];
+      rightNormal.z = clip[11] - clip[8];
+      double rightD = clip[15] - clip[12];
 
-      // bottom
+      /* Normalize the result */
+      t = (float) Math.sqrt(rightNormal.x * rightNormal.x + rightNormal.y * rightNormal.y + rightNormal.z * rightNormal.z);
+      rightNormal.x /= t;
+      rightNormal.y /= t;
+      rightNormal.z /= t;
+      rightD /= t;
+      rightD -= rightNormal.x * origin.x + rightNormal.y * origin.y + rightNormal.z * origin.z;
+      final Plane rightPlane = new Plane(rightNormal, rightD);
+
+      /* Extract the numbers for the LEFT Plane */
+      final Vector3d leftNormal = new Vector3d();
+      leftNormal.x = clip[3] + clip[0];
+      leftNormal.y = clip[7] + clip[4];
+      leftNormal.z = clip[11] + clip[8];
+      double leftD = clip[15] + clip[12];
+
+      /* Normalize the result */
+      t = (float) Math.sqrt(leftNormal.x * leftNormal.x + leftNormal.y * leftNormal.y + leftNormal.z * leftNormal.z);
+      leftNormal.x /= t;
+      leftNormal.y /= t;
+      leftNormal.z /= t;
+      leftD /= t;
+      leftD -= leftNormal.x * origin.x + leftNormal.y * origin.y + leftNormal.z * origin.z;
+      final Plane leftPlane = new Plane(leftNormal, leftD);
+
+      /* Extract the BOTTOM Plane */
       final Vector3d bottomNormal = new Vector3d();
-      bottomNormal.x = matrix.get(0, 3) + matrix.get(0, 1);
-      bottomNormal.y = matrix.get(1, 3) + matrix.get(1, 1);
-      bottomNormal.z = matrix.get(2, 3) + matrix.get(2, 1);
-      final double bottomD = matrix.get(3, 3) + matrix.get(3, 1);
+      bottomNormal.x = clip[3] + clip[1];
+      bottomNormal.y = clip[7] + clip[5];
+      bottomNormal.z = clip[11] + clip[9];
+      double bottomD = clip[15] + clip[13];
 
-      // top
+      /* Normalize the result */
+      t = (float) Math.sqrt(bottomNormal.x * bottomNormal.x + bottomNormal.y * bottomNormal.y + bottomNormal.z
+            * bottomNormal.z);
+      bottomNormal.x /= t;
+      bottomNormal.y /= t;
+      bottomNormal.z /= t;
+      bottomD /= t;
+      bottomD -= bottomNormal.x * origin.x + bottomNormal.y * origin.y + bottomNormal.z * origin.z;
+      final Plane bottomPlane = new Plane(bottomNormal, bottomD);
+
+      /* Extract the TOP Plane */
       final Vector3d topNormal = new Vector3d();
-      topNormal.x = matrix.get(0, 3) - matrix.get(0, 1);
-      topNormal.y = matrix.get(1, 3) - matrix.get(1, 1);
-      topNormal.z = matrix.get(2, 3) - matrix.get(2, 1);
-      final double topD = matrix.get(3, 3) - matrix.get(3, 1);
+      topNormal.x = clip[3] - clip[1];
+      topNormal.y = clip[7] - clip[5];
+      topNormal.z = clip[11] - clip[9];
+      double topD = clip[15] - clip[13];
 
-      // near
+      /* Normalize the result */
+      t = (float) Math.sqrt(topNormal.x * topNormal.x + topNormal.y * topNormal.y + topNormal.z * topNormal.z);
+      topNormal.x /= t;
+      topNormal.y /= t;
+      topNormal.z /= t;
+      topD /= t;
+      topD -= topNormal.x * origin.x + topNormal.y * origin.y + topNormal.z * origin.z;
+      final Plane topPlane = new Plane(topNormal, topD);
+
+      /* Extract the NEAR Plane */
       final Vector3d nearNormal = new Vector3d();
-      nearNormal.x = matrix.get(0, 2);
-      nearNormal.y = matrix.get(1, 2);
-      nearNormal.z = matrix.get(2, 2);
-      final double nearD = matrix.get(3, 2);
+      nearNormal.x = clip[3] - clip[2];
+      nearNormal.y = clip[7] - clip[6];
+      nearNormal.z = clip[11] - clip[10];
+      double nearD = clip[15] - clip[14];
 
-      // far
+      /* Normalize the result */
+      t = (float) Math.sqrt(nearNormal.x * nearNormal.x + nearNormal.y * nearNormal.y + nearNormal.z * nearNormal.z);
+      nearNormal.x /= t;
+      nearNormal.y /= t;
+      nearNormal.z /= t;
+      nearD /= t;
+      nearD -= nearNormal.x * origin.x + nearNormal.y * origin.y + nearNormal.z * origin.z;
+      final Plane nearPlane = new Plane(nearNormal, nearD);
+
+      /* Extract the FAR Plane */
       final Vector3d farNormal = new Vector3d();
-      farNormal.x = matrix.get(0, 3) - matrix.get(0, 2);
-      farNormal.y = matrix.get(1, 3) - matrix.get(1, 2);
-      farNormal.z = matrix.get(2, 3) - matrix.get(2, 2);
-      final double farD = matrix.get(3, 3) - matrix.get(3, 2);
+      farNormal.x = clip[3] + clip[2];
+      farNormal.y = clip[7] + clip[6];
+      farNormal.z = clip[11] + clip[10];
+      double farD = clip[15] + clip[14];
 
-      planes[CameraUtils.LEFT_PLANE] = new Plane(leftNormal, leftD);
-      planes[CameraUtils.RIGHT_PLANE] = new Plane(rightNormal, rightD);
-      planes[CameraUtils.BOTTOM_PLANE] = new Plane(bottomNormal, bottomD);
-      planes[CameraUtils.TOP_PLANE] = new Plane(topNormal, topD);
-      planes[CameraUtils.NEAR_PLANE] = new Plane(nearNormal, nearD);
-      planes[CameraUtils.FAR_PLANE] = new Plane(farNormal, farD);
+      /* Normalize the result */
+      t = (float) Math.sqrt(farNormal.x * farNormal.x + farNormal.y * farNormal.y + farNormal.z * farNormal.z);
+      farNormal.x /= t;
+      farNormal.y /= t;
+      farNormal.z /= t;
+      farD /= t;
+      farD -= farNormal.x * origin.x + farNormal.y * origin.y + farNormal.z * origin.z;
+      final Plane farPlane = new Plane(farNormal, farD);
+      
+      final Plane[] planes = new Plane[6];
+      planes[RIGHT_PLANE] = rightPlane;
+      planes[LEFT_PLANE] = leftPlane;
+      planes[BOTTOM_PLANE] = bottomPlane;
+      planes[TOP_PLANE] = topPlane;
+      planes[NEAR_PLANE] = nearPlane;
+      planes[FAR_PLANE] = farPlane;
 
-      // normalize
-      for (int i = 0; i < 6; i++) {
-         final Vector3d normal = planes[i].getNormal();
-         final double length = normal.length();
-         normal.x /= length;
-         normal.y /= length;
-         normal.z /= length;
-         // d also has to be divided by the length of the normal
-         planes[i] = new Plane(normal, planes[i].getDistance() / length);
-      }
-
+//      System.out.println("rightD: " + rightD);
+//      System.out.println("leftD: " + leftD);
+//      System.out.println("bottomD: " + bottomD);
+//      System.out.println("topD: " + topD);
+//      System.out.println("nearD: " + nearD);
+//      System.out.println("farD: " + farD);
+//      System.out.println("near.dot(far): " + nearNormal.dot(farNormal));
+      
       return planes;
    }
 
-   //   /**
-   //    * Generates the six frustum planes using the projection matrix. The index constants can be accessed from this class
-   //    * as static values.<br/>
-   //    * <br/>
-   //    * http://ruh.li/CameraViewFrustum.html<br/>
-   //    * http://gamedevs.org/uploads/fast-extraction-viewing-frustum-planes-from-world-view-projection-matrix.pdf
-   //    *
-   //    * @param projection
-   //    * @return
-   //    */
-   //   public static Plane[] getFrustumPlanes(final Matrix4d projection) {
-   //      final Plane[] planes = new Plane[6];
-   //      // left
-   //      final Vector3d leftNormal = new Vector3d();
-   //      leftNormal.x = projection.get(3, 0) + projection.get(0, 0);
-   //      leftNormal.y = projection.get(3, 1) + projection.get(0, 1);
-   //      leftNormal.z = projection.get(3, 2) + projection.get(0, 2);
-   //      final double leftD = projection.get(3, 3) + projection.get(0, 3);
-   //
-   //      // right
-   //      final Vector3d rightNormal = new Vector3d();
-   //      rightNormal.x = projection.get(3, 0) - projection.get(0, 0);
-   //      rightNormal.y = projection.get(3, 1) - projection.get(0, 1);
-   //      rightNormal.z = projection.get(3, 2) - projection.get(0, 2);
-   //      final double rightD = projection.get(3, 3) - projection.get(0, 3);
-   //
-   //      // bottom
-   //      final Vector3d bottomNormal = new Vector3d();
-   //      bottomNormal.x = projection.get(3, 0) + projection.get(1, 0);
-   //      bottomNormal.y = projection.get(3, 1) + projection.get(1, 1);
-   //      bottomNormal.z = projection.get(3, 2) + projection.get(1, 2);
-   //      final double bottomD = projection.get(3, 3) + projection.get(1, 3);
-   //
-   //      // top
-   //      final Vector3d topNormal = new Vector3d();
-   //      topNormal.x = projection.get(3, 0) - projection.get(1, 0);
-   //      topNormal.y = projection.get(3, 1) - projection.get(1, 1);
-   //      topNormal.z = projection.get(3, 2) - projection.get(1, 2);
-   //      final double topD = projection.get(3, 3) - projection.get(1, 3);
-   //
-   //      // near
-   //      final Vector3d nearNormal = new Vector3d();
-   //      nearNormal.x = projection.get(3, 0) + projection.get(2, 0);
-   //      nearNormal.y = projection.get(3, 1) + projection.get(2, 1);
-   //      nearNormal.z = projection.get(3, 2) + projection.get(2, 2);
-   //      final double nearD = projection.get(3, 3) + projection.get(2, 3);
-   //
-   //      // far
-   //      final Vector3d farNormal = new Vector3d();
-   //      farNormal.x = projection.get(3, 0) - projection.get(2, 0);
-   //      farNormal.y = projection.get(3, 1) - projection.get(2, 1);
-   //      farNormal.z = projection.get(3, 2) - projection.get(2, 2);
-   //      final double farD = projection.get(3, 3) - projection.get(2, 3);
-   //
-   //      planes[CameraUtils.LEFT_PLANE] = new Plane(leftNormal, leftD);
-   //      planes[CameraUtils.RIGHT_PLANE] = new Plane(rightNormal, rightD);
-   //      planes[CameraUtils.BOTTOM_PLANE] = new Plane(bottomNormal, bottomD);
-   //      planes[CameraUtils.TOP_PLANE] = new Plane(topNormal, topD);
-   //      planes[CameraUtils.NEAR_PLANE] = new Plane(nearNormal, nearD);
-   //      planes[CameraUtils.FAR_PLANE] = new Plane(farNormal, farD);
-   //
-   //      // normalize
-   //      for (int i = 0; i < 6; i++) {
-   //         final Vector3d normal = planes[i].getNormal();
-   //         final double length = normal.length();
-   //         normal.x /= length;
-   //         normal.y /= length;
-   //         normal.z /= length;
-   //         // d also has to be divided by the length of the normal
-   //         planes[i] = new Plane(normal, planes[i].getDistance() / length);
-   //      }
-   //
-   //      return planes;
-   //   }
+   /**
+    * Computes the ModelView matrix; reference: https://www.opengl.org/wiki/GluLookAt_code.
+    *
+    * @param eyePosition3D
+    * @param center3D
+    * @param upVector3D
+    * @return
+    */
+   public static double[] gluLookAt(final GL2 gl, final Tuple3d eyePosition3D, final Tuple3d center3D, final Vector3d upVector3D) {
+      final Vector3d forward = Vector3d.getVector(eyePosition3D, center3D, true);
+      final Vector3d side = new Vector3d();
 
-   // private static final JFrame errorFrame = new JFrame("Error Image");
-   // private static final JLabel label = new JLabel();
-   // private static boolean isVisible = false;
-   //
-   // static {
-   // errorFrame.setLocation(3940, 100);
-   // errorFrame.getContentPane().add(label);
-   // }
+      side.cross(forward, upVector3D);
+      side.normalize();
+
+      /*
+       * Normalizes up without sqrt...
+       */
+      upVector3D.cross(side, forward);
+
+      /*
+       * glTranslate(-eyex, -eyey, -eyez)
+       */
+      final double eyex = -(eyePosition3D.x);
+      final double eyey = -(eyePosition3D.y);
+      final double eyez = -(eyePosition3D.z);
+      final double[] mv = new double[16];
+      mv[0] = side.x;
+      mv[4] = side.y;
+      mv[8] = side.z;
+      mv[12] = side.x * eyex + side.y * eyey + side.z * eyez;
+
+      mv[1] = upVector3D.x;
+      mv[5] = upVector3D.y;
+      mv[9] = upVector3D.z;
+      mv[13] = upVector3D.x * eyex + upVector3D.y * eyey + upVector3D.z * eyez;
+
+      mv[2] = -forward.x;
+      mv[6] = -forward.y;
+      mv[10] = -forward.z;
+      mv[14] = -(forward.x * eyex + forward.y * eyey + forward.z * eyez);
+
+      mv[3] = 0;
+      mv[7] = 0;
+      mv[11] = 0;
+      mv[15] = 1;
+      
+      gl.glMatrixMode(GL2.GL_MODELVIEW);
+      gl.glLoadIdentity();
+      gl.glLoadMatrixd(mv, 0);
+
+      return mv;
+   }
+
 
    /**
-    * Computes the frustum matrix.
+    * Computes Projection Matrix; reference: https://www.opengl.org/wiki/GluPerspective_code.
     *
-    * @param left
-    * @param right
-    * @param bottom
-    * @param top
+    * @param fovyInDegrees
+    * @param aspectRatio
     * @param znear
     * @param zfar
     * @return
     */
-   public static double[] glhFrustum2(final double left, final double right, final double bottom, final double top, final double znear, final double zfar) {
+   public static double[] gluPerspective(final GL2 gl, final double fovyInDegrees, final double aspectRatio, final double znear, final double zfar) {
+      final double ymax = znear * Math.tan(Math.toRadians(fovyInDegrees / 2.0));
+      final double xmax = ymax * aspectRatio;
       final double temp = 2.0 * znear;
+      final double left = -xmax;
+      final double right = xmax;
+      final double bottom = -ymax;
+      final double top = ymax;
       final double temp2 = right - left;
       final double temp3 = top - bottom;
       final double temp4 = zfar - znear;
       final double[] matrix = new double[16];
+      
       matrix[0] = temp / temp2;
       matrix[1] = 0.0;
       matrix[2] = 0.0;
@@ -264,93 +303,82 @@ public class CameraUtils {
       matrix[13] = 0.0;
       matrix[14] = (-temp * zfar) / temp4;
       matrix[15] = 0.0;
-
-      // return new Matrix4d(matrix);
+      
+      gl.glMatrixMode(GL2.GL_PROJECTION);
+      gl.glLoadIdentity();
+      gl.glLoadMatrixd(matrix, 0);
+      
       return matrix;
    }
+//      final double radians = Math.toRadians(fovyInDegrees);
+//      final double deltaZ = zfar - znear;
+//      final double sine = Math.sin(radians);
+//      
+//      if ((deltaZ == 0) || (sine == 0) || (aspectRatio == 0)) {
+//         return new Matrix4d().get();
+//      }
+//      
+//      final double cotangent = Math.cos(radians) / sine;
+//
+//      final double[] proj = new double[16];
+//      proj[0] = (cotangent / aspectRatio);
+//      proj[1] = 0;
+//      proj[2] = 0;
+//      proj[3] = 0;
+//      proj[4] = 0;
+//      proj[5] = cotangent;
+//      proj[6] = 0;
+//      proj[7] = 0;
+//      proj[8] = 0;
+//      proj[9] = 0;
+//      proj[10] = (-(zfar + znear) / deltaZ);
+//      proj[11] = -1;
+//      proj[12] = 0;
+//      proj[13] = 0;
+//      proj[14] = -2 * znear * (zfar / deltaZ);
+//      proj[15] = 0;
+//
+//      return proj;
+//   }
 
-   /**
-    * Computes the ModelView matrix; reference: https://www.opengl.org/wiki/GluLookAt_code.
-    *
-    * @param eyePosition3D
-    * @param center3D
-    * @param upVector3D
-    * @return
-    */
-   public static double[] gluLookAt(final GL2 gl, final Tuple3d eyePosition3D, final Tuple3d center3D, final Vector3d upVector3D) {
-      gl.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-      gl.glLoadIdentity();
-      CameraUtils.GLU_CONTEXT.gluLookAt(eyePosition3D.x, eyePosition3D.y, eyePosition3D.z, center3D.x, center3D.y, center3D.z, upVector3D.x, upVector3D.y, upVector3D.z);
-
-      final double[] modelview = new double[16];
-      gl.glGetDoublev(GLMatrixFunc.GL_MODELVIEW_MATRIX, modelview, 0);
-
-      return modelview;
-
-      // //------------------
-      // final Vector3d forward = new Vector3d();
-      // forward.subtract(center3D, eyePosition3D);
-      // forward.normalize();
-      // //------------------
-      // //Side = forward x up
-      // final Vector3d side = new Vector3d();
-      // side.cross(forward, upVector3D);
-      // side.normalize();
-      // //------------------
-      // //Recompute up as: up = side x forward
-      // final Vector3d up = new Vector3d();
-      // up.cross(side, forward);
-      // up.normalize();
-      // //------------------
-      // final double[] matrix = new double[16];
-      // matrix[0] = side.x;
-      // matrix[4] = side.y;
-      // matrix[8] = side.z;
-      // matrix[12] = 0.0;
-      // //------------------
-      // matrix[1] = up.x;
-      // matrix[5] = up.y;
-      // matrix[9] = up.z;
-      // matrix[13] = 0.0;
-      // //------------------
-      // matrix[2] = -forward.x;
-      // matrix[6] = -forward.y;
-      // matrix[10] = -forward.z;
-      // matrix[14] = 0.0;
-      // //------------------
-      // matrix[3] = matrix[7] = matrix[11] = 0.0;
-      // matrix[15] = 1.0;
-      // //------------------
-      // CameraUtils.glhTranslatef2(matrix, -eyePosition3D.x, -eyePosition3D.y, -eyePosition3D.z);
-      // //------------------
-      //// return new Matrix4d(matrix);
-      // return matrix;
-   }
-
-   /**
-    * Computes Projection Matrix; reference: https://www.opengl.org/wiki/GluPerspective_code.
-    *
-    * @param fovyInDegrees
-    * @param aspectRatio
-    * @param znear
-    * @param zfar
-    * @return
-    */
-   public static double[] gluPerspective(final GL2 gl, final double fovyInDegrees, final double aspectRatio, final double znear, final double zfar) {
-      gl.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
-      gl.glLoadIdentity();
-      CameraUtils.GLU_CONTEXT.gluPerspective(fovyInDegrees, aspectRatio, znear, zfar);
-
-      final double[] projection = new double[16];
-      gl.glGetDoublev(GLMatrixFunc.GL_PROJECTION_MATRIX, projection, 0);
-
-      return projection;
-
-      // final double ymax = znear * Math.tan(fovyInDegrees * Math.PI / 360.0);
-      // final double xmax = ymax * aspectRatio;
-      //
-      // return glhFrustum2(-xmax, xmax, -ymax, ymax, znear, zfar);
-   }
+//   /**
+//    * Computes the ModelView matrix; reference: https://www.opengl.org/wiki/GluLookAt_code.
+//    *
+//    * @param eyePosition3D
+//    * @param center3D
+//    * @param upVector3D
+//    * @return
+//    */
+//   public static double[] gluLookAt(final GL2 gl, final Tuple3d eyePosition3D, final Tuple3d center3D, final Vector3d upVector3D) {
+//      gl.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+//      gl.glLoadIdentity();
+//      CameraUtils.GLU_CONTEXT.gluLookAt(eyePosition3D.x, eyePosition3D.y, eyePosition3D.z, center3D.x, center3D.y, center3D.z, upVector3D.x, upVector3D.y, upVector3D.z);
+//
+//      final double[] modelview = new double[16];
+//      gl.glGetDoublev(GLMatrixFunc.GL_MODELVIEW_MATRIX, modelview, 0);
+//
+//      return modelview;
+//   }
+//
+//   /**
+//    * Computes Projection Matrix; reference: https://www.opengl.org/wiki/GluPerspective_code.
+//    *
+//    * @param fovyInDegrees
+//    * @param aspectRatio
+//    * @param znear
+//    * @param zfar
+//    * @return
+//    */
+//   public static double[] gluPerspective(final GL2 gl, final double fovyInDegrees, final double aspectRatio, final double znear, final double zfar) {
+//      gl.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
+//      gl.glLoadIdentity();
+//      CameraUtils.GLU_CONTEXT.gluPerspective(fovyInDegrees, aspectRatio, znear, zfar);
+//
+//      final double[] projection = new double[16];
+//      gl.glGetDoublev(GLMatrixFunc.GL_PROJECTION_MATRIX, projection, 0);
+//      
+//      return projection;
+//   }
 
    /**
     * http://www.opengl.org/sdk/docs/man2/xhtml/gluProject.xml
@@ -372,117 +400,7 @@ public class CameraUtils {
          new RuntimeException("invalid gluProject\n\tworld = " + worldXyz + "\n\tmv = " + Arrays.toString(modelview) + "\n\tproj = " + Arrays.toString(projection) + "\n\tviewport: " + Arrays.toString(viewport)).printStackTrace();
          return null;
       }
-
-      // // Transformation vectors
-      // double[] fTempo = new double[8];
-      // // Modelview transform
-      // fTempo[0] = modelview[0] * worldXyz.x + modelview[4] * worldXyz.y + modelview[8] * worldXyz.z + modelview[12];
-      // // w is always 1
-      // fTempo[1] = modelview[1] * worldXyz.x + modelview[5] * worldXyz.y + modelview[9] * worldXyz.z + modelview[13];
-      // fTempo[2] = modelview[2] * worldXyz.x + modelview[6] * worldXyz.y + modelview[10] * worldXyz.z + modelview[14];
-      // fTempo[3] = modelview[3] * worldXyz.x + modelview[7] * worldXyz.y + modelview[11] * worldXyz.z + modelview[15];
-      // // Projection transform, the final row of projection matrix is always [0 0 -1 0]
-      // // so we optimize for that.
-      // fTempo[4] = projection[0] * fTempo[0] + projection[4] * fTempo[1] + projection[8] * fTempo[2]
-      // + projection[12] * fTempo[3];
-      // fTempo[5] = projection[1] * fTempo[0] + projection[5] * fTempo[1] + projection[9] * fTempo[2]
-      // + projection[13] * fTempo[3];
-      // fTempo[6] = projection[2] * fTempo[0] + projection[6] * fTempo[1] + projection[10] * fTempo[2]
-      // + projection[14] * fTempo[3];
-      // fTempo[7] = -fTempo[2];
-      // // The result normalizes between -1 and 1
-      // if (fTempo[7] == 0.0) // The w value
-      // return null;
-      // fTempo[7] = 1.0 / fTempo[7];
-      // // Perspective division
-      // fTempo[4] *= fTempo[7];
-      // fTempo[5] *= fTempo[7];
-      // fTempo[6] *= fTempo[7];
-      // // Window coordinates
-      // // Map x, y to range 0-1
-      // final double windowX = (fTempo[4] * 0.5 + 0.5) * viewport[2] + viewport[0];
-      // final double windowY = (fTempo[5] * 0.5 + 0.5) * viewport[3] + viewport[1];
-      // // This is only correct when glDepthRange(0.0, 1.0)
-      // final double windowZ = (1.0 + fTempo[6]) * 0.5; // Between 0 and 1
-      // return new Tuple3d(windowX, windowY, windowZ);
    }
-
-   // /**
-   // * Generates the six frustum planes using the projection matrix. The index constants can be accessed from this
-   // class
-   // * as static values.<br/><br/>
-   // * http://ruh.li/CameraViewFrustum.html
-   // *
-   // * @param projection
-   // * @return
-   // */
-   // public static Plane[] getFrustumPlanes(final Matrix4d projection) {
-   // final Plane[] planes = new Plane[6];
-   // // left
-   // final Vector3d leftNormal = new Vector3d();
-   // leftNormal.x = projection.get(0, 3) + projection.get(0, 0);
-   // leftNormal.y = projection.get(1, 3) + projection.get(1, 0);
-   // leftNormal.z = projection.get(2, 3) + projection.get(2, 0);
-   // final double leftD = projection.get(3, 3) + projection.get(3, 0);
-   //
-   // // right
-   // final Vector3d rightNormal = new Vector3d();
-   // rightNormal.x = projection.get(0, 3) - projection.get(0, 0);
-   // rightNormal.y = projection.get(1, 3) - projection.get(1, 0);
-   // rightNormal.z = projection.get(2, 3) - projection.get(2, 0);
-   // final double rightD = projection.get(3, 3) - projection.get(3, 0);
-   //
-   // // bottom
-   // final Vector3d bottomNormal = new Vector3d();
-   // bottomNormal.x = projection.get(0, 3) + projection.get(0, 1);
-   // bottomNormal.y = projection.get(1, 3) + projection.get(1, 1);
-   // bottomNormal.z = projection.get(2, 3) + projection.get(2, 1);
-   // final double bottomD = projection.get(3, 3) + projection.get(3, 1);
-   //
-   // // top
-   // final Vector3d topNormal = new Vector3d();
-   // topNormal.x = projection.get(0, 3) - projection.get(0, 1);
-   // topNormal.y = projection.get(1, 3) - projection.get(1, 1);
-   // topNormal.z = projection.get(2, 3) - projection.get(2, 1);
-   // final double topD = projection.get(3, 3) - projection.get(3, 1);
-   //
-   // // near
-   // final Vector3d nearNormal = new Vector3d();
-   //// nearNormal.x = projection.get(0, 3) + projection.get(0, 2);
-   //// nearNormal.y = projection.get(1, 3) + projection.get(1, 2);
-   //// nearNormal.z = projection.get(2, 3) + projection.get(2, 2);
-   // nearNormal.x = projection.get(0, 2);
-   // nearNormal.y = projection.get(1, 2);
-   // nearNormal.z = projection.get(2, 2);
-   // final double nearD = projection.get(3, 2);
-   //
-   // // far
-   // final Vector3d farNormal = new Vector3d();
-   // farNormal.x = projection.get(0, 3) - projection.get(0, 2);
-   // farNormal.y = projection.get(1, 3) - projection.get(1, 2);
-   // farNormal.z = projection.get(2, 3) - projection.get(2, 2);
-   // final double farD = projection.get(3, 3) - projection.get(3, 2);
-   //
-   // planes[LEFT_PLANE] = new Plane(leftNormal, leftD);
-   // planes[RIGHT_PLANE] = new Plane(rightNormal, rightD);
-   // planes[BOTTOM_PLANE] = new Plane(bottomNormal, bottomD);
-   // planes[TOP_PLANE] = new Plane(topNormal, topD);
-   // planes[NEAR_PLANE] = new Plane(nearNormal, nearD);
-   // planes[FAR_PLANE] = new Plane(farNormal, farD);
-   //
-   // // normalize
-   // for(int i = 0; i < 6; i++) {
-   // final Vector3d normal = planes[i].getNormal();
-   // final double length = normal.length();
-   // normal.x /= length;
-   // normal.y /= length;
-   // normal.z /= length;
-   // // d also has to be divided by the length of the normal
-   // planes[i] = new Plane(normal, planes[i].getDistance() / length);
-   // }
-   //
-   // return planes;
-   // }
 
    /**
     * http://www.opengl.org/sdk/docs/man2/xhtml/gluUnProject.xml
@@ -507,77 +425,8 @@ public class CameraUtils {
          return new Tuple3d(worldPos);
       } else {
          new RuntimeException("invalid gluUnProject\n\tscreen = " + screenXyz + "\n\tmv = " + Arrays.toString(modelview) + "\n\tproj = " + Arrays.toString(projection) + "\n\tviewport: " + Arrays.toString(viewport)).printStackTrace();
-         
-         // System.err.println("cannot unproject: " + screenXyz);
-         // System.err.println("mv: " + Arrays.toString(modelview));
-         // System.err.println("p: " + Arrays.toString(projection));
-         //
-         // Matrix4d.invert(modelview);
-         // Matrix4d.invert(projection);
-         //
-         // System.err.println("inv mv: " + Arrays.toString(modelview));
-         // System.err.println("inv proj: " + Arrays.toString(projection));
-         //
-         //
-         // if(!isVisible) {
-         // isVisible = true;
-         // final BufferedImage image = new BufferedImage(scene.getWidth(), scene.getHeight(),
-         // BufferedImage.TYPE_INT_ARGB);
-         //
-         // for(int x = 0; x < scene.getWidth(); x++) {
-         // for(int y = 0; y < scene.getHeight(); y++) {
-         // final boolean valid = GLU_CONTEXT.gluUnProject(x, y, 0.5, modelview, 0, projection, 0, viewport, 0,
-         // worldPos, 0);
-         // final Color color = (valid) ? Color.white : Color.red;
-         // image.setRGB(x, y, color.getRGB());
-         // }
-         // }
-         //
-         // label.setIcon(new ImageIcon(image));
-         // SwingUtilities.invokeLater(() -> {
-         // errorFrame.pack();
-         // errorFrame.setVisible(true);
-         // });
-         // }
 
          return null;
       }
-
-      // // Transformation matrices
-      // double[] in = new double[4];
-      // // Calculation for inverting a matrix, compute projection x modelview
-      // // and store in A[16]
-      // final Matrix4d proj = new Matrix4d(projection);
-      // final Matrix4d mv = new Matrix4d(modelview);
-      // proj.multiply(mv);
-      // // Now compute the inverse of matrix A
-      // if (Matrix4d.isSingular(proj)) {
-      // return null;
-      // }
-      //
-      // // Transformation of normalized coordinates between -1 and 1
-      // in[0] = (screenXyz.x - (float) viewport[0]) / (float) viewport[2] * 2.0 - 1.0;
-      // in[1] = (screenXyz.y - (float) viewport[1]) / (float) viewport[3] * 2.0 - 1.0;
-      // in[2] = 2.0 * screenXyz.z - 1.0;
-      // in[3] = 1.0;
-      // // Objects coordinates
-      // final Matrix4d matrix = new Matrix4d(proj);
-      // matrix.invert();
-      // final double[] out = matrix.multiply(in);
-      // if (out[3] == 0.0)
-      // return null;
-      // out[3] = 1.0 / out[3];
-      // final double[] objectCoordinate = new double[3];
-      // objectCoordinate[0] = out[0] * out[3];
-      // objectCoordinate[1] = out[1] * out[3];
-      // objectCoordinate[2] = out[2] * out[3];
-      // return new Tuple3d(objectCoordinate);
    }
-
-   // private static void glhTranslatef2(final double[] matrix, final double x, final double y, final double z) {
-   // matrix[12] = matrix[0] * x + matrix[4] * y + matrix[8] * z + matrix[12];
-   // matrix[13] = matrix[1] * x + matrix[5] * y + matrix[9] * z + matrix[13];
-   // matrix[14] = matrix[2] * x + matrix[6] * y + matrix[10] * z + matrix[14];
-   // matrix[15] = matrix[3] * x + matrix[7] * y + matrix[11]*z+matrix[15];
-   // }
 }

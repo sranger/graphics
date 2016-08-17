@@ -230,6 +230,17 @@ public class Matrix4d {
 
       return this;
    }
+   
+   public Matrix4d transpose() {
+      final Tuple4d row0 = new Tuple4d(this.get(0,0), this.get(1,0), this.get(2,0), this.get(3,0));
+      final Tuple4d row1 = new Tuple4d(this.get(0,1), this.get(1,1), this.get(2,1), this.get(3,1));
+      final Tuple4d row2 = new Tuple4d(this.get(0,2), this.get(1,2), this.get(2,2), this.get(3,2));
+      final Tuple4d row3 = new Tuple4d(this.get(0,3), this.get(1,3), this.get(2,3), this.get(3,3));
+      
+      this.set(row0, row1, row2, row3);
+      
+      return this;
+   }
 
    public static void invert(final double[] in) {
       final Matrix4d inMatrix = new Matrix4d(in);
