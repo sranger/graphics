@@ -35,8 +35,8 @@ public class Trapezoid implements PointIntersectable, LineIntersectable, Rendera
       this.corners[2] = new Tuple2d(c2);
       this.corners[3] = new Tuple2d(c3);
 
-      this.t1 = new Triangle2d(c0, c1, c2);
-      this.t2 = new Triangle2d(c0, c2, c3);
+      this.t1 = new Triangle2d(c0, c1, c2, false);
+      this.t2 = new Triangle2d(c0, c2, c3, false);
 
       this.minX = Math.min(c0.x, Math.min(c1.x, Math.min(c2.x, c3.x)));
       this.minY = Math.min(c0.y, Math.min(c1.y, Math.min(c2.y, c3.y)));
