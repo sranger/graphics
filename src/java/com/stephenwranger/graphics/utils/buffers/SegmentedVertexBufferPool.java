@@ -171,6 +171,7 @@ public class SegmentedVertexBufferPool {
             }
          }
 
+//         System.out.println("pool index: " + poolIndex + ", buffer index: " + bufferIndex + ", point count: " + segment.getVertexCount());
          final SegmentedVertexBufferObject buffer = this.getBuffer(poolIndex, bufferIndex);
          buffer.setSegmentObject(gl, origin, segment);
       }
