@@ -7,7 +7,6 @@ import com.stephenwranger.graphics.math.Tuple2d;
 import com.stephenwranger.graphics.math.Tuple3d;
 import com.stephenwranger.graphics.math.Vector2d;
 import com.stephenwranger.graphics.math.Vector3d;
-import com.stephenwranger.graphics.utils.TupleMath;
 
 public class Triangle3d extends Plane {
    protected final Tuple3d[] corners = new Tuple3d[3];
@@ -286,5 +285,24 @@ public class Triangle3d extends Plane {
       uv.add(uv3);
       
       return new Tuple3d(uv.x, uv.y, 1.0 - uv.x - uv.y);
+   }
+
+   /**
+    * Returns the area of this {@link Triangle3d} in meters^2 using the following formula:
+    * <pre>
+    *    AB X AC
+    *    -------
+    *      2.0
+    * </pre>
+    * @return
+    */
+   public double getArea() {
+      final Vector3d ab = Vector3d.getVector(this.corners[0], this.corners[1], false);
+      final Vector3d ac = Vector3d.getVector(this.corners[0], this.corners[2], false);
+      final Vector3d cross = new Vector3d();
+      cross.cross(ab, ac);
+      final double area = cross.length() / 2.0;
+      
+      return area;
    }
 }

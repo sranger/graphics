@@ -155,4 +155,42 @@ public class BoundingBox extends BoundingVolume {
    public BoundingVolume offset(final Tuple3d offset) {
       return new BoundingBox(TupleMath.sub(this.min, offset), TupleMath.sub(this.max, offset));
    }
+
+   /**
+    * Returns the surface area of the X-Y plane side.
+    * @return
+    */
+   public double getXYSideArea() {
+      final double x = max.x - min.x;
+      final double y = max.y - min.y;
+      return x * y;
+   }
+
+   /**
+    * Returns the surface area of the X-Z plane side.
+    * @return
+    */
+   public double getXZSideArea() {
+      final double x = max.x - min.x;
+      final double z = max.z - min.z;
+      return x * z;
+   }
+
+   /**
+    * Returns the surface area of the Y-Z plane side.
+    * @return
+    */
+   public double getYZSideArea() {
+      final double y = max.y - min.y;
+      final double z = max.z - min.z;
+      return y * z;
+   }
+   
+   public double getVolume() {
+      final double x = max.x - min.x;
+      final double y = max.y - min.y;
+      final double z = max.z - min.z;
+      
+      return x * y * z;
+   }
 }

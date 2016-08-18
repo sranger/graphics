@@ -1,7 +1,6 @@
 package com.stephenwranger.graphics.bounds;
 
 import com.stephenwranger.graphics.math.Tuple3d;
-import com.stephenwranger.graphics.math.intersection.IntersectionUtils;
 import com.stephenwranger.graphics.math.intersection.Plane;
 import com.stephenwranger.graphics.math.intersection.Triangle3d;
 import com.stephenwranger.graphics.utils.TupleMath;
@@ -178,5 +177,22 @@ public class TrianglePrismVolume extends BoundingBox {
       bottom[2] = TupleMath.sub(triangleBottom[2], offset);
       
       return new TrianglePrismVolume(top, bottom);
+   }
+
+   /**
+    * Returns the volume in meters^3 of this volume using the formula:
+    * <pre>
+    *    h * (TopArea + BottomArea + sqrt(TopArea * BottomArea))
+    *    -------------------------------------------------------
+    *                           3.0
+    * </pre>
+    * @return
+    */
+   public double getVolume() {
+      final double a = this.top.getArea();
+      final double b = this.bottom.getArea();
+      final double volume = (this.getDepth() * (a + b + Math.sqrt(a*b))) / 3.0;
+      
+      return volume;
    }
 }
