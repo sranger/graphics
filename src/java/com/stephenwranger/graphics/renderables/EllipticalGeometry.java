@@ -185,7 +185,7 @@ public class EllipticalGeometry extends Renderable {
       for (final EllipticalSegment segment : this.segments) {
          this.renderedSegments.addAll(this.getSegmentsToRender(gl, scene, segment, false, 0));
       }
-//      System.out.println("segment count: " + this.renderedSegments.size());
+      //      System.out.println("segment count: " + this.renderedSegments.size());
 
       //      for (final EllipticalSegment segment : this.renderedSegments) {
       //         this.loadVertices(gl, segment, originChanged);
@@ -202,13 +202,13 @@ public class EllipticalGeometry extends Renderable {
       //      this.vbo.render(gl, this.renderedSegments);
 
       EllipticalSegment currentSegment = null;
-      
+
       for (final EllipticalSegment segment : this.renderedSegments) {
          currentSegment = segment;
          segment.render(gl, glu, scene);
       }
-      
-      if(currentSegment != null) {
+
+      if (currentSegment != null) {
          currentSegment.disableTexture(gl);
       }
 
@@ -229,8 +229,8 @@ public class EllipticalGeometry extends Renderable {
    public void setLoadFactor(final double loadFactor) {
       this.loadFactor = loadFactor;
    }
-   
-   private List<EllipticalSegment> getSegmentsToRender(final GL2 gl, final Scene scene, final EllipticalSegment segment, boolean ignoreFrustum, final int depth) {
+
+   private List<EllipticalSegment> getSegmentsToRender(final GL2 gl, final Scene scene, final EllipticalSegment segment, final boolean ignoreFrustum, final int depth) {
       final List<EllipticalSegment> toRender = new ArrayList<>();
       final BoundingVolume bounds = segment.getBoundingVolume();
       final Tuple3d origin = scene.getOrigin();
@@ -241,7 +241,7 @@ public class EllipticalGeometry extends Renderable {
       } else {
          final Plane[] frustumPlanes = scene.getFrustumPlanes();
          result = BoundsUtils.testFrustum(frustumPlanes, bounds.offset(origin));
-//         ignoreFrustum = (result == FrustumResult.IN);
+         //         ignoreFrustum = (result == FrustumResult.IN);
       }
 
       if (result != FrustumResult.OUT) {
@@ -250,12 +250,12 @@ public class EllipticalGeometry extends Renderable {
             final Tuple2d[] screenSpace = new Tuple2d[vertices.length];
 
             for (int i = 0; i < vertices.length; i++) {
-               final Tuple3d screen = CameraUtils.gluProject(scene, TupleMath.sub(vertices[i].getVertex(), origin));
-               
-               if(screen == null) {
+               final Tuple3d screen = CameraUtils.gluProject(scene, vertices[i].getVertex());
+
+               if (screen == null) {
                   return toRender;
                }
-               
+
                screenSpace[i] = screen.xy();
             }
 
@@ -275,7 +275,7 @@ public class EllipticalGeometry extends Renderable {
 
                if ((children == null) || children.isEmpty() || !EllipticalGeometry.hasTextures(children)) {
                   toRender.add(segment);
-               } else if(hasChildren) {
+               } else if (hasChildren) {
                   // only go deeper if the current segment had already split
                   // this is so it doesn't attempt to go super deep in a single frame
                   for (final EllipticalSegment child : children) {
