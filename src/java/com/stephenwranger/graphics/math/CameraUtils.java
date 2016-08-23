@@ -1,7 +1,5 @@
 package com.stephenwranger.graphics.math;
 
-import java.util.Arrays;
-
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.glu.GLU;
@@ -384,6 +382,7 @@ public class CameraUtils {
          return new Tuple3d(winPos);
       } else {
          //         new RuntimeException("invalid gluProject\n\tworld = " + worldXyz + "\n\tmv = " + Arrays.toString(modelview) + "\n\tproj = " + Arrays.toString(projection) + "\n\tviewport: " + Arrays.toString(viewport)).printStackTrace();
+         System.err.println("gluProject invalid");
          return null;
       }
    }
