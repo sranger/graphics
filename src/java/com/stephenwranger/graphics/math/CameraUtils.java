@@ -1,10 +1,13 @@
 package com.stephenwranger.graphics.math;
 
+import java.util.Arrays;
+
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.glu.GLU;
 import com.stephenwranger.graphics.Scene;
 import com.stephenwranger.graphics.math.intersection.Plane;
+import com.stephenwranger.graphics.utils.MathUtils;
 import com.stephenwranger.graphics.utils.TupleMath;
 
 /**
@@ -399,18 +402,27 @@ public class CameraUtils {
       final int[] viewport = scene.getViewport();
       final double[] worldPos = new double[] { 0, 0, 0, 1 };
 
-      // final double near = scene.getNear();
-      // final double far = scene.getFar();
-      // final double range = near / far;
-      final double scaledDistance = screenXyz.z;// * range + near;
+      final double x = MathUtils.clamp(viewport[0] + 1, viewport[2] - 1, screenXyz.x);
+      final double y = MathUtils.clamp(viewport[1] + 1, viewport[3] - 1, screenXyz.y);
+      final double z = MathUtils.clamp(0.0001, 0.9999, screenXyz.z);
+      
+//      final Matrix4d mv = new Matrix4d(modelview);
+//      final Matrix4d proj = new Matrix4d(projection);
+//
+//      System.out.println("\nmodelview: " + Matrix4d.isSingular(mv));
+//      mv.print("%.3f");
+//      System.out.println("proj: " + Matrix4d.isSingular(proj));
+//      proj.print("%.3f");
+//      System.out.println("viewport: " + Arrays.toString(viewport));
+//      System.out.println("screen xyz: " + screenXyz);
 
-      if (CameraUtils.GLU_CONTEXT.gluUnProject(screenXyz.x, screenXyz.y, scaledDistance, modelview, 0, projection, 0, viewport, 0, worldPos, 0)) {
+      if (CameraUtils.GLU_CONTEXT.gluUnProject(x, y, z, modelview, 0, projection, 0, viewport, 0, worldPos, 0)) {
          final Tuple3d value = new Tuple3d(worldPos);
          value.add(scene.getOrigin());
          return value;
       } else {
          //         new RuntimeException("invalid gluUnProject\n\tscreen = " + screenXyz + "\n\tmv = " + Arrays.toString(modelview) + "\n\tproj = " + Arrays.toString(projection) + "\n\tviewport: " + Arrays.toString(viewport)).printStackTrace();
-
+         System.err.println("gluUnProject invalid");
          return null;
       }
    }
