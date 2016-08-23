@@ -53,6 +53,14 @@ public class Matrix4d {
    public Matrix4d(final Tuple4d column0, final Tuple4d column1, final Tuple4d column2, final Tuple4d column3) {
       this.set(column0, column1, column2, column3);
    }
+   
+   public void print(final String valueFormat) {
+      final String format = "[" + valueFormat + " " + valueFormat + " " + valueFormat + " " + valueFormat + "]";
+      System.out.println(String.format(format, this.m[0], this.m[1], this.m[2], this.m[3]));
+      System.out.println(String.format(format, this.m[4], this.m[5], this.m[6], this.m[7]));
+      System.out.println(String.format(format, this.m[8], this.m[9], this.m[10], this.m[11]));
+      System.out.println(String.format(format, this.m[12], this.m[13], this.m[14], this.m[15]));
+   }
 
    public double[] get() {
       return this.get(null);
