@@ -126,6 +126,28 @@ public class Triangle2d implements PointIntersectable, LineIntersectable {
 
       return null;
    }
+   
+   public Tuple2d getCartesianCoordinate(final Tuple3d barycentricCoordinate) {
+      // return barycentric.x * p0 + barycentric.y * p1 + barycentric.z * p2;
+      final Tuple2d c0 = new Tuple2d(this.corners[0]);
+      c0.x *= barycentricCoordinate.x;
+      c0.y *= barycentricCoordinate.x;
+      
+      final Tuple2d c1 = new Tuple2d(this.corners[1]);
+      c1.x *= barycentricCoordinate.y;
+      c1.y *= barycentricCoordinate.y;
+      
+      final Tuple2d c2 = new Tuple2d(this.corners[2]);
+      c2.x *= barycentricCoordinate.z;
+      c2.y *= barycentricCoordinate.z;
+      
+      final Tuple2d xy = new Tuple2d();
+      xy.add(c0);
+      xy.add(c1);
+      xy.add(c2);
+      
+      return xy;
+   }
 
    public Tuple3d getBarycentricCoordinate(final Tuple2d point) {
       final Tuple2d[] corners = this.getCorners(false);
