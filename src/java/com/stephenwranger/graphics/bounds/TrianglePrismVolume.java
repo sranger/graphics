@@ -1,6 +1,7 @@
 package com.stephenwranger.graphics.bounds;
 
 import com.stephenwranger.graphics.math.Tuple3d;
+import com.stephenwranger.graphics.math.Vector3d;
 import com.stephenwranger.graphics.math.intersection.Plane;
 import com.stephenwranger.graphics.math.intersection.Triangle3d;
 import com.stephenwranger.graphics.utils.TupleMath;
@@ -17,6 +18,7 @@ public class TrianglePrismVolume extends BoundingBox {
    private final Triangle3d bottom;
    private final Triangle3d[] faces = new Triangle3d[8];
    private final double depth;
+   private final Tuple3d center;
 
    /**
     * Creates a new {@link TrianglePrismVolume} with the given vertices in top as one triangular face and the vertices
@@ -45,6 +47,19 @@ public class TrianglePrismVolume extends BoundingBox {
       this.faces[7] = this.bottom;
       
       this.depth = Plane.distanceToPlane(this.top.getNormal(), this.top.getCorners()[0], bottom[0].x, bottom[0].y, bottom[0].z);
+
+      final Tuple3d topCenter = TupleMath.average(top);
+      final Tuple3d bottomCenter = TupleMath.average(bottom);
+      final Vector3d toCenter = Vector3d.getVector(topCenter, bottomCenter, true);
+      toCenter.scale(this.depth / 2.0);
+      
+      this.center = new Tuple3d(topCenter);
+      this.center.add(toCenter);
+   }
+   
+   @Override
+   public Tuple3d getCenter() {
+      return new Tuple3d(this.center);
    }
    
    public Triangle3d[] getFaces() {
