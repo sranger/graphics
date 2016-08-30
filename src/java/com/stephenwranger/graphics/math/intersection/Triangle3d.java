@@ -7,9 +7,18 @@ import com.stephenwranger.graphics.math.Tuple2d;
 import com.stephenwranger.graphics.math.Tuple3d;
 import com.stephenwranger.graphics.math.Vector2d;
 import com.stephenwranger.graphics.math.Vector3d;
+import com.stephenwranger.graphics.renderables.Line;
+import com.stephenwranger.graphics.utils.MathUtils;
 
 public class Triangle3d extends Plane {
    protected final Tuple3d[] corners = new Tuple3d[3];
+   protected final Line sLine;
+   protected final Line tLine;
+   protected final Line uLine;
+
+   protected final double sRange;
+   protected final double tRange;
+   protected final double uRange;
    
    public Triangle3d(final Tuple3d c1, final Tuple3d c2, final Tuple3d c3) {
       super(c1, c2, c3);
@@ -17,6 +26,14 @@ public class Triangle3d extends Plane {
       this.corners[0] = new Tuple3d(c1);
       this.corners[1] = new Tuple3d(c2);
       this.corners[2] = new Tuple3d(c3);
+
+      this.sLine = new Line(this.corners[0], this.corners[1]);
+      this.tLine = new Line(this.corners[1], this.corners[2]);
+      this.uLine = new Line(this.corners[2], this.corners[0]);
+
+      this.sRange = this.sLine.distanceToPoint(this.corners[2]);
+      this.tRange = this.tLine.distanceToPoint(this.corners[0]);
+      this.uRange = this.uLine.distanceToPoint(this.corners[1]);
    }
    
    public boolean fixCounterClockwise(final Tuple3d internalPoint) {
@@ -285,6 +302,50 @@ public class Triangle3d extends Plane {
       uv.add(uv3);
       
       return new Tuple3d(uv.x, uv.y, 1.0 - uv.x - uv.y);
+   }
+   
+   /**
+    * Projects the given {@link Tuple3d} onto this {@link Triangle3d} and computes the triangular coordinates 
+    * as a distance ratio from each face. The projected plane is chosen by ignoring the axis coordinate in this 
+    * triangle's normal with the largest absolute magnitude.
+    * 
+    * @param original the original point
+    * @return the triangular coordinates of the given point
+    */
+   public Tuple3d getTriangularCoordinates(final Tuple3d original) {
+      // first, get point on plane closest to original point
+      final double distance = this.distanceToPoint(original);
+      final Tuple3d point = new Tuple3d(original);
+      final Vector3d scaledNormal = new Vector3d(this.normal);
+      scaledNormal.normalize();
+      scaledNormal.scale(distance);
+      point.subtract(scaledNormal);
+
+      final double s = MathUtils.clamp(0, sRange, sLine.distanceToPoint(point));
+      final double t = MathUtils.clamp(0, tRange, tLine.distanceToPoint(point));
+      final double u = MathUtils.clamp(0, uRange, uLine.distanceToPoint(point));
+      Tuple3d coords = null;
+      
+      // TODO: this is out of bounds at times
+//      if(IntersectionUtils.isClampedInclusive(s, 0.0, this.sRange) && IntersectionUtils.isClampedInclusive(t, 0.0, this.tRange) && IntersectionUtils.isClampedInclusive(u, 0.0, this.uRange)) {
+         coords = new Tuple3d(s, t, u);
+//      } else {
+//         System.err.println(String.format("not valid: %.2f, %.2f, %.2f", s, t, u));
+//         System.err.println(String.format("range: %.2f, %.2f, %.2f", this.sRange, this.tRange, this.uRange));
+//         System.err.println(String.format("to plane: %.2f (should be 0)", this.distanceToPoint(point)));
+//         final Tuple3d bary = this.getBarycentricCoordinate(original);
+//         System.err.println(String.format("bary: %.2f, %.2f, %.2f (>= 0), total = %.2f (== 1.0)", bary.x, bary.y, bary.z, (bary.x + bary.y + bary.z)));
+//      }
+      
+      return coords;
+   }
+   
+   /**
+    * Returns the range [0,{x,y,z}] for triangular coordinates.
+    * @return
+    */
+   public Tuple3d getTriangularCoordinatesRange() {
+      return new Tuple3d(this.sRange, this.tRange, this.uRange);
    }
 
    /**

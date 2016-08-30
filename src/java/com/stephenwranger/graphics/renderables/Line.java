@@ -10,6 +10,8 @@ import com.stephenwranger.graphics.bounds.BoundingBox;
 import com.stephenwranger.graphics.bounds.BoundingVolume;
 import com.stephenwranger.graphics.color.Color4f;
 import com.stephenwranger.graphics.math.Tuple3d;
+import com.stephenwranger.graphics.math.Vector3d;
+import com.stephenwranger.graphics.utils.TupleMath;
 
 public class Line extends RenderablePhysics {
    private final Tuple3d     p0, p1;
@@ -62,5 +64,29 @@ public class Line extends RenderablePhysics {
 
    public void setColor(final Color4f color) {
       this.color.setColor(color);
+   }
+   
+   public double distanceToPoint(final Tuple3d p) {
+      final Vector3d v = Vector3d.getVector(this.p0, this.p1, true);
+      final Vector3d w = Vector3d.getVector(p0, p, true);
+      final double c1 = w.dot(v);
+      final double c2 = v.dot(v);
+      
+//      // before p0
+//      if(IntersectionUtils.isLessOrEqual(c1, 0.0)) {
+//         return p.distance(this.p0);
+//      }
+//      
+//      // after p1
+//      if(IntersectionUtils.isLessOrEqual(c2, c1)) {
+//         return p.distance(this.p1);
+//      }
+      
+      final double b = c1 / c2;
+      final Vector3d bv = new Vector3d(v);
+      bv.scale(b);
+      final Tuple3d pb = TupleMath.add(this.p0, bv);
+      
+      return p.distance(pb);
    }
 }
