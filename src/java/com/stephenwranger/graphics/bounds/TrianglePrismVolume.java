@@ -78,31 +78,6 @@ public class TrianglePrismVolume extends BoundingBox {
       return this.top.distanceToPoint(this.bottom.getBarycentricOrigin());
    }
    
-//   @Override
-//   public boolean contains(final Tuple3d point) {
-//      // check the easier contains computation as an early termination step
-//      if(super.contains(point)) {
-//         final Tuple3d topBarycentric = this.top.getBarycentricCoordinate(point);
-//         
-//         // check if its barycentric coordinates fall on the top face
-//         if(IntersectionUtils.isLessOrEqual(topBarycentric.x + topBarycentric.y + topBarycentric.z, 1.0)) {
-//            final Tuple3d bottomBarycentric = this.bottom.getBarycentricCoordinate(point);
-//
-//            // check if its barycentric coordinates fall on the bottom face
-//            if(IntersectionUtils.isLessOrEqual(bottomBarycentric.x + bottomBarycentric.y + bottomBarycentric.z, 1.0)) {
-//               final double totalDistance = this.top.distance(this.bottom.getBarycentricOrigin());
-//               final double toTop = this.top.distance(point);
-//               final double toBottom = this.bottom.distance(point);
-//               
-//               // make sure it's between the top and bottom faces
-//               return IntersectionUtils.isEqual(totalDistance, toTop + toBottom);
-//            }
-//         }
-//      }
-//      
-//      return false;
-//   }
-   
    @Override
    public boolean contains(final Tuple3d point) {
       int ctr = 0;
@@ -119,27 +94,11 @@ public class TrianglePrismVolume extends BoundingBox {
       }
       
       return ctr == this.faces.length;
-      
-//      final double[] uvwDepth = this.getBarycentricCoordinate(point);
-//      
-//      final double uvw = uvwDepth[0] + uvwDepth[1] + uvwDepth[2];
-//      final double depth = uvwDepth[3];
-//      
-//      return IntersectionUtils.isLessOrEqual(uvw, 1.0) && IntersectionUtils.isClampedInclusive(depth, 0.0, 1.0);
    }
    
-   /**
-    * Returns a double array containing barycentric coordinates and normalized depth from top face.
-    * 
-    * @param xyz
-    * @return u,v,w,depth coordinates
-    */
-   public double[] getBarycentricCoordinate(final Tuple3d xyz) {
-      final Tuple3d uvw = this.top.getBarycentricCoordinate(xyz);
-      final double depth = this.top.distanceToPoint(xyz) / this.depth;
-      
-      return new double[] { uvw.x, uvw.y, uvw.z, depth };
-   }
+//   private static boolean isValid(final Tuple3d barycentric) {
+//      return IntersectionUtils.isGreaterOrEqual(barycentric.x, -0.01) && IntersectionUtils.isGreaterOrEqual(barycentric.y, -0.01);// && IntersectionUtils.isEqual(barycentric.x + barycentric.y + barycentric.z, 1.0);
+//   }
    
    private static Tuple3d getMin(final Tuple3d[] top, final Tuple3d[] bottom) {
       final Tuple3d min = new Tuple3d(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
