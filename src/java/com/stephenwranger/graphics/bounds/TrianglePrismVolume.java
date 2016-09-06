@@ -136,22 +136,22 @@ public class TrianglePrismVolume extends BoundingBox {
       return max;
    }
 
-   @Override
-   public BoundingVolume offset(final Tuple3d offset) {
-      final Tuple3d[] triangleTop = this.top.getCorners();
-      final Tuple3d[] top = new Tuple3d[3];
-      top[0] = TupleMath.sub(triangleTop[1], offset);
-      top[1] = TupleMath.sub(triangleTop[0], offset);
-      top[2] = TupleMath.sub(triangleTop[2], offset);
-
-      final Tuple3d[] triangleBottom = this.top.getCorners();
-      final Tuple3d[] bottom = new Tuple3d[3];
-      bottom[0] = TupleMath.sub(triangleBottom[0], offset);
-      bottom[1] = TupleMath.sub(triangleBottom[1], offset);
-      bottom[2] = TupleMath.sub(triangleBottom[2], offset);
-      
-      return new TrianglePrismVolume(top, bottom);
-   }
+//   @Override
+//   public BoundingVolume offset(final Tuple3d offset) {
+//      final Tuple3d[] triangleTop = this.top.getCorners();
+//      final Tuple3d[] top = new Tuple3d[3];
+//      top[1] = TupleMath.sub(triangleTop[1], offset);
+//      top[0] = TupleMath.sub(triangleTop[0], offset);
+//      top[2] = TupleMath.sub(triangleTop[2], offset);
+//
+//      final Tuple3d[] triangleBottom = this.bottom.getCorners();
+//      final Tuple3d[] bottom = new Tuple3d[3];
+//      bottom[0] = TupleMath.sub(triangleBottom[0], offset);
+//      bottom[1] = TupleMath.sub(triangleBottom[1], offset);
+//      bottom[2] = TupleMath.sub(triangleBottom[2], offset);
+//      
+//      return new TrianglePrismVolume(top, bottom);
+//   }
 
    /**
     * Returns the volume in meters^3 of this volume using the formula:
