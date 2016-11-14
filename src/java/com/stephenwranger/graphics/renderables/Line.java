@@ -17,6 +17,8 @@ public class Line extends RenderablePhysics {
    private final Tuple3d     p0, p1;
    private final BoundingBox bounds;
    private final Color4f     color = new Color4f(1, 1, 1, 1);
+   
+   private float lineWidth = 4f;
 
    public Line(final Tuple3d p0, final Tuple3d p1) {
       super(0, 0, 0, 0);
@@ -36,6 +38,14 @@ public class Line extends RenderablePhysics {
    public boolean isCollidable() {
       return false;
    }
+   
+   public void setLineWidth(final float lineWidth) {
+      this.lineWidth = lineWidth;
+   }
+   
+   public float getLineWidth() {
+      return this.lineWidth;
+   }
 
    @Override
    public void render(final GL2 gl, final GLU glu, final GLAutoDrawable glDrawable, final Scene scene) {
@@ -43,7 +53,7 @@ public class Line extends RenderablePhysics {
       gl.glDisable(GLLightingFunc.GL_LIGHTING);
       gl.glEnable(GLLightingFunc.GL_COLOR_MATERIAL);
       gl.glColorMaterial(GL.GL_FRONT_AND_BACK, GLLightingFunc.GL_DIFFUSE);
-      gl.glLineWidth(4f);
+      gl.glLineWidth(this.lineWidth);
 
       gl.glBegin(GL.GL_LINES);
 
