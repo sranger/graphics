@@ -92,6 +92,16 @@ public class Vector3d extends Tuple3d implements Vector {
       return this;
    }
 
+   /**
+    * Scalar product: 
+    * <pre>
+    * == 0: orthogonal
+    *  < 0: opposite direction
+    *  > 0: same direction
+    * </pre>
+    * @param other
+    * @return
+    */
    public double dot(final Vector3d other) {
       return (this.x * other.x) + (this.y * other.y) + (this.z * other.z);
    }
