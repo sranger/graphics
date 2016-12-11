@@ -3,7 +3,7 @@ package com.stephenwranger.graphics.utils;
 public class TimeUtils {
    public static final String    NANOSECONDS                 = "ns";
    public static final long      NANOSECONDS_TO_NANOSECONDS  = 1l;
-   public static final String    MICROSECONDS                = "μs";
+   public static final String    MICROSECONDS                = "\u00B5s";
    public static final long      NANOSECONDS_TO_MICROSECONDS = 1000l;
    public static final String    MILLISECONDS                = "ms";
    public static final long      NANOSECONDS_TO_MILLISECONDS = 1000l * TimeUtils.NANOSECONDS_TO_MICROSECONDS;
